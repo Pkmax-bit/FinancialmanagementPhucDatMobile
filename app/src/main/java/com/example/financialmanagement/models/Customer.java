@@ -22,6 +22,7 @@ public class Customer {
     private Integer paymentTerms;
     private String notes;
     private String assignedTo;
+    private Integer projectCount;
     private Date createdAt;
     private Date updatedAt;
 
@@ -170,6 +171,22 @@ public class Customer {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getCustomerType() {
+        return type;
+    }
+
+    public void setCustomerType(String customerType) {
+        this.type = customerType;
+    }
+
+    public Integer getProjectCount() {
+        return projectCount;
+    }
+
+    public void setProjectCount(Integer projectCount) {
+        this.projectCount = projectCount;
     }
 
     // Utility methods

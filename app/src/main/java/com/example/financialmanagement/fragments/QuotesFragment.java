@@ -117,6 +117,11 @@ public class QuotesFragment extends Fragment implements QuotesAdapter.QuoteClick
             }
 
             @Override
+            public void onSuccess() {
+                // Not used in this context
+            }
+
+            @Override
             public void onError(String error) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {

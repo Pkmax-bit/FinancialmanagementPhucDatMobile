@@ -116,6 +116,11 @@ public class InvoicesFragment extends Fragment implements InvoicesAdapter.Invoic
             }
 
             @Override
+            public void onSuccess() {
+                // Not used in this context
+            }
+
+            @Override
             public void onError(String error) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
