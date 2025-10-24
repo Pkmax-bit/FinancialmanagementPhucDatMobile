@@ -14,18 +14,24 @@ import com.example.financialmanagement.R;
 import com.example.financialmanagement.adapters.ExpensesAdapter;
 import com.example.financialmanagement.models.ProjectExpense;
 import com.example.financialmanagement.services.ExpenseService;
+import com.example.financialmanagement.auth.AuthManager;
+import com.example.financialmanagement.utils.ApiDebugger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Expenses Fragment - Màn hình quản lý chi phí
- * Hiển thị danh sách chi phí và cho phép thao tác CRUD
+ * Expenses Fragment - Màn hình quản lý chi phí dự án
+ * Tập trung vào việc quản lý chi phí thực tế của dự án web Phúc Đạt
+ * Hiển thị danh sách chi phí theo role và cho phép thao tác CRUD
  */
 public class ExpensesFragment extends Fragment implements ExpensesAdapter.ExpenseClickListener {
 
     private RecyclerView rvExpenses;
     private ExpensesAdapter expensesAdapter;
     private ExpenseService expenseService;
+    private AuthManager authManager;
 
     @Nullable
     @Override
@@ -42,6 +48,7 @@ public class ExpensesFragment extends Fragment implements ExpensesAdapter.Expens
     private void initializeViews(View view) {
         rvExpenses = view.findViewById(R.id.rv_expenses);
         expenseService = new ExpenseService(getContext());
+        authManager = new AuthManager(getContext());
     }
 
     private void setupRecyclerView() {
@@ -51,12 +58,44 @@ public class ExpensesFragment extends Fragment implements ExpensesAdapter.Expens
     }
 
     private void loadExpenses() {
-        expenseService.getAllExpenses(new ExpenseService.ExpenseCallback() {
+        // Load expenses based on user role
+        Map<String, Object> params = new HashMap<>();
+        
+        // Add role-based filtering
+        String userRole = authManager.getUserRole();
+        if (userRole != null) {
+            switch (userRole.toLowerCase()) {
+                case "admin":
+                    // Admin can see all expenses
+                    ApiDebugger.logAuth("Loading all expenses for Admin", true);
+                    break;
+                case "manager":
+                    // Manager can see expenses for their projects
+                    params.put("manager_id", authManager.getUserId());
+                    ApiDebugger.logAuth("Loading manager expenses for user: " + authManager.getUserId(), true);
+                    break;
+                case "employee":
+                default:
+                    // Employee can only see their own expenses
+                    params.put("created_by", authManager.getUserId());
+                    ApiDebugger.logAuth("Loading employee expenses for user: " + authManager.getUserId(), true);
+                    break;
+            }
+        }
+        
+        expenseService.getAllExpenses(params, new ExpenseService.ExpenseCallback() {
             @Override
             public void onSuccess(List<ProjectExpense> expenses) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         expensesAdapter.updateExpenses(expenses);
+                        ApiDebugger.logResponse(200, "Success", "Expenses loaded: " + expenses.size());
+                        
+                        // Show role-based message
+                        String roleMessage = getRoleBasedMessage(userRole, expenses.size());
+                        if (roleMessage != null) {
+                            Toast.makeText(getContext(), roleMessage, Toast.LENGTH_SHORT).show();
+                        }
                     });
                 }
             }
@@ -71,10 +110,26 @@ public class ExpensesFragment extends Fragment implements ExpensesAdapter.Expens
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         Toast.makeText(getContext(), "Lỗi tải chi phí: " + error, Toast.LENGTH_SHORT).show();
+                        ApiDebugger.logError("loadExpenses", new Exception(error));
                     });
                 }
             }
         });
+    }
+    
+    private String getRoleBasedMessage(String userRole, int expenseCount) {
+        if (userRole == null) return null;
+        
+        switch (userRole.toLowerCase()) {
+            case "admin":
+                return "Admin: Đã tải " + expenseCount + " chi phí (tất cả dự án)";
+            case "manager":
+                return "Manager: Đã tải " + expenseCount + " chi phí (dự án quản lý)";
+            case "employee":
+                return "Employee: Đã tải " + expenseCount + " chi phí (của bạn)";
+            default:
+                return "Đã tải " + expenseCount + " chi phí";
+        }
     }
 
     @Override

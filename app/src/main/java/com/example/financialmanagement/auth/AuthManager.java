@@ -26,6 +26,7 @@ public class AuthManager {
     private static final String KEY_USER_ID = "user_id";
     private static final String KEY_USER_EMAIL = "user_email";
     private static final String KEY_USER_NAME = "user_name";
+    private static final String KEY_USER_ROLE = "user_role";
     
     private Context context;
     private SharedPreferences prefs;
@@ -120,6 +121,10 @@ public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX
     
     public String getUserName() {
         return prefs.getString(KEY_USER_NAME, null);
+    }
+    
+    public String getUserRole() {
+        return prefs.getString(KEY_USER_ROLE, null);
     }
     
     /**

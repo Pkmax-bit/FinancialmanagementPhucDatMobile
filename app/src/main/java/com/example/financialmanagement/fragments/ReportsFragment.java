@@ -19,8 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Reports Fragment - Màn hình báo cáo
- * Hiển thị các biểu đồ và thống kê tài chính
+ * Reports Fragment - Màn hình báo cáo chi phí dự án
+ * Tập trung vào báo cáo chi phí thực tế của dự án web Phúc Đạt
+ * Hiển thị các biểu đồ và thống kê chi phí dự án
  */
 public class ReportsFragment extends Fragment {
 

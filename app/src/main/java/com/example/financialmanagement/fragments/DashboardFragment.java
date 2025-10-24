@@ -80,6 +80,9 @@ public class DashboardFragment extends Fragment {
         
         // Load completed projects count
         loadCompletedProjects();
+        
+        // Load project cost summary
+        loadProjectCostSummary();
     }
     
     private void loadTotalProjects() {
@@ -231,5 +234,69 @@ public class DashboardFragment extends Fragment {
                 }
             }
         });
+    }
+    
+    private void loadProjectCostSummary() {
+        // Load project cost summary for dashboard
+        Map<String, Object> params = new HashMap<>();
+        params.put("limit", 1000);
+        
+        ApiDebugger.logRequest("GET", "Project Cost Summary", null, params);
+        
+        projectService.getAllProjects(params, new ProjectService.ProjectCallback() {
+            @Override
+            public void onSuccess(List<Project> projects) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        if (projects != null) {
+                            double totalBudget = 0;
+                            double totalActualCost = 0;
+                            int activeProjects = 0;
+                            
+                            for (Project project : projects) {
+                                if (project.getBudget() != null) {
+                                    totalBudget += project.getBudget();
+                                }
+                                if (project.getActualCost() != null) {
+                                    totalActualCost += project.getActualCost();
+                                }
+                                if ("active".equals(project.getStatus())) {
+                                    activeProjects++;
+                                }
+                            }
+                            
+                            // Update UI with cost information
+                            updateCostSummary(totalBudget, totalActualCost, activeProjects);
+                            
+                            ApiDebugger.logResponse(200, "Success", 
+                                "Total Budget: " + totalBudget + ", Actual Cost: " + totalActualCost);
+                        }
+                    });
+                }
+            }
+            
+            @Override
+            public void onSuccess(Project project) {
+                // Not used
+            }
+            
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        ApiDebugger.logError("loadProjectCostSummary", new Exception(error));
+                    });
+                }
+            }
+        });
+    }
+    
+    private void updateCostSummary(double totalBudget, double totalActualCost, int activeProjects) {
+        // Update dashboard with cost information
+        // This will be displayed in the statistics cards
+        ApiDebugger.logResponse(200, "Cost Summary", 
+            "Budget: " + CurrencyFormatter.format(totalBudget) + 
+            ", Actual: " + CurrencyFormatter.format(totalActualCost) + 
+            ", Active: " + activeProjects);
     }
 }
