@@ -7,29 +7,9 @@
         android:title="Tổng quan" />
 
     <item
-        android:id="@+id/nav_customers"
-        android:icon="@drawable/ic_person"
-        android:title="Khách hàng" />
-
-    <item
         android:id="@+id/nav_projects"
         android:icon="@drawable/ic_projects"
         android:title="Dự án" />
-
-    <item
-        android:id="@+id/nav_quotes"
-        android:icon="@drawable/ic_quote"
-        android:title="Báo giá" />
-
-    <item
-        android:id="@+id/nav_budget"
-        android:icon="@drawable/ic_budget"
-        android:title="Ngân sách" />
-
-    <item
-        android:id="@+id/nav_invoices"
-        android:icon="@drawable/ic_invoice"
-        android:title="Hóa đơn" />
 
     <item
         android:id="@+id/nav_expenses"

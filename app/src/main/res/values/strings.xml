@@ -127,4 +127,9 @@
     <string name="unit_million">triệu</string>
     <string name="unit_billion">tỷ</string>
     <string name="unit_thousand">nghìn</string>
+    
+    <!-- Navigation Drawer -->
+    <string name="nav_header_title">Phúc Đạt Financial</string>
+    <string name="nav_header_subtitle">Quản lý tài chính thông minh</string>
+    <string name="nav_header_desc">Navigation header</string>
 </resources>
