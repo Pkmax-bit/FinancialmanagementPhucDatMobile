@@ -87,13 +87,21 @@ public class DashboardFragment extends Fragment {
         Map<String, Object> params = new HashMap<>();
         params.put("limit", 1000); // Get all projects
         
+        ApiDebugger.logRequest("GET", "Total Projects", null, params);
+        
         projectService.getAllProjects(params, new ProjectService.ProjectCallback() {
             @Override
             public void onSuccess(List<Project> projects) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        tvTotalProjects.setText(String.valueOf(projects.size()));
-                        ApiDebugger.logResponse(200, "Success", "Total projects: " + projects.size());
+                        int projectCount = projects != null ? projects.size() : 0;
+                        tvTotalProjects.setText(String.valueOf(projectCount));
+                        ApiDebugger.logResponse(200, "Success", "Total projects: " + projectCount);
+                        
+                        // Show success message if projects found
+                        if (projectCount > 0) {
+                            Toast.makeText(getContext(), "Đã tải " + projectCount + " dự án", Toast.LENGTH_SHORT).show();
+                        }
                     });
                 }
             }
@@ -109,6 +117,7 @@ public class DashboardFragment extends Fragment {
                     getActivity().runOnUiThread(() -> {
                         tvTotalProjects.setText("0");
                         ApiDebugger.logError("loadTotalProjects", new Exception(error));
+                        Toast.makeText(getContext(), "Lỗi tải dự án: " + error, Toast.LENGTH_SHORT).show();
                     });
                 }
             }

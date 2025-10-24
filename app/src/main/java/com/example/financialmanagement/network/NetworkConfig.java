@@ -52,6 +52,11 @@ public class NetworkConfig {
         public static final String CUSTOMER_DETAIL = "customers/{id}";
         public static final String CUSTOMERS_PUBLIC = "customers/public-list";
         
+        // Users
+        public static final String USERS = "users";
+        public static final String USER_DETAIL = "users/{id}";
+        public static final String USER_PROFILE = "users/profile";
+        
         // Employees
         public static final String EMPLOYEES = "employees";
         public static final String EMPLOYEE_DETAIL = "employees/{id}";

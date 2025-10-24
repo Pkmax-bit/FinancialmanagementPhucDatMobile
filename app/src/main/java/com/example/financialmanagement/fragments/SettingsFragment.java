@@ -14,6 +14,9 @@ import androidx.fragment.app.Fragment;
 import com.example.financialmanagement.R;
 import com.example.financialmanagement.auth.AuthManager;
 import com.example.financialmanagement.activities.LoginActivity;
+import com.example.financialmanagement.services.UserService;
+import com.example.financialmanagement.models.User;
+import com.example.financialmanagement.models.Employee;
 import com.example.financialmanagement.utils.ApiDebugger;
 
 /**
@@ -22,9 +25,10 @@ import com.example.financialmanagement.utils.ApiDebugger;
  */
 public class SettingsFragment extends Fragment {
 
-    private TextView tvUserName, tvUserEmail, tvUserId;
+    private TextView tvUserName, tvUserEmail, tvUserId, tvUserRole, tvEmployeeInfo;
     private Button btnLogout, btnSyncData, btnClearCache;
     private AuthManager authManager;
+    private UserService userService;
 
     @Nullable
     @Override
@@ -42,11 +46,14 @@ public class SettingsFragment extends Fragment {
         tvUserName = view.findViewById(R.id.tv_user_name);
         tvUserEmail = view.findViewById(R.id.tv_user_email);
         tvUserId = view.findViewById(R.id.tv_user_id);
+        tvUserRole = view.findViewById(R.id.tv_user_role);
+        tvEmployeeInfo = view.findViewById(R.id.tv_employee_info);
         btnLogout = view.findViewById(R.id.btn_logout);
         btnSyncData = view.findViewById(R.id.btn_sync_data);
         btnClearCache = view.findViewById(R.id.btn_clear_cache);
         
         authManager = new AuthManager(getContext());
+        userService = new UserService(getContext());
     }
 
     private void setupClickListeners() {
@@ -73,40 +80,80 @@ public class SettingsFragment extends Fragment {
     }
 
     private void loadUserInfo() {
-        // Load user information from AuthManager
+        // Debug logging
+        ApiDebugger.logAuth("Loading user info from database", authManager.isLoggedIn());
+        
+        // Check if user is logged in
+        if (!authManager.isLoggedIn()) {
+            showDefaultUserInfo();
+            Toast.makeText(getContext(), "Bạn chưa đăng nhập", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Load user information from database
+        userService.getCurrentUser(new UserService.UserCallback() {
+            @Override
+            public void onSuccess(User user) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        displayUserInfo(user);
+                        ApiDebugger.logAuth("User loaded successfully: " + user.getFullName(), true);
+                    });
+                }
+            }
+            
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        showDefaultUserInfo();
+                        ApiDebugger.logError("loadUserInfo", new Exception(error));
+                        Toast.makeText(getContext(), "Lỗi tải thông tin user: " + error, Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+        });
+    }
+    
+    private void displayUserInfo(User user) {
+        // Display basic user information
+        tvUserName.setText(user.getFullName());
+        tvUserEmail.setText(user.getEmail());
+        tvUserId.setText("ID: " + user.getId());
+        tvUserRole.setText("Vai trò: " + (user.getRole() != null ? user.getRole() : "Chưa xác định"));
+        
+        // Display employee information if available
+        if (user.getEmployee() != null) {
+            Employee employee = user.getEmployee();
+            String employeeInfo = "Nhân viên: " + employee.getFirstName() + " " + employee.getLastName();
+            if (employee.getEmployeeCode() != null) {
+                employeeInfo += " (" + employee.getEmployeeCode() + ")";
+            }
+            tvEmployeeInfo.setText(employeeInfo);
+        } else if (user.getEmployeeId() != null) {
+            // Load employee details if only employeeId is available
+            loadEmployeeInfo(user.getEmployeeId());
+        } else {
+            tvEmployeeInfo.setText("Không có thông tin nhân viên");
+        }
+    }
+    
+    private void loadEmployeeInfo(String employeeId) {
+        // TODO: Implement employee service to load employee details
+        tvEmployeeInfo.setText("Employee ID: " + employeeId);
+    }
+    
+    private void showDefaultUserInfo() {
+        // Fallback to AuthManager data if database fails
         String userId = authManager.getUserId();
         String userEmail = authManager.getUserEmail();
         String userName = authManager.getUserName();
         
-        // Debug logging
-        ApiDebugger.logAuth("Loading user info", authManager.isLoggedIn());
-        ApiDebugger.logAuth("User ID: " + userId, authManager.isLoggedIn());
-        ApiDebugger.logAuth("User Email: " + userEmail, authManager.isLoggedIn());
-        ApiDebugger.logAuth("User Name: " + userName, authManager.isLoggedIn());
-        
-        // Display user information
-        if (userName != null && !userName.isEmpty()) {
-            tvUserName.setText(userName);
-        } else {
-            tvUserName.setText("Chưa có tên");
-        }
-        
-        if (userEmail != null && !userEmail.isEmpty()) {
-            tvUserEmail.setText(userEmail);
-        } else {
-            tvUserEmail.setText("Chưa có email");
-        }
-        
-        if (userId != null && !userId.isEmpty()) {
-            tvUserId.setText("ID: " + userId);
-        } else {
-            tvUserId.setText("ID: Chưa có");
-        }
-        
-        // Check if user is logged in
-        if (!authManager.isLoggedIn()) {
-            Toast.makeText(getContext(), "Bạn chưa đăng nhập", Toast.LENGTH_SHORT).show();
-        }
+        tvUserName.setText(userName != null ? userName : "Chưa có tên");
+        tvUserEmail.setText(userEmail != null ? userEmail : "Chưa có email");
+        tvUserId.setText(userId != null ? "ID: " + userId : "ID: Chưa có");
+        tvUserRole.setText("Vai trò: Chưa xác định");
+        tvEmployeeInfo.setText("Không có thông tin nhân viên");
     }
 
     private void performLogout() {
