@@ -58,6 +58,13 @@ public class ExpensesFragment extends Fragment implements ExpensesAdapter.Expens
     }
 
     private void loadExpenses() {
+        // Check authentication first
+        if (!authManager.isLoggedIn()) {
+            ApiDebugger.logAuth("User not logged in, cannot load expenses", false);
+            Toast.makeText(getContext(), "Vui lòng đăng nhập để xem chi phí", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         // Load expenses based on user role
         Map<String, Object> params = new HashMap<>();
         
@@ -82,6 +89,9 @@ public class ExpensesFragment extends Fragment implements ExpensesAdapter.Expens
                     break;
             }
         }
+        
+        // Test authentication with a simple API call first
+        testAuthentication();
         
         expenseService.getAllExpenses(params, new ExpenseService.ExpenseCallback() {
             @Override
@@ -109,12 +119,45 @@ public class ExpensesFragment extends Fragment implements ExpensesAdapter.Expens
             public void onError(String error) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(), "Lỗi tải chi phí: " + error, Toast.LENGTH_SHORT).show();
+                        // Check if it's an authentication error
+                        if (error.contains("403") || error.contains("401") || error.contains("Not authenticated")) {
+                            ApiDebugger.logAuth("Authentication failed, redirecting to login", false);
+                            Toast.makeText(getContext(), "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", Toast.LENGTH_LONG).show();
+                            
+                            // Clear auth data and redirect to login
+                            authManager.logout();
+                            
+                            // TODO: Navigate to login activity
+                            // Intent intent = new Intent(getContext(), LoginActivity.class);
+                            // startActivity(intent);
+                        } else {
+                            Toast.makeText(getContext(), "Lỗi tải chi phí: " + error, Toast.LENGTH_SHORT).show();
+                        }
+                        
                         ApiDebugger.logError("loadExpenses", new Exception(error));
                     });
                 }
             }
         });
+    }
+    
+    private void testAuthentication() {
+        // Test authentication by checking if user is logged in and has valid token
+        String token = authManager.getAccessToken();
+        String userId = authManager.getUserId();
+        String userRole = authManager.getUserRole();
+        
+        ApiDebugger.logAuth("=== AUTHENTICATION TEST ===", authManager.isLoggedIn());
+        ApiDebugger.logAuth("Is Logged In: " + authManager.isLoggedIn(), authManager.isLoggedIn());
+        ApiDebugger.logAuth("Token Available: " + (token != null && !token.isEmpty()), authManager.isLoggedIn());
+        ApiDebugger.logAuth("User ID: " + userId, authManager.isLoggedIn());
+        ApiDebugger.logAuth("User Role: " + userRole, authManager.isLoggedIn());
+        ApiDebugger.logAuth("=========================", authManager.isLoggedIn());
+        
+        if (!authManager.isLoggedIn() || token == null || token.isEmpty()) {
+            ApiDebugger.logAuth("Authentication test failed - user not properly logged in", false);
+            Toast.makeText(getContext(), "Lỗi xác thực: Vui lòng đăng nhập lại", Toast.LENGTH_LONG).show();
+        }
     }
     
     private String getRoleBasedMessage(String userRole, int expenseCount) {
