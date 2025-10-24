@@ -36,14 +36,21 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        initializeViews();
-        setupBottomNavigation();
         
-        // Load Dashboard fragment mặc định
-        if (savedInstanceState == null) {
-            loadFragment(new DashboardFragment());
+        try {
+            setContentView(R.layout.activity_main);
+            
+            initializeViews();
+            setupBottomNavigation();
+            
+            // Load Dashboard fragment mặc định
+            if (savedInstanceState == null) {
+                loadFragment(new DashboardFragment());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Log error and show toast
+            android.widget.Toast.makeText(this, "Lỗi khởi tạo: " + e.getMessage(), android.widget.Toast.LENGTH_LONG).show();
         }
     }
 
@@ -51,6 +58,17 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
+        
+        // Check for null views
+        if (bottomNavigationView == null) {
+            throw new RuntimeException("BottomNavigationView not found");
+        }
+        if (drawerLayout == null) {
+            throw new RuntimeException("DrawerLayout not found");
+        }
+        if (navigationView == null) {
+            throw new RuntimeException("NavigationView not found");
+        }
     }
 
     private void setupBottomNavigation() {

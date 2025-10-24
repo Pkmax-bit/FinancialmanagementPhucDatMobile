@@ -38,37 +38,77 @@ public class DashboardFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_dashboard, container, false);
-        
-        initializeViews(view);
-        setupRecyclerView();
-        loadDashboardData();
-        
-        return view;
+        try {
+            View view = inflater.inflate(R.layout.fragment_dashboard, container, false);
+            
+            initializeViews(view);
+            setupRecyclerView();
+            loadDashboardData();
+            
+            return view;
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Lỗi tải Dashboard: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            return inflater.inflate(R.layout.fragment_dashboard, container, false);
+        }
     }
 
     private void initializeViews(View view) {
-        tvTotalProjects = view.findViewById(R.id.tv_total_projects);
-        tvTotalExpenses = view.findViewById(R.id.tv_total_expenses);
-        tvTotalRevenue = view.findViewById(R.id.tv_total_revenue);
-        rvRecentProjects = view.findViewById(R.id.rv_recent_projects);
-        
-        projectService = new ProjectService(getContext());
-        expenseService = new ExpenseService(getContext());
+        try {
+            tvTotalProjects = view.findViewById(R.id.tv_total_projects);
+            tvTotalExpenses = view.findViewById(R.id.tv_total_expenses);
+            tvTotalRevenue = view.findViewById(R.id.tv_total_revenue);
+            rvRecentProjects = view.findViewById(R.id.rv_recent_projects);
+            
+            // Check for null views
+            if (tvTotalProjects == null) {
+                throw new RuntimeException("tvTotalProjects not found");
+            }
+            if (tvTotalExpenses == null) {
+                throw new RuntimeException("tvTotalExpenses not found");
+            }
+            if (tvTotalRevenue == null) {
+                throw new RuntimeException("tvTotalRevenue not found");
+            }
+            if (rvRecentProjects == null) {
+                throw new RuntimeException("rvRecentProjects not found");
+            }
+            
+            // Initialize services
+            if (getContext() != null) {
+                projectService = new ProjectService(getContext());
+                expenseService = new ExpenseService(getContext());
+            } else {
+                throw new RuntimeException("Context is null");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Lỗi khởi tạo views: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void setupRecyclerView() {
-        recentProjectsAdapter = new RecentProjectsAdapter(new ArrayList<>());
-        rvRecentProjects.setLayoutManager(new LinearLayoutManager(getContext()));
-        rvRecentProjects.setAdapter(recentProjectsAdapter);
+        try {
+            recentProjectsAdapter = new RecentProjectsAdapter(new ArrayList<>());
+            rvRecentProjects.setLayoutManager(new LinearLayoutManager(getContext()));
+            rvRecentProjects.setAdapter(recentProjectsAdapter);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Lỗi setup RecyclerView: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void loadDashboardData() {
-        // Load dashboard statistics
-        loadDashboardStats();
-        
-        // Load recent projects
-        loadRecentProjects();
+        try {
+            // Load dashboard statistics
+            loadDashboardStats();
+            
+            // Load recent projects
+            loadRecentProjects();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Lỗi tải dữ liệu: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void loadDashboardStats() {
