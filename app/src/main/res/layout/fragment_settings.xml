@@ -98,11 +98,12 @@
                             android:id="@+id/tv_employee_info"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Nhân viên: Nguyễn Văn A (NV001)"
+                            android:text="Nhân viên: Nguyễn Văn A (NV001)\nPhòng ban: IT\nChức vụ: Developer"
                             android:textSize="12sp"
                             android:textColor="?attr/colorOnSurface"
                             android:alpha="0.6"
-                            android:layout_marginTop="2dp" />
+                            android:layout_marginTop="2dp"
+                            android:lineSpacingExtra="2dp" />
 
                     </LinearLayout>
 

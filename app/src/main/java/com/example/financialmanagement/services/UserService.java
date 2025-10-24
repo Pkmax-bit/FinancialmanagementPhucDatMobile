@@ -28,12 +28,15 @@ public class UserService {
     }
     
     /**
-     * Lấy thông tin user hiện tại
+     * Lấy thông tin user hiện tại với employee details
      */
     public void getCurrentUser(UserCallback callback) {
-        ApiDebugger.logRequest("GET", "Current User", null, null);
+        Map<String, Object> params = new HashMap<>();
+        params.put("include_employee", true);
         
-        Call<User> call = userApi.getCurrentUser();
+        ApiDebugger.logRequest("GET", "Current User with Employee", null, params);
+        
+        Call<User> call = userApi.getCurrentUser(params);
         call.enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
@@ -119,7 +122,7 @@ public class UserService {
      */
     public interface UserApi {
         @GET(NetworkConfig.Endpoints.USERS + "/me")
-        Call<User> getCurrentUser();
+        Call<User> getCurrentUser(@QueryMap Map<String, Object> params);
         
         @GET(NetworkConfig.Endpoints.USERS + "/{id}")
         Call<User> getUser(@Path("id") String userId, @QueryMap Map<String, Object> params);

@@ -116,26 +116,45 @@ public class SettingsFragment extends Fragment {
     }
     
     private void displayUserInfo(User user) {
-        // Display basic user information
+        // Display basic user information from users table
         tvUserName.setText(user.getFullName());
         tvUserEmail.setText(user.getEmail());
         tvUserId.setText("ID: " + user.getId());
         tvUserRole.setText("Vai trò: " + (user.getRole() != null ? user.getRole() : "Chưa xác định"));
         
-        // Display employee information if available
+        // Display employee information from employees table
         if (user.getEmployee() != null) {
             Employee employee = user.getEmployee();
             String employeeInfo = "Nhân viên: " + employee.getFirstName() + " " + employee.getLastName();
             if (employee.getEmployeeCode() != null) {
                 employeeInfo += " (" + employee.getEmployeeCode() + ")";
             }
+            if (employee.getDepartment() != null) {
+                employeeInfo += "\nPhòng ban: " + employee.getDepartmentId();
+            }
+            if (employee.getPosition() != null) {
+                employeeInfo += "\nChức vụ: " + employee.getPositionId();
+            }
             tvEmployeeInfo.setText(employeeInfo);
+            
+            // Debug logging for employee info
+            ApiDebugger.logAuth("Employee loaded: " + employee.getFirstName() + " " + employee.getLastName(), true);
+            ApiDebugger.logAuth("Employee Code: " + employee.getEmployeeCode(), true);
+            ApiDebugger.logAuth("Department: " + (employee.getDepartmentId() != null ? employee.getDepartmentId() : "N/A"), true);
+            ApiDebugger.logAuth("Position: " + (employee.getPositionId() != null ? employee.getPositionId() : "N/A"), true);
         } else if (user.getEmployeeId() != null) {
             // Load employee details if only employeeId is available
             loadEmployeeInfo(user.getEmployeeId());
         } else {
             tvEmployeeInfo.setText("Không có thông tin nhân viên");
+            ApiDebugger.logAuth("No employee information available", true);
         }
+        
+        // Debug logging for user info
+        ApiDebugger.logAuth("User Name: " + user.getFullName(), true);
+        ApiDebugger.logAuth("User Email: " + user.getEmail(), true);
+        ApiDebugger.logAuth("User ID: " + user.getId(), true);
+        ApiDebugger.logAuth("User Role: " + user.getRole(), true);
     }
     
     private void loadEmployeeInfo(String employeeId) {
