@@ -2,6 +2,7 @@ package com.example.financialmanagement.services;
 
 import android.content.Context;
 import com.example.financialmanagement.models.Project;
+import com.example.financialmanagement.models.ProjectResponse;
 import com.example.financialmanagement.network.ApiClient;
 import com.example.financialmanagement.network.NetworkConfig;
 import com.example.financialmanagement.utils.ApiDebugger;
@@ -41,22 +42,26 @@ public class ProjectService {
         ApiDebugger.logRequest("GET", NetworkConfig.BASE_URL + NetworkConfig.Endpoints.PROJECTS, null, null);
         ApiDebugger.logQueryParams(params);
         
-        Call<List<Project>> call = projectApi.getProjects(params);
-        call.enqueue(new Callback<List<Project>>() {
+        Call<ProjectResponse> call = projectApi.getProjects(params);
+        call.enqueue(new Callback<ProjectResponse>() {
             @Override
-            public void onResponse(Call<List<Project>> call, Response<List<Project>> response) {
+            public void onResponse(Call<ProjectResponse> call, Response<ProjectResponse> response) {
                 ApiDebugger.logResponse(response.code(), response.message(), 
-                    response.body() != null ? "Projects count: " + response.body().size() : "null");
+                    response.body() != null ? response.body().toString() : "null");
                 
-                if (response.isSuccessful() && response.body() != null) {
-                    callback.onSuccess(response.body());
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    callback.onSuccess(response.body().getProjects());
                 } else {
-                    callback.onError("Lỗi tải danh sách dự án: " + response.code());
+                    String errorMsg = "Lỗi tải danh sách dự án: " + response.code();
+                    if (response.body() != null && response.body().getMessage() != null) {
+                        errorMsg += " - " + response.body().getMessage();
+                    }
+                    callback.onError(errorMsg);
                 }
             }
             
             @Override
-            public void onFailure(Call<List<Project>> call, Throwable t) {
+            public void onFailure(Call<ProjectResponse> call, Throwable t) {
                 ApiDebugger.logError("getAllProjects", t);
                 callback.onError("Lỗi kết nối: " + t.getMessage());
             }
@@ -164,19 +169,23 @@ public class ProjectService {
      * Tìm kiếm dự án
      */
     public void searchProjects(String query, Integer limit, ProjectCallback callback) {
-        Call<List<Project>> call = projectApi.searchProjects(query, limit);
-        call.enqueue(new Callback<List<Project>>() {
+        Call<ProjectResponse> call = projectApi.searchProjects(query, limit);
+        call.enqueue(new Callback<ProjectResponse>() {
             @Override
-            public void onResponse(Call<List<Project>> call, Response<List<Project>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    callback.onSuccess(response.body());
+            public void onResponse(Call<ProjectResponse> call, Response<ProjectResponse> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    callback.onSuccess(response.body().getProjects());
                 } else {
-                    callback.onError("Lỗi tìm kiếm dự án: " + response.code());
+                    String errorMsg = "Lỗi tìm kiếm dự án: " + response.code();
+                    if (response.body() != null && response.body().getMessage() != null) {
+                        errorMsg += " - " + response.body().getMessage();
+                    }
+                    callback.onError(errorMsg);
                 }
             }
             
             @Override
-            public void onFailure(Call<List<Project>> call, Throwable t) {
+            public void onFailure(Call<ProjectResponse> call, Throwable t) {
                 callback.onError("Lỗi kết nối: " + t.getMessage());
             }
         });
@@ -196,7 +205,7 @@ public class ProjectService {
      */
     public interface ProjectApi {
         @GET(NetworkConfig.Endpoints.PROJECTS)
-        Call<List<Project>> getProjects(@QueryMap Map<String, Object> params);
+        Call<ProjectResponse> getProjects(@QueryMap Map<String, Object> params);
         
         @GET(NetworkConfig.Endpoints.PROJECT_DETAIL)
         Call<Project> getProject(@Path("id") String projectId);
@@ -211,7 +220,7 @@ public class ProjectService {
         Call<Void> deleteProject(@Path("id") String projectId);
         
         @GET(NetworkConfig.Endpoints.PROJECT_SEARCH)
-        Call<List<Project>> searchProjects(@Query("q") String query, @Query("limit") Integer limit);
+        Call<ProjectResponse> searchProjects(@Query("q") String query, @Query("limit") Integer limit);
     }
     
     /**
