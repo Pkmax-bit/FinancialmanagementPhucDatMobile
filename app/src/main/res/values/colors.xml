@@ -59,4 +59,9 @@
     <color name="success_color">#FF4CAF50</color>
     <color name="warning_color">#FFFF9800</color>
     <color name="info_color">#FF2196F3</color>
+    
+    <!-- Additional Colors -->
+    <color name="color_success">#FF4CAF50</color>
+    <color name="color_warning">#FFFF9800</color>
+    <color name="color_error">#FFF44336</color>
 </resources>
