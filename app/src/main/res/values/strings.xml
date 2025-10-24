@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Phúc Đạt Financial</string>
+    
+    <!-- Navigation -->
+    <string name="nav_dashboard">Tổng quan</string>
+    <string name="nav_projects">Dự án</string>
+    <string name="nav_expenses">Chi phí</string>
+    <string name="nav_reports">Báo cáo</string>
+    <string name="nav_settings">Cài đặt</string>
+    
+    <!-- Login -->
+    <string name="login_title">Đăng nhập</string>
+    <string name="login_subtitle">Quản lý tài chính thông minh</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Mật khẩu</string>
+    <string name="login_button">Đăng nhập</string>
+    <string name="login_error">Lỗi đăng nhập</string>
+    <string name="login_success">Đăng nhập thành công</string>
+    
+    <!-- Dashboard -->
+    <string name="dashboard_welcome">Chào mừng trở lại!</string>
+    <string name="dashboard_overview">Tổng quan tài chính của bạn</string>
+    <string name="total_projects">Dự án</string>
+    <string name="total_expenses">Chi phí</string>
+    <string name="total_revenue">Doanh thu</string>
+    <string name="recent_projects">Dự án gần đây</string>
+    <string name="view_all">Xem tất cả</string>
+    
+    <!-- Projects -->
+    <string name="projects_title">Dự án</string>
+    <string name="search_projects">Tìm kiếm dự án...</string>
+    <string name="filter_projects">Lọc</string>
+    <string name="add_project">Thêm dự án</string>
+    <string name="project_name">Tên dự án</string>
+    <string name="project_code">Mã dự án</string>
+    <string name="project_status">Trạng thái</string>
+    <string name="project_budget">Ngân sách</string>
+    <string name="project_progress">Tiến độ</string>
+    
+    <!-- Project Status -->
+    <string name="status_active">Đang hoạt động</string>
+    <string name="status_completed">Hoàn thành</string>
+    <string name="status_on_hold">Tạm dừng</string>
+    <string name="status_cancelled">Đã hủy</string>
+    
+    <!-- Expenses -->
+    <string name="expenses_title">Chi phí</string>
+    <string name="search_expenses">Tìm kiếm chi phí...</string>
+    <string name="filter_expenses">Lọc</string>
+    <string name="add_expense">Thêm chi phí</string>
+    <string name="expense_description">Mô tả</string>
+    <string name="expense_amount">Số tiền</string>
+    <string name="expense_status">Trạng thái</string>
+    <string name="expense_role">Vai trò</string>
+    <string name="expense_date">Ngày</string>
+    
+    <!-- Expense Status -->
+    <string name="expense_pending">Chờ duyệt</string>
+    <string name="expense_approved">Đã duyệt</string>
+    <string name="expense_rejected">Từ chối</string>
+    <string name="expense_paid">Đã thanh toán</string>
+    
+    <!-- Expense Roles -->
+    <string name="role_workshop">Xưởng sản xuất</string>
+    <string name="role_office">Văn phòng</string>
+    <string name="role_management">Quản lý</string>
+    <string name="role_sales">Bán hàng</string>
+    
+    <!-- Reports -->
+    <string name="reports_title">Báo cáo</string>
+    <string name="financial_summary">Tổng quan tài chính</string>
+    <string name="revenue">Doanh thu</string>
+    <string name="expenses">Chi phí</string>
+    <string name="net_profit">Lợi nhuận ròng</string>
+    <string name="expense_breakdown">Phân bổ chi phí</string>
+    <string name="quick_reports">Báo cáo nhanh</string>
+    <string name="balance_sheet">Bảng cân đối</string>
+    <string name="cash_flow">Dòng tiền</string>
+    <string name="pl_report">P and L</string>
+    <string name="export_report">Xuất báo cáo</string>
+    
+    <!-- Settings -->
+    <string name="settings_title">Cài đặt</string>
+    <string name="user_info">Thông tin người dùng</string>
+    <string name="app_settings">Cài đặt ứng dụng</string>
+    <string name="sync_data">Đồng bộ dữ liệu</string>
+    <string name="clear_cache">Xóa bộ nhớ đệm</string>
+    <string name="account">Tài khoản</string>
+    <string name="logout">Đăng xuất</string>
+    <string name="app_info">Thông tin ứng dụng</string>
+    <string name="version">Phiên bản</string>
+    <string name="developer">Nhà phát triển</string>
+    <string name="release_year">Năm phát hành</string>
+    
+    <!-- Common -->
+    <string name="loading">Đang tải...</string>
+    <string name="error">Lỗi</string>
+    <string name="success">Thành công</string>
+    <string name="cancel">Hủy</string>
+    <string name="ok">OK</string>
+    <string name="save">Lưu</string>
+    <string name="edit">Chỉnh sửa</string>
+    <string name="delete">Xóa</string>
+    <string name="confirm">Xác nhận</string>
+    <string name="yes">Có</string>
+    <string name="no">Không</string>
+    
+    <!-- Error Messages -->
+    <string name="error_network">Lỗi kết nối mạng</string>
+    <string name="error_server">Lỗi máy chủ</string>
+    <string name="error_authentication">Lỗi xác thực</string>
+    <string name="error_validation">Lỗi dữ liệu</string>
+    <string name="error_unknown">Lỗi không xác định</string>
+    
+    <!-- Success Messages -->
+    <string name="success_save">Lưu thành công</string>
+    <string name="success_delete">Xóa thành công</string>
+    <string name="success_sync">Đồng bộ thành công</string>
+    
+    <!-- Currency -->
+    <string name="currency_vnd">₫</string>
+    <string name="currency_usd">$</string>
+    <string name="currency_eur">€</string>
+    
+    <!-- Units -->
+    <string name="unit_million">triệu</string>
+    <string name="unit_billion">tỷ</string>
+    <string name="unit_thousand">nghìn</string>
+</resources>
