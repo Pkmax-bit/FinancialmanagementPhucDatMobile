@@ -138,34 +138,16 @@ public class DashboardFragment extends Fragment {
     }
 
     private void loadUserInfo() {
-        // Load current user information
-        userService.getCurrentUser(new UserService.UserCallback() {
-            @Override
-            public void onSuccess(User user) {
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        if (user != null) {
-                            tvUserName.setText(user.getFullName() != null ? user.getFullName() : "Người dùng");
-                            tvUserRole.setText(user.getRole() != null ? user.getRole() : "Nhân viên");
-                        } else {
-                            tvUserName.setText("Người dùng");
-                            tvUserRole.setText("Nhân viên");
-                        }
-                    });
-                }
-            }
-            
-            @Override
-            public void onError(String error) {
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        tvUserName.setText("Người dùng");
-                        tvUserRole.setText("Nhân viên");
-                        ApiDebugger.logError("loadUserInfo", new Exception(error));
-                    });
-                }
-            }
-        });
+        // For now, skip API call and show default user info
+        // TODO: Implement proper user info API when backend is ready
+        ApiDebugger.logAuth("Skipping user info API call - using default values", true);
+        
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                tvUserName.setText("Người dùng");
+                tvUserRole.setText("Nhân viên");
+            });
+        }
     }
 
     private void loadDashboardStats() {

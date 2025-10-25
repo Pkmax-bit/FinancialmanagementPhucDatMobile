@@ -8,12 +8,12 @@ public class AppConfig {
     
     // Environment Configuration
     public enum Environment {
-        LOCAL,      // http://0.0.0.0:8000
+        LOCAL,      // http://192.168.1.17:8000
         NETWORK     // http://192.168.1.17:3000
     }
     
     // Current environment - thay đổi ở đây để chuyển môi trường
-    private static final Environment CURRENT_ENVIRONMENT = Environment.NETWORK;
+    private static final Environment CURRENT_ENVIRONMENT = Environment.LOCAL;
     
     /**
      * Lấy environment hiện tại
@@ -42,11 +42,11 @@ public class AppConfig {
     public static String getBaseUrl() {
         switch (CURRENT_ENVIRONMENT) {
             case LOCAL:
-                return "http://0.0.0.0:8000/api/";
+                return "http://192.168.1.17:8000/api/";
             case NETWORK:
                 return "http://192.168.1.17:3000/api/";
             default:
-                return "http://192.168.1.17:3000/api/";
+                return "http://192.168.1.17:8000/api/";
         }
     }
     

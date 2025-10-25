@@ -12,7 +12,7 @@ public class NetworkConfig {
     public static final String BASE_URL = AppConfig.getBaseUrl();
     
     // Alternative URLs for different environments
-    public static final String LOCAL_URL = "http://0.0.0.0:8000/api/";
+    public static final String LOCAL_URL = "http://192.168.1.17:8000/api/";
     public static final String NETWORK_URL = "http://192.168.1.17:3000/api/";
     
     /**

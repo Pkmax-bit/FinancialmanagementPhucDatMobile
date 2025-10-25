@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.financialmanagement.R;
+import com.example.financialmanagement.activities.LoginActivity;
 import com.example.financialmanagement.activities.ProjectFormActivity;
 import com.example.financialmanagement.adapters.ProjectsAdapter;
 import com.example.financialmanagement.models.Project;
@@ -113,63 +114,25 @@ public class ProjectsFragment extends Fragment implements ProjectsAdapter.Projec
                         
                         // Check if it's an authentication error
                         if (error.contains("403") || error.contains("401")) {
-                            Toast.makeText(getContext(), "Không có quyền truy cập. Đang tải dữ liệu mẫu...", Toast.LENGTH_LONG).show();
-                            loadSampleProjects();
+                            Toast.makeText(getContext(), "Không có quyền truy cập. Vui lòng đăng nhập lại.", Toast.LENGTH_LONG).show();
+                            // Redirect to login
+                            Intent intent = new Intent(getContext(), LoginActivity.class);
+                            startActivity(intent);
+                            if (getActivity() != null) {
+                                getActivity().finish();
+                            }
                         } else {
                             Toast.makeText(getContext(), "Lỗi tải dự án: " + error, Toast.LENGTH_SHORT).show();
-                            loadSampleProjects();
                         }
+                        
+                        // Show empty state when error occurs
+                        updateEmptyState();
                     });
                 }
             }
         });
     }
 
-    /**
-     * Load sample projects as fallback
-     */
-    private void loadSampleProjects() {
-        ApiDebugger.logAuth("Loading sample projects as fallback", true);
-        
-        List<Project> sampleProjects = new ArrayList<>();
-        
-        // Create sample projects
-        Project project1 = new Project("PRJ001", "Dự án Website ABC", "CUST001");
-        project1.setCustomerName("Công ty ABC");
-        project1.setStatus("active");
-        project1.setPriority("high");
-        project1.setBudget(100000000.0);
-        project1.setAssignedTo("Nguyễn Văn A");
-        project1.setDescription("Phát triển website thương mại điện tử");
-        sampleProjects.add(project1);
-        
-        Project project2 = new Project("PRJ002", "Dự án Mobile App", "CUST002");
-        project2.setCustomerName("Nguyễn Văn B");
-        project2.setStatus("completed");
-        project2.setPriority("medium");
-        project2.setBudget(50000000.0);
-        project2.setAssignedTo("Trần Thị C");
-        project2.setDescription("Ứng dụng di động quản lý tài chính");
-        sampleProjects.add(project2);
-        
-        Project project3 = new Project("PRJ003", "Dự án ERP System", "CUST003");
-        project3.setCustomerName("Cơ quan DEF");
-        project3.setStatus("on_hold");
-        project3.setPriority("low");
-        project3.setBudget(200000000.0);
-        project3.setAssignedTo("Lê Văn D");
-        project3.setDescription("Hệ thống quản lý doanh nghiệp");
-        sampleProjects.add(project3);
-        
-        // Update adapter with sample data
-        projects.clear();
-        projects.addAll(sampleProjects);
-        projectsAdapter.updateProjects(projects);
-        updateStatistics();
-        updateEmptyState();
-        
-        Toast.makeText(getContext(), "Đã tải dữ liệu mẫu (" + sampleProjects.size() + " dự án)", Toast.LENGTH_SHORT).show();
-    }
 
     /**
      * Update statistics

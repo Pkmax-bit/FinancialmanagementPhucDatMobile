@@ -84,7 +84,7 @@ public class ProjectFormActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progress_bar);
         
         projectService = new ProjectService(this);
-        customers = new ArrayList<>();
+        customers = new ArrayList<Customer>();
         dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
     }
 
@@ -153,31 +153,15 @@ public class ProjectFormActivity extends AppCompatActivity {
     }
 
     private void setupCustomerSpinner() {
-        // For now, create sample customers
         // TODO: Load customers from API
-        customers.add(new Customer("CUST001", "Công ty ABC", "company"));
-        customers.add(new Customer("CUST002", "Nguyễn Văn A", "individual"));
-        customers.add(new Customer("CUST003", "Cơ quan DEF", "government"));
-        
-        List<String> customerNames = new ArrayList<>();
-        for (Customer customer : customers) {
-            customerNames.add(customer.getName() + " (" + customer.getCustomerCode() + ")");
-        }
+        // For now, show empty spinner
+        List<String> customerNames = new ArrayList<String>();
+        customerNames.add("Không có khách hàng");
         
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, 
             android.R.layout.simple_spinner_item, customerNames);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCustomer.setAdapter(adapter);
-        
-        // Set selected customer if provided
-        if (customer != null) {
-            for (int i = 0; i < customers.size(); i++) {
-                if (customers.get(i).getId().equals(customer.getId())) {
-                    spinnerCustomer.setSelection(i);
-                    break;
-                }
-            }
-        }
     }
 
     private void populateForm() {
@@ -206,6 +190,7 @@ public class ProjectFormActivity extends AppCompatActivity {
     private void setSpinnerSelection(Spinner spinner, String value) {
         if (value == null) return;
         
+        @SuppressWarnings("unchecked")
         ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinner.getAdapter();
         for (int i = 0; i < adapter.getCount(); i++) {
             if (adapter.getItem(i).toLowerCase().contains(value.toLowerCase())) {

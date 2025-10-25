@@ -44,7 +44,6 @@ public class ProjectService {
      */
     public void getProjects(Map<String, Object> params, ProjectCallback callback) {
         // TODO: Implement real API call
-        // For now, return mock data
         callback.onError("API chưa được triển khai");
     }
 
@@ -104,4 +103,5 @@ public class ProjectService {
         // For now, simulate success
         callback.onSuccess();
     }
+
 }

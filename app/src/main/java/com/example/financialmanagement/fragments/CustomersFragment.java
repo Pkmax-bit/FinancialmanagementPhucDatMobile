@@ -152,12 +152,13 @@ public class CustomersFragment extends Fragment implements CustomersAdapter.Cust
                             
                             // If public customers also fail, then redirect to login
                             // This will be handled in loadPublicCustomers if it fails
-                        } else if (error.contains("Lỗi kết nối") || error.contains("Connection")) {
+                        } else if (error.contains("Lỗi kết nối") || error.contains("Connection") || error.contains("Failed to connect")) {
                             // Network connection error
+                            ApiDebugger.logAuth("Network connection failed: " + error, false);
                             Toast.makeText(getContext(), "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.", Toast.LENGTH_LONG).show();
                             
-                            // Try to load public customers as fallback
-                            loadPublicCustomers();
+                            // Show empty state instead of trying to load more data
+                            updateEmptyState();
                         } else {
                             Toast.makeText(getContext(), "Lỗi tải khách hàng: " + error, Toast.LENGTH_SHORT).show();
                         }
@@ -278,8 +279,6 @@ public class CustomersFragment extends Fragment implements CustomersAdapter.Cust
                             getActivity().finish();
                         } else {
                             Toast.makeText(getContext(), "Không thể tải danh sách khách hàng: " + error, Toast.LENGTH_SHORT).show();
-                            // As a last resort, load sample data
-                            loadSampleCustomers();
                         }
                     });
                 }
@@ -288,41 +287,11 @@ public class CustomersFragment extends Fragment implements CustomersAdapter.Cust
     }
     
     /**
-     * Load sample customers as last resort
+     * Update empty state visibility
      */
-    private void loadSampleCustomers() {
-        ApiDebugger.logAuth("Loading sample customers as last resort", true);
-        
-        List<Customer> sampleCustomers = new ArrayList<>();
-        
-        // Create sample customers
-        Customer customer1 = new Customer("CUST001", "Công ty ABC", "company");
-        customer1.setEmail("contact@abc.com");
-        customer1.setPhone("0123456789");
-        customer1.setAddress("123 Đường ABC, Quận 1");
-        customer1.setCity("TP.HCM");
-        customer1.setStatus("active");
-        sampleCustomers.add(customer1);
-        
-        Customer customer2 = new Customer("CUST002", "Nguyễn Văn A", "individual");
-        customer2.setEmail("nguyenvana@email.com");
-        customer2.setPhone("0987654321");
-        customer2.setAddress("456 Đường XYZ, Quận 2");
-        customer2.setCity("TP.HCM");
-        customer2.setStatus("active");
-        sampleCustomers.add(customer2);
-        
-        Customer customer3 = new Customer("CUST003", "Cơ quan DEF", "government");
-        customer3.setEmail("info@def.gov.vn");
-        customer3.setPhone("0245678901");
-        customer3.setAddress("789 Đường DEF, Quận 3");
-        customer3.setCity("TP.HCM");
-        customer3.setStatus("active");
-        sampleCustomers.add(customer3);
-        
-        // Update adapter with sample data
-        customersAdapter.updateCustomers(sampleCustomers);
-        Toast.makeText(getContext(), "Đã tải dữ liệu mẫu (" + sampleCustomers.size() + " khách hàng)", Toast.LENGTH_SHORT).show();
+    private void updateEmptyState() {
+        // For now, just show a toast message
+        Toast.makeText(getContext(), "Không có dữ liệu để hiển thị", Toast.LENGTH_SHORT).show();
     }
     
     /**
