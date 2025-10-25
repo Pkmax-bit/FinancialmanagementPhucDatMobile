@@ -76,6 +76,14 @@ public class NetworkConfig {
         public static final String SALES_RECEIPTS = "sales/receipts";
         public static final String SALES_RECEIPT_DETAIL = "sales/receipts/{id}";
         
+        // Quotes
+        public static final String QUOTES = "sales/quotes";
+        public static final String QUOTE_DETAIL = "sales/quotes/{id}";
+        
+        // Invoices
+        public static final String INVOICES = "sales/invoices";
+        public static final String INVOICE_DETAIL = "sales/invoices/{id}";
+        
         // Cost Breakdown
         public static final String COST_BREAKDOWN = "cost-breakdown/cost-breakdowns";
         public static final String COST_RATIOS = "cost-breakdown/cost-ratios";

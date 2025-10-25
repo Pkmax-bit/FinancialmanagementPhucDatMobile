@@ -182,6 +182,10 @@ public class ProjectExpense {
     }
 
     public String getRoleDisplayName() {
+        if (role == null) {
+            return "Không xác định";
+        }
+        
         switch (role) {
             case "workshop": return "Xưởng sản xuất";
             case "office": return "Văn phòng";

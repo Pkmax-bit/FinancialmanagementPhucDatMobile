@@ -9,6 +9,7 @@ import java.util.Map;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.http.*;
 
 /**
  * Invoice Service - API service cho quản lý hóa đơn
@@ -26,14 +27,29 @@ public class InvoiceService {
     }
     
     public interface InvoiceApi {
-        Call<List<Invoice>> getAllInvoices(Map<String, Object> params);
-        Call<Invoice> getInvoiceById(String id);
-        Call<Invoice> createInvoice(Invoice invoice);
-        Call<Invoice> updateInvoice(String id, Invoice invoice);
-        Call<Void> deleteInvoice(String id);
-        Call<Invoice> markAsPaid(String id);
-        Call<Invoice> sendToCustomer(String id);
-        Call<Invoice> addPayment(String id, Invoice.Payment payment);
+        @GET(NetworkConfig.Endpoints.INVOICES)
+        Call<List<Invoice>> getAllInvoices(@QueryMap Map<String, Object> params);
+        
+        @GET(NetworkConfig.Endpoints.INVOICES + "/{id}")
+        Call<Invoice> getInvoiceById(@Path("id") String id);
+        
+        @POST(NetworkConfig.Endpoints.INVOICES)
+        Call<Invoice> createInvoice(@Body Invoice invoice);
+        
+        @PUT(NetworkConfig.Endpoints.INVOICES + "/{id}")
+        Call<Invoice> updateInvoice(@Path("id") String id, @Body Invoice invoice);
+        
+        @DELETE(NetworkConfig.Endpoints.INVOICES + "/{id}")
+        Call<Void> deleteInvoice(@Path("id") String id);
+        
+        @POST(NetworkConfig.Endpoints.INVOICES + "/{id}/mark-paid")
+        Call<Invoice> markAsPaid(@Path("id") String id);
+        
+        @POST(NetworkConfig.Endpoints.INVOICES + "/{id}/send")
+        Call<Invoice> sendToCustomer(@Path("id") String id);
+        
+        @POST(NetworkConfig.Endpoints.INVOICES + "/{id}/payment")
+        Call<Invoice> addPayment(@Path("id") String id, @Body Invoice.Payment payment);
     }
     
     public InvoiceService(Context context) {

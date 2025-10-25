@@ -16,8 +16,11 @@ import com.example.financialmanagement.adapters.QuotesAdapter;
 import com.example.financialmanagement.adapters.InvoicesAdapter;
 import com.example.financialmanagement.models.Quote;
 import com.example.financialmanagement.models.Invoice;
+import com.example.financialmanagement.models.Project;
 import com.example.financialmanagement.services.QuoteService;
 import com.example.financialmanagement.services.InvoiceService;
+import com.example.financialmanagement.services.ProjectService;
+import com.example.financialmanagement.auth.AuthManager;
 import com.example.financialmanagement.utils.CurrencyFormatter;
 import com.example.financialmanagement.utils.ApiDebugger;
 import java.util.ArrayList;
@@ -31,12 +34,15 @@ import java.util.HashMap;
  */
 public class RevenueFragment extends Fragment {
 
-    private TextView tvTotalRevenue, tvTotalQuotes, tvTotalInvoices;
+    private TextView tvTotalRevenue, tvTotalQuotes, tvTotalInvoices, tvProjectInfo;
     private RecyclerView rvQuotes, rvInvoices;
     private QuotesAdapter quotesAdapter;
     private InvoicesAdapter invoicesAdapter;
     private QuoteService quoteService;
     private InvoiceService invoiceService;
+    private ProjectService projectService;
+    private AuthManager authManager;
+    private List<Project> userProjects;
 
     @Nullable
     @Override
@@ -61,6 +67,7 @@ public class RevenueFragment extends Fragment {
             tvTotalRevenue = view.findViewById(R.id.tv_total_revenue);
             tvTotalQuotes = view.findViewById(R.id.tv_total_quotes);
             tvTotalInvoices = view.findViewById(R.id.tv_total_invoices);
+            tvProjectInfo = view.findViewById(R.id.tv_project_info);
             rvQuotes = view.findViewById(R.id.rv_quotes);
             rvInvoices = view.findViewById(R.id.rv_invoices);
             
@@ -85,6 +92,9 @@ public class RevenueFragment extends Fragment {
             if (getContext() != null) {
                 quoteService = new QuoteService(getContext());
                 invoiceService = new InvoiceService(getContext());
+                projectService = new ProjectService(getContext());
+                authManager = new AuthManager(getContext());
+                userProjects = new ArrayList<>();
             } else {
                 throw new RuntimeException("Context is null");
             }
@@ -173,17 +183,93 @@ public class RevenueFragment extends Fragment {
 
     private void loadRevenueData() {
         try {
-            // Load revenue statistics
-            loadRevenueStats();
+            // Check authentication first
+            if (!authManager.isLoggedIn()) {
+                Toast.makeText(getContext(), "Vui lòng đăng nhập để xem doanh thu", Toast.LENGTH_SHORT).show();
+                return;
+            }
             
-            // Load recent quotes
-            loadRecentQuotes();
-            
-            // Load recent invoices
-            loadRecentInvoices();
+            // Load user projects first
+            loadUserProjects();
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(getContext(), "Lỗi tải dữ liệu doanh thu: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+    
+    private void loadUserProjects() {
+        // Load projects based on user role
+        Map<String, Object> params = new HashMap<>();
+        String userRole = authManager.getUserRole();
+        String userId = authManager.getUserId();
+        
+        if (userRole != null) {
+            switch (userRole.toLowerCase()) {
+                case "admin":
+                    // Admin can see all projects
+                    ApiDebugger.logAuth("Loading all projects for Admin", true);
+                    break;
+                case "manager":
+                    // Manager can see projects they manage
+                    params.put("manager_id", userId);
+                    ApiDebugger.logAuth("Loading manager projects for user: " + userId, true);
+                    break;
+                case "employee":
+                case "workshop_employee":
+                default:
+                    // Employee can see projects assigned to them
+                    params.put("user_id", userId);
+                    ApiDebugger.logAuth("Loading employee projects for user: " + userId, true);
+                    break;
+            }
+        }
+        
+        ApiDebugger.logRequest("GET", "User Projects", null, params);
+        
+        projectService.getAllProjects(params, new ProjectService.ProjectCallback() {
+            @Override
+            public void onSuccess(List<Project> projects) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        userProjects = projects != null ? projects : new ArrayList<>();
+                        
+                        // Update project info display
+                        updateProjectInfo();
+                        
+                        // Load revenue data for all projects
+                        loadRevenueStats();
+                        loadRecentQuotes();
+                        loadRecentInvoices();
+                        
+                        ApiDebugger.logResponse(200, "Success", "User projects loaded: " + userProjects.size());
+                    });
+                }
+            }
+            
+            @Override
+            public void onSuccess(Project project) {
+                // Not used
+            }
+            
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Lỗi tải dự án: " + error, Toast.LENGTH_SHORT).show();
+                        ApiDebugger.logError("loadUserProjects", new Exception(error));
+                    });
+                }
+            }
+        });
+    }
+    
+    private void updateProjectInfo() {
+        if (tvProjectInfo != null) {
+            String projectInfo = "Dự án của bạn: " + userProjects.size() + " dự án";
+            if (userProjects.size() > 0) {
+                projectInfo += "\nDự án gần đây: " + userProjects.get(0).getName();
+            }
+            tvProjectInfo.setText(projectInfo);
         }
     }
 
@@ -332,6 +418,15 @@ public class RevenueFragment extends Fragment {
         params.put("sort", "created_at");
         params.put("order", "desc");
         
+        // Filter by user's projects
+        if (userProjects != null && !userProjects.isEmpty()) {
+            List<String> projectIds = new ArrayList<>();
+            for (Project project : userProjects) {
+                projectIds.add(project.getId());
+            }
+            params.put("project_id", String.join(",", projectIds));
+        }
+        
         ApiDebugger.logRequest("GET", "Recent Quotes", null, params);
         
         quoteService.getAllQuotes(params, new QuoteService.QuoteCallback() {
@@ -372,6 +467,15 @@ public class RevenueFragment extends Fragment {
         params.put("limit", 5);
         params.put("sort", "created_at");
         params.put("order", "desc");
+        
+        // Filter by user's projects
+        if (userProjects != null && !userProjects.isEmpty()) {
+            List<String> projectIds = new ArrayList<>();
+            for (Project project : userProjects) {
+                projectIds.add(project.getId());
+            }
+            params.put("project_id", String.join(",", projectIds));
+        }
         
         ApiDebugger.logRequest("GET", "Recent Invoices", null, params);
         

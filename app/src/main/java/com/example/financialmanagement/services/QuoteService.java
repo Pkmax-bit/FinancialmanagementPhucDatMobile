@@ -9,6 +9,7 @@ import java.util.Map;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.http.*;
 
 /**
  * Quote Service - API service cho quản lý báo giá
@@ -26,14 +27,29 @@ public class QuoteService {
     }
     
     public interface QuoteApi {
-        Call<List<Quote>> getAllQuotes(Map<String, Object> params);
-        Call<Quote> getQuoteById(String id);
-        Call<Quote> createQuote(Quote quote);
-        Call<Quote> updateQuote(String id, Quote quote);
-        Call<Void> deleteQuote(String id);
-        Call<Quote> approveQuote(String id);
-        Call<Quote> convertToInvoice(String id);
-        Call<Quote> sendToCustomer(String id);
+        @GET(NetworkConfig.Endpoints.QUOTES)
+        Call<List<Quote>> getAllQuotes(@QueryMap Map<String, Object> params);
+        
+        @GET(NetworkConfig.Endpoints.QUOTES + "/{id}")
+        Call<Quote> getQuoteById(@Path("id") String id);
+        
+        @POST(NetworkConfig.Endpoints.QUOTES)
+        Call<Quote> createQuote(@Body Quote quote);
+        
+        @PUT(NetworkConfig.Endpoints.QUOTES + "/{id}")
+        Call<Quote> updateQuote(@Path("id") String id, @Body Quote quote);
+        
+        @DELETE(NetworkConfig.Endpoints.QUOTES + "/{id}")
+        Call<Void> deleteQuote(@Path("id") String id);
+        
+        @POST(NetworkConfig.Endpoints.QUOTES + "/{id}/approve")
+        Call<Quote> approveQuote(@Path("id") String id);
+        
+        @POST(NetworkConfig.Endpoints.QUOTES + "/{id}/convert")
+        Call<Quote> convertToInvoice(@Path("id") String id);
+        
+        @POST(NetworkConfig.Endpoints.QUOTES + "/{id}/send")
+        Call<Quote> sendToCustomer(@Path("id") String id);
     }
     
     public QuoteService(Context context) {
