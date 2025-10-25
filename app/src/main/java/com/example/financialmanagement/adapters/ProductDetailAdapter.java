@@ -57,12 +57,36 @@ public class ProductDetailAdapter extends RecyclerView.Adapter<ProductDetailAdap
         }
         
         public void bind(Product product) {
-            tvProductName.setText(product.getName());
-            tvProductDescription.setText(product.getDescription());
-            tvProductQuantity.setText(String.valueOf(product.getQuantity()));
-            tvProductPrice.setText(String.format("%,.0f VNĐ", product.getPrice()));
-            tvProductTotal.setText(String.format("%,.0f VNĐ", product.getTotal()));
-            tvProductUnit.setText(product.getUnit());
+            // Product name - use nameProduct if available, otherwise name
+            String productName = product.getNameProduct() != null ? product.getNameProduct() : product.getName();
+            tvProductName.setText(productName != null ? productName : "Sản phẩm");
+            
+            // Description
+            tvProductDescription.setText(product.getDescription() != null ? product.getDescription() : "Không có mô tả");
+            
+            // Quantity and unit
+            if (product.getQuantity() != null) {
+                tvProductQuantity.setText(String.format("%.2f", product.getQuantity()));
+            } else {
+                tvProductQuantity.setText("0");
+            }
+            
+            // Unit
+            tvProductUnit.setText(product.getUnit() != null ? product.getUnit() : "cái");
+            
+            // Price
+            if (product.getUnitPrice() != null) {
+                tvProductPrice.setText(String.format("%,.0f VNĐ", product.getUnitPrice()));
+            } else {
+                tvProductPrice.setText("0 VNĐ");
+            }
+            
+            // Total
+            if (product.getTotalPrice() != null) {
+                tvProductTotal.setText(String.format("%,.0f VNĐ", product.getTotalPrice()));
+            } else {
+                tvProductTotal.setText("0 VNĐ");
+            }
         }
     }
 }

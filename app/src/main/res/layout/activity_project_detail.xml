@@ -91,12 +91,12 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Statistics Cards -->
+            <!-- Statistics Cards (Compact) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="12dp">
 
                 <!-- Revenue Card -->
                 <com.google.android.material.card.MaterialCardView

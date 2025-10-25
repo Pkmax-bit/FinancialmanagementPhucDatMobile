@@ -1,12 +1,13 @@
 package com.example.financialmanagement.models;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * Customer Model - Mô hình dữ liệu khách hàng
  * Tương ứng với API endpoint /api/customers
  */
-public class Customer {
+public class Customer implements Serializable {
     private String id;
     private String customerCode;
     private String name;

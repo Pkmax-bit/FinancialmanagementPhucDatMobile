@@ -44,9 +44,9 @@ public class AppConfig {
             case LOCAL:
                 return "http://0.0.0.0:8000/api/";
             case NETWORK:
-                return "http://192.168.1.17:8000/api/";
+                return "http://192.168.1.17:3000/api/";
             default:
-                return "http://192.168.1.17:8000/api/";
+                return "http://192.168.1.17:3000/api/";
         }
     }
     

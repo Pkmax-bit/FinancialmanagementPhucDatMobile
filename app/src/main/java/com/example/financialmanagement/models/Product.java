@@ -14,16 +14,37 @@ public class Product {
     private String description;
     
     @SerializedName("quantity")
-    private int quantity;
+    private Double quantity;
     
-    @SerializedName("price")
-    private double price;
+    @SerializedName("unit_price")
+    private Double unitPrice;
+    
+    @SerializedName("total_price")
+    private Double totalPrice;
     
     @SerializedName("unit")
     private String unit;
     
-    @SerializedName("total")
-    private double total;
+    @SerializedName("name_product")
+    private String nameProduct;
+    
+    @SerializedName("area")
+    private Double area;
+    
+    @SerializedName("volume")
+    private Double volume;
+    
+    @SerializedName("height")
+    private Double height;
+    
+    @SerializedName("length")
+    private Double length;
+    
+    @SerializedName("depth")
+    private Double depth;
+    
+    @SerializedName("discount_rate")
+    private Double discountRate;
     
     @SerializedName("category")
     private String category;
@@ -46,14 +67,14 @@ public class Product {
     // Constructors
     public Product() {}
     
-    public Product(String id, String name, String description, int quantity, double price, String unit) {
+    public Product(String id, String name, String description, Double quantity, Double unitPrice, String unit) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.quantity = quantity;
-        this.price = price;
+        this.unitPrice = unitPrice;
         this.unit = unit;
-        this.total = quantity * price;
+        this.totalPrice = quantity * unitPrice;
     }
     
     // Getters and Setters
@@ -81,22 +102,34 @@ public class Product {
         this.description = description;
     }
     
-    public int getQuantity() {
+    public Double getQuantity() {
         return quantity;
     }
     
-    public void setQuantity(int quantity) {
+    public void setQuantity(Double quantity) {
         this.quantity = quantity;
-        this.total = this.quantity * this.price;
+        if (this.unitPrice != null && quantity != null) {
+            this.totalPrice = quantity * this.unitPrice;
+        }
     }
     
-    public double getPrice() {
-        return price;
+    public Double getUnitPrice() {
+        return unitPrice;
     }
     
-    public void setPrice(double price) {
-        this.price = price;
-        this.total = this.quantity * this.price;
+    public void setUnitPrice(Double unitPrice) {
+        this.unitPrice = unitPrice;
+        if (this.quantity != null && unitPrice != null) {
+            this.totalPrice = this.quantity * unitPrice;
+        }
+    }
+    
+    public Double getTotalPrice() {
+        return totalPrice;
+    }
+    
+    public void setTotalPrice(Double totalPrice) {
+        this.totalPrice = totalPrice;
     }
     
     public String getUnit() {
@@ -107,12 +140,60 @@ public class Product {
         this.unit = unit;
     }
     
-    public double getTotal() {
-        return total;
+    public String getNameProduct() {
+        return nameProduct;
     }
     
-    public void setTotal(double total) {
-        this.total = total;
+    public void setNameProduct(String nameProduct) {
+        this.nameProduct = nameProduct;
+    }
+    
+    public Double getArea() {
+        return area;
+    }
+    
+    public void setArea(Double area) {
+        this.area = area;
+    }
+    
+    public Double getVolume() {
+        return volume;
+    }
+    
+    public void setVolume(Double volume) {
+        this.volume = volume;
+    }
+    
+    public Double getHeight() {
+        return height;
+    }
+    
+    public void setHeight(Double height) {
+        this.height = height;
+    }
+    
+    public Double getLength() {
+        return length;
+    }
+    
+    public void setLength(Double length) {
+        this.length = length;
+    }
+    
+    public Double getDepth() {
+        return depth;
+    }
+    
+    public void setDepth(Double depth) {
+        this.depth = depth;
+    }
+    
+    public Double getDiscountRate() {
+        return discountRate;
+    }
+    
+    public void setDiscountRate(Double discountRate) {
+        this.discountRate = discountRate;
     }
     
     public String getCategory() {

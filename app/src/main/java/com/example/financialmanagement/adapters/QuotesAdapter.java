@@ -85,8 +85,8 @@ public class QuotesAdapter extends RecyclerView.Adapter<QuotesAdapter.QuoteViewH
             tvQuoteStatus.setText(getQuoteStatusText(quote.getStatus()));
             
             // Financial information
-            if (quote.getTotal() != null) {
-                tvQuoteTotal.setText(CurrencyFormatter.format(quote.getTotal()));
+            if (quote.getTotalAmount() != null) {
+                tvQuoteTotal.setText(CurrencyFormatter.format(quote.getTotalAmount()));
             } else {
                 tvQuoteTotal.setText("Chưa có tổng tiền");
             }

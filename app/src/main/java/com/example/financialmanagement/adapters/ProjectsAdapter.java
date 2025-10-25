@@ -9,22 +9,30 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.financialmanagement.R;
 import com.example.financialmanagement.models.Project;
 import com.example.financialmanagement.utils.CurrencyFormatter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
- * Projects Adapter - Adapter cho danh sách dự án
- * Hiển thị danh sách dự án trong RecyclerView
+ * ProjectsAdapter - Adapter cho danh sách dự án
  */
 public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.ProjectViewHolder> {
-    
+
     private List<Project> projects;
     private ProjectClickListener clickListener;
-    
+
+    public interface ProjectClickListener {
+        void onProjectClick(Project project);
+        void onProjectEdit(Project project);
+        void onProjectDelete(Project project);
+    }
+
     public ProjectsAdapter(List<Project> projects, ProjectClickListener clickListener) {
         this.projects = projects;
         this.clickListener = clickListener;
     }
-    
+
     @NonNull
     @Override
     public ProjectViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -32,105 +40,168 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.Projec
                 .inflate(R.layout.item_project, parent, false);
         return new ProjectViewHolder(view);
     }
-    
+
     @Override
     public void onBindViewHolder(@NonNull ProjectViewHolder holder, int position) {
         Project project = projects.get(position);
-        holder.bind(project);
+        holder.bind(project, clickListener);
     }
-    
+
     @Override
     public int getItemCount() {
         return projects.size();
     }
-    
-    /**
-     * Cập nhật danh sách dự án
-     */
+
     public void updateProjects(List<Project> newProjects) {
         this.projects = newProjects;
         notifyDataSetChanged();
     }
-    
-    /**
-     * ViewHolder cho Project
-     */
-    public class ProjectViewHolder extends RecyclerView.ViewHolder {
+
+    static class ProjectViewHolder extends RecyclerView.ViewHolder {
+        private TextView tvProjectName;
+        private TextView tvProjectCode;
+        private TextView tvCustomerName;
+        private TextView tvProjectStatus;
+        private TextView tvProjectPriority;
+        private TextView tvProjectBudget;
+        private TextView tvProjectDates;
+        private TextView tvAssignedTo;
         
-        private TextView tvProjectName, tvProjectCode, tvStatus, tvBudget, tvProgress;
-        
+        // Action buttons
+        private com.google.android.material.button.MaterialButton btnEditProject;
+        private com.google.android.material.button.MaterialButton btnDeleteProject;
+
         public ProjectViewHolder(@NonNull View itemView) {
             super(itemView);
-            
             tvProjectName = itemView.findViewById(R.id.tv_project_name);
             tvProjectCode = itemView.findViewById(R.id.tv_project_code);
-            tvStatus = itemView.findViewById(R.id.tv_status);
-            tvBudget = itemView.findViewById(R.id.tv_budget);
-            tvProgress = itemView.findViewById(R.id.tv_progress);
+            tvCustomerName = itemView.findViewById(R.id.tv_customer_name);
+            tvProjectStatus = itemView.findViewById(R.id.tv_project_status);
+            tvProjectPriority = itemView.findViewById(R.id.tv_project_priority);
+            tvProjectBudget = itemView.findViewById(R.id.tv_project_budget);
+            tvProjectDates = itemView.findViewById(R.id.tv_project_dates);
+            tvAssignedTo = itemView.findViewById(R.id.tv_assigned_to);
             
-            // Set click listeners
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (clickListener != null) {
-                        clickListener.onProjectClick(projects.get(getAdapterPosition()));
-                    }
-                }
-            });
-            
-            // Set long click listener for context menu
-            itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    if (clickListener != null) {
-                        // TODO: Show context menu with edit/delete options
-                        clickListener.onProjectEdit(projects.get(getAdapterPosition()));
-                    }
-                    return true;
-                }
-            });
+            // Initialize action buttons
+            btnEditProject = itemView.findViewById(R.id.btn_edit_project);
+            btnDeleteProject = itemView.findViewById(R.id.btn_delete_project);
         }
-        
-        public void bind(Project project) {
+
+        public void bind(Project project, ProjectClickListener clickListener) {
+            // Basic information
             tvProjectName.setText(project.getName());
             tvProjectCode.setText(project.getProjectCode());
-            tvStatus.setText(project.getStatusDisplayName());
-            tvBudget.setText(CurrencyFormatter.format(project.getBudget() != null ? project.getBudget() : 0));
-            tvProgress.setText(project.getProgress() != null ? project.getProgress() + "%" : "0%");
+            tvCustomerName.setText(project.getCustomerName() != null ? project.getCustomerName() : "Chưa có khách hàng");
             
-            // Set status color
+            // Status
+            tvProjectStatus.setText(project.getStatusDisplayName());
             setStatusColor(project.getStatus());
+            
+            // Priority
+            tvProjectPriority.setText(project.getPriorityDisplayName());
+            setPriorityColor(project.getPriority());
+            
+            // Budget
+            if (project.getBudget() != null) {
+                tvProjectBudget.setText(CurrencyFormatter.format(project.getBudget()));
+            } else {
+                tvProjectBudget.setText("Chưa thiết lập");
+            }
+            
+            // Dates
+            String dateRange = formatDateRange(project.getStartDate(), project.getEndDate());
+            tvProjectDates.setText(dateRange);
+            
+            // Assigned to
+            if (project.getAssignedTo() != null && !project.getAssignedTo().isEmpty()) {
+                tvAssignedTo.setText("Phụ trách: " + project.getAssignedTo());
+                tvAssignedTo.setVisibility(View.VISIBLE);
+            } else {
+                tvAssignedTo.setVisibility(View.GONE);
+            }
+            
+            // Click listeners
+            itemView.setOnClickListener(v -> {
+                if (clickListener != null) {
+                    clickListener.onProjectClick(project);
+                }
+            });
+            
+            // Action button listeners
+            btnEditProject.setOnClickListener(v -> {
+                if (clickListener != null) {
+                    clickListener.onProjectEdit(project);
+                }
+            });
+            
+            btnDeleteProject.setOnClickListener(v -> {
+                if (clickListener != null) {
+                    clickListener.onProjectDelete(project);
+                }
+            });
         }
-        
+
         private void setStatusColor(String status) {
             int colorRes;
             switch (status) {
                 case "active":
-                    colorRes = R.color.status_active;
+                    colorRes = R.color.color_success;
                     break;
                 case "completed":
-                    colorRes = R.color.status_completed;
+                    colorRes = R.color.color_info;
                     break;
                 case "on_hold":
-                    colorRes = R.color.status_on_hold;
+                    colorRes = R.color.color_warning;
                     break;
                 case "cancelled":
-                    colorRes = R.color.status_cancelled;
+                    colorRes = R.color.color_danger;
                     break;
                 default:
-                    colorRes = R.color.status_default;
+                    colorRes = R.color.text_secondary;
                     break;
             }
-            tvStatus.setTextColor(itemView.getContext().getResources().getColor(colorRes));
+            tvProjectStatus.setTextColor(itemView.getContext().getColor(colorRes));
         }
-    }
-    
-    /**
-     * Project Click Listener Interface
-     */
-    public interface ProjectClickListener {
-        void onProjectClick(Project project);
-        void onProjectEdit(Project project);
-        void onProjectDelete(Project project);
+
+        private void setPriorityColor(String priority) {
+            int colorRes;
+            switch (priority) {
+                case "high":
+                    colorRes = R.color.color_danger;
+                    break;
+                case "medium":
+                    colorRes = R.color.color_warning;
+                    break;
+                case "low":
+                    colorRes = R.color.color_success;
+                    break;
+                default:
+                    colorRes = R.color.text_secondary;
+                    break;
+            }
+            tvProjectPriority.setTextColor(itemView.getContext().getColor(colorRes));
+        }
+
+        private String formatDateRange(Date startDate, Date endDate) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            StringBuilder dateRange = new StringBuilder();
+            
+            if (startDate != null) {
+                dateRange.append("Từ: ").append(dateFormat.format(startDate));
+            }
+            
+            if (endDate != null) {
+                if (dateRange.length() > 0) {
+                    dateRange.append(" - ");
+                }
+                dateRange.append("Đến: ").append(dateFormat.format(endDate));
+            }
+            
+            if (dateRange.length() == 0) {
+                return "Chưa thiết lập thời gian";
+            }
+            
+            return dateRange.toString();
+        }
     }
 }

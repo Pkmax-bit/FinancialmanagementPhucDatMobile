@@ -175,6 +175,11 @@ public class ProjectDetailActivity extends AppCompatActivity {
             }
             
             @Override
+            public void onSuccess() {
+                // Not used
+            }
+            
+            @Override
             public void onError(String error) {
                 runOnUiThread(() -> {
                     Toast.makeText(ProjectDetailActivity.this, "Lỗi tải thông tin dự án: " + error, Toast.LENGTH_SHORT).show();
@@ -199,7 +204,6 @@ public class ProjectDetailActivity extends AppCompatActivity {
     
     private void loadTotalRevenue() {
         Map<String, Object> params = new HashMap<>();
-        params.put("project_id", projectId);
         params.put("limit", 1000);
         
         ApiDebugger.logRequest("GET", "Project Revenue", null, params);
@@ -210,13 +214,17 @@ public class ProjectDetailActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     double totalRevenue = 0;
                     if (invoices != null) {
+                        // Filter invoices by project ID and calculate total
                         for (Invoice invoice : invoices) {
-                            if (invoice.getTotal() != null) {
-                                totalRevenue += invoice.getTotal();
+                            if (invoice.getProjectId() != null && invoice.getProjectId().equals(projectId)) {
+                                if (invoice.getTotalAmount() != null) {
+                                    totalRevenue += invoice.getTotalAmount();
+                                }
                             }
                         }
                     }
                     tvTotalRevenue.setText(String.format("%,.0f VNĐ", totalRevenue));
+                    ApiDebugger.logAuth("Project revenue calculated: " + totalRevenue + " VNĐ", true);
                 });
             }
             
@@ -241,7 +249,6 @@ public class ProjectDetailActivity extends AppCompatActivity {
     
     private void loadQuotesCount() {
         Map<String, Object> params = new HashMap<>();
-        params.put("project_id", projectId);
         params.put("limit", 1000);
         
         ApiDebugger.logRequest("GET", "Project Quotes Count", null, params);
@@ -250,8 +257,17 @@ public class ProjectDetailActivity extends AppCompatActivity {
             @Override
             public void onSuccess(List<Quote> quotes) {
                 runOnUiThread(() -> {
-                    int count = quotes != null ? quotes.size() : 0;
+                    int count = 0;
+                    if (quotes != null) {
+                        // Filter quotes by project ID and count
+                        for (Quote quote : quotes) {
+                            if (quote.getProjectId() != null && quote.getProjectId().equals(projectId)) {
+                                count++;
+                            }
+                        }
+                    }
                     tvTotalQuotes.setText(String.valueOf(count));
+                    ApiDebugger.logAuth("Project quotes count: " + count, true);
                 });
             }
             
@@ -276,7 +292,6 @@ public class ProjectDetailActivity extends AppCompatActivity {
     
     private void loadInvoicesCount() {
         Map<String, Object> params = new HashMap<>();
-        params.put("project_id", projectId);
         params.put("limit", 1000);
         
         ApiDebugger.logRequest("GET", "Project Invoices Count", null, params);
@@ -285,8 +300,17 @@ public class ProjectDetailActivity extends AppCompatActivity {
             @Override
             public void onSuccess(List<Invoice> invoices) {
                 runOnUiThread(() -> {
-                    int count = invoices != null ? invoices.size() : 0;
+                    int count = 0;
+                    if (invoices != null) {
+                        // Filter invoices by project ID and count
+                        for (Invoice invoice : invoices) {
+                            if (invoice.getProjectId() != null && invoice.getProjectId().equals(projectId)) {
+                                count++;
+                            }
+                        }
+                    }
                     tvTotalInvoices.setText(String.valueOf(count));
+                    ApiDebugger.logAuth("Project invoices count: " + count, true);
                 });
             }
             
@@ -311,7 +335,6 @@ public class ProjectDetailActivity extends AppCompatActivity {
     
     private void loadExpensesAndVariance() {
         Map<String, Object> params = new HashMap<>();
-        params.put("project_id", projectId);
         params.put("limit", 1000);
         
         ApiDebugger.logRequest("GET", "Project Expenses", null, params);
@@ -321,13 +344,21 @@ public class ProjectDetailActivity extends AppCompatActivity {
             public void onSuccess(List<ProjectExpense> expenses) {
                 runOnUiThread(() -> {
                     if (expenses != null) {
-                        projectExpenses = expenses;
+                        // Filter expenses by project ID
+                        List<ProjectExpense> filteredExpenses = new ArrayList<>();
+                        for (ProjectExpense expense : expenses) {
+                            if (expense.getProjectId() != null && expense.getProjectId().equals(projectId)) {
+                                filteredExpenses.add(expense);
+                            }
+                        }
+                        
+                        projectExpenses = filteredExpenses;
                         
                         // Calculate totals
                         double plannedTotal = 0;
                         double actualTotal = 0;
                         
-                        for (ProjectExpense expense : expenses) {
+                        for (ProjectExpense expense : filteredExpenses) {
                             if (expense.getPlannedAmount() != null) {
                                 plannedTotal += expense.getPlannedAmount();
                             }
@@ -345,6 +376,8 @@ public class ProjectDetailActivity extends AppCompatActivity {
                         
                         tvVarianceAmount.setText(String.format("%,.0f VNĐ", variance));
                         tvVariancePercentage.setText(String.format("%.1f%%", variancePercentage));
+                        
+                        ApiDebugger.logAuth("Project expenses calculated - Planned: " + plannedTotal + ", Actual: " + actualTotal + ", Variance: " + variance, true);
                         
                         // Set color based on variance
                         if (variance > 0) {
@@ -388,7 +421,6 @@ public class ProjectDetailActivity extends AppCompatActivity {
     
     private void loadProjectQuotes() {
         Map<String, Object> params = new HashMap<>();
-        params.put("project_id", projectId);
         params.put("limit", 1000);
         params.put("sort", "created_at");
         params.put("order", "desc");
@@ -399,8 +431,19 @@ public class ProjectDetailActivity extends AppCompatActivity {
             @Override
             public void onSuccess(List<Quote> quotes) {
                 runOnUiThread(() -> {
-                    projectQuotes = quotes != null ? quotes : new ArrayList<>();
-                    ApiDebugger.logAuth("Project quotes loaded: " + projectQuotes.size(), true);
+                    // Filter quotes by project ID on client side
+                    List<Quote> filteredQuotes = new ArrayList<>();
+                    if (quotes != null) {
+                        for (Quote quote : quotes) {
+                            if (quote.getProjectId() != null && quote.getProjectId().equals(projectId)) {
+                                filteredQuotes.add(quote);
+                            }
+                        }
+                    }
+                    
+                    projectQuotes = filteredQuotes;
+                    ApiDebugger.logAuth("Project quotes loaded: " + projectQuotes.size() + " (filtered from " + (quotes != null ? quotes.size() : 0) + " total)", true);
+                    
                     // Update pager adapter with quotes data
                     if (pagerAdapter != null) {
                         pagerAdapter.updateQuotes(projectQuotes);
@@ -438,7 +481,6 @@ public class ProjectDetailActivity extends AppCompatActivity {
     
     private void loadProjectInvoices() {
         Map<String, Object> params = new HashMap<>();
-        params.put("project_id", projectId);
         params.put("limit", 1000);
         params.put("sort", "created_at");
         params.put("order", "desc");
@@ -449,8 +491,19 @@ public class ProjectDetailActivity extends AppCompatActivity {
             @Override
             public void onSuccess(List<Invoice> invoices) {
                 runOnUiThread(() -> {
-                    projectInvoices = invoices != null ? invoices : new ArrayList<>();
-                    ApiDebugger.logAuth("Project invoices loaded: " + projectInvoices.size(), true);
+                    // Filter invoices by project ID on client side
+                    List<Invoice> filteredInvoices = new ArrayList<>();
+                    if (invoices != null) {
+                        for (Invoice invoice : invoices) {
+                            if (invoice.getProjectId() != null && invoice.getProjectId().equals(projectId)) {
+                                filteredInvoices.add(invoice);
+                            }
+                        }
+                    }
+                    
+                    projectInvoices = filteredInvoices;
+                    ApiDebugger.logAuth("Project invoices loaded: " + projectInvoices.size() + " (filtered from " + (invoices != null ? invoices.size() : 0) + " total)", true);
+                    
                     // Update pager adapter with invoices data
                     if (pagerAdapter != null) {
                         pagerAdapter.updateInvoices(projectInvoices);
@@ -488,7 +541,6 @@ public class ProjectDetailActivity extends AppCompatActivity {
     
     private void loadProjectExpenses() {
         Map<String, Object> params = new HashMap<>();
-        params.put("project_id", projectId);
         params.put("limit", 1000);
         params.put("sort", "created_at");
         params.put("order", "desc");
@@ -499,8 +551,19 @@ public class ProjectDetailActivity extends AppCompatActivity {
             @Override
             public void onSuccess(List<ProjectExpense> expenses) {
                 runOnUiThread(() -> {
-                    projectExpenses = expenses != null ? expenses : new ArrayList<>();
-                    ApiDebugger.logAuth("Project expenses loaded: " + projectExpenses.size(), true);
+                    // Filter expenses by project ID on client side
+                    List<ProjectExpense> filteredExpenses = new ArrayList<>();
+                    if (expenses != null) {
+                        for (ProjectExpense expense : expenses) {
+                            if (expense.getProjectId() != null && expense.getProjectId().equals(projectId)) {
+                                filteredExpenses.add(expense);
+                            }
+                        }
+                    }
+                    
+                    projectExpenses = filteredExpenses;
+                    ApiDebugger.logAuth("Project expenses loaded: " + projectExpenses.size() + " (filtered from " + (expenses != null ? expenses.size() : 0) + " total)", true);
+                    
                     // Update pager adapter with expenses data
                     if (pagerAdapter != null) {
                         pagerAdapter.updateExpenses(projectExpenses);

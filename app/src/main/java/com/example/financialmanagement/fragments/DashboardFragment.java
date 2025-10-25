@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -33,12 +34,14 @@ import java.util.HashMap;
  */
 public class DashboardFragment extends Fragment {
 
-    private TextView tvUserName, tvUserRole, tvTotalProjects, tvTotalExpenses, tvTotalRevenue;
+    private TextView tvUserName, tvUserRole, tvTotalSpent, tvBudgetProgress, tvRemainingBudget;
+    private TextView tvFoodAmount, tvTransportAmount, tvBillsAmount;
     private RecyclerView rvRecentProjects;
     private RecentProjectsAdapter recentProjectsAdapter;
     private ProjectService projectService;
     private ExpenseService expenseService;
     private UserService userService;
+    private ProgressBar progressBudget;
 
     @Nullable
     @Override
@@ -62,9 +65,9 @@ public class DashboardFragment extends Fragment {
         try {
             tvUserName = view.findViewById(R.id.tv_user_name);
             tvUserRole = view.findViewById(R.id.tv_user_role);
-            tvTotalProjects = view.findViewById(R.id.tv_total_projects);
-            tvTotalExpenses = view.findViewById(R.id.tv_total_expenses);
-            tvTotalRevenue = view.findViewById(R.id.tv_total_revenue);
+            tvTotalSpent = view.findViewById(R.id.tv_total_spent);
+            progressBudget = view.findViewById(R.id.progress_budget);
+
             rvRecentProjects = view.findViewById(R.id.rv_recent_projects);
             
             // Check for null views
@@ -74,14 +77,11 @@ public class DashboardFragment extends Fragment {
             if (tvUserRole == null) {
                 throw new RuntimeException("tvUserRole not found");
             }
-            if (tvTotalProjects == null) {
-                throw new RuntimeException("tvTotalProjects not found");
+            if (tvTotalSpent == null) {
+                throw new RuntimeException("tvTotalSpent not found");
             }
-            if (tvTotalExpenses == null) {
-                throw new RuntimeException("tvTotalExpenses not found");
-            }
-            if (tvTotalRevenue == null) {
-                throw new RuntimeException("tvTotalRevenue not found");
+            if (progressBudget == null) {
+                throw new RuntimeException("progressBudget not found");
             }
             if (rvRecentProjects == null) {
                 throw new RuntimeException("rvRecentProjects not found");
@@ -169,132 +169,49 @@ public class DashboardFragment extends Fragment {
     }
 
     private void loadDashboardStats() {
-        // Load project statistics for project management
-        loadTotalProjects();
+        // Load monthly spending data
+        loadMonthlySpending();
         
-        // Load active projects count
-        loadActiveProjects();
+        // Load category spending
+        loadCategorySpending();
         
-        // Load completed projects count
-        loadCompletedProjects();
-        
-        // Load project cost summary
-        loadProjectCostSummary();
+        // Load budget progress
+        loadBudgetProgress();
     }
     
-    private void loadTotalProjects() {
-        // Get all projects to count them
-        Map<String, Object> params = new HashMap<>();
-        params.put("limit", 1000); // Get all projects
-        
-        ApiDebugger.logRequest("GET", "Total Projects", null, params);
-        
-        projectService.getAllProjects(params, new ProjectService.ProjectCallback() {
-            @Override
-            public void onSuccess(List<Project> projects) {
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        int projectCount = projects != null ? projects.size() : 0;
-                        tvTotalProjects.setText(String.valueOf(projectCount));
-                        ApiDebugger.logResponse(200, "Success", "Total projects: " + projectCount);
-                        
-                        // Show success message if projects found
-                        if (projectCount > 0) {
-                            Toast.makeText(getContext(), "Đã tải " + projectCount + " dự án", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-            }
-            
-            @Override
-            public void onSuccess(Project project) {
-                // Not used
-            }
-            
-            @Override
-            public void onError(String error) {
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        tvTotalProjects.setText("0");
-                        ApiDebugger.logError("loadTotalProjects", new Exception(error));
-                        Toast.makeText(getContext(), "Lỗi tải dự án: " + error, Toast.LENGTH_SHORT).show();
-                    });
-                }
-            }
-        });
+    private void loadMonthlySpending() {
+        // Simulate monthly spending data from database
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                tvTotalSpent.setText("$3,580");
+                progressBudget.setProgress(89);
+            });
+        }
     }
     
-    private void loadActiveProjects() {
-        // Get active projects count
-        Map<String, Object> params = new HashMap<>();
-        params.put("limit", 1000);
-        params.put("status", "active"); // Filter by active status
-        
-        ApiDebugger.logRequest("GET", "Active Projects", null, params);
-        
-        projectService.getAllProjects(params, new ProjectService.ProjectCallback() {
-            @Override
-            public void onSuccess(List<Project> projects) {
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        tvTotalExpenses.setText(String.valueOf(projects.size()));
-                        ApiDebugger.logResponse(200, "Success", "Active projects: " + projects.size());
-                    });
-                }
-            }
-            
-            @Override
-            public void onSuccess(Project project) {
-                // Not used
-            }
-            
-            @Override
-            public void onError(String error) {
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        tvTotalExpenses.setText("0");
-                        ApiDebugger.logError("loadActiveProjects", new Exception(error));
-                    });
-                }
-            }
-        });
+    private void loadCategorySpending() {
+        // Simulate category spending data from database
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                tvFoodAmount.setText("$1,250");
+                tvTransportAmount.setText("$890");
+                tvBillsAmount.setText("$720");
+            });
+        }
     }
     
-    private void loadCompletedProjects() {
-        // Get completed projects count
-        Map<String, Object> params = new HashMap<>();
-        params.put("limit", 1000);
-        params.put("status", "completed"); // Filter by completed status
-        
-        ApiDebugger.logRequest("GET", "Completed Projects", null, params);
-        
-        projectService.getAllProjects(params, new ProjectService.ProjectCallback() {
-            @Override
-            public void onSuccess(List<Project> projects) {
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        tvTotalRevenue.setText(String.valueOf(projects.size()));
-                        ApiDebugger.logResponse(200, "Success", "Completed projects: " + projects.size());
-                    });
-                }
-            }
-            
-            @Override
-            public void onSuccess(Project project) {
-                // Not used
-            }
-            
-            @Override
-            public void onError(String error) {
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        tvTotalRevenue.setText("0");
-                        ApiDebugger.logError("loadCompletedProjects", new Exception(error));
-                    });
-                }
-            }
-        });
+    private void loadBudgetProgress() {
+        // Simulate budget progress calculation
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                // Update progress bar based on spending vs budget
+                progressBudget.setProgress(89);
+            });
+        }
     }
+    
+    
+    
 
     private void loadRecentProjects() {
         // Use getAllProjects with limit to get recent projects
@@ -320,7 +237,12 @@ public class DashboardFragment extends Fragment {
             public void onSuccess(Project project) {
                 // Not used in this context
             }
-
+            
+            @Override
+            public void onSuccess() {
+                // Not used in this context
+            }
+            
             @Override
             public void onError(String error) {
                 if (getActivity() != null) {
@@ -374,6 +296,11 @@ public class DashboardFragment extends Fragment {
             
             @Override
             public void onSuccess(Project project) {
+                // Not used
+            }
+            
+            @Override
+            public void onSuccess() {
                 // Not used
             }
             

@@ -3,10 +3,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp"
-    app:strokeWidth="0dp">
+    android:layout_marginBottom="12dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/surface_color"
+    app:strokeColor="@color/divider_color"
+    app:strokeWidth="1dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,64 +21,7 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Project Name at Top -->
-        <TextView
-            android:id="@+id/tv_invoice_project"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Dự án ABC"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorPrimary"
-            android:layout_marginBottom="8dp"
-            android:maxLines="2"
-            android:ellipsize="end" />
-
-        <!-- Invoice ID and Status Row -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
-
-            <TextView
-                android:id="@+id/tv_invoice_number"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="INV001"
-                android:textSize="14sp"
-                android:textColor="?attr/colorOnSurface"
-                android:alpha="0.7" />
-
-            <TextView
-                android:id="@+id/tv_invoice_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Đã gửi"
-                android:textSize="12sp"
-                android:textColor="@color/color_warning"
-                android:background="@drawable/bg_status_pending"
-                android:padding="4dp"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp" />
-
-        </LinearLayout>
-
-        <!-- Total Amount - Prominent Display -->
-        <TextView
-            android:id="@+id/tv_invoice_total"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="50.000.000 ₫"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorPrimary"
-            android:layout_marginBottom="8dp"
-            android:gravity="start" />
-
-        <!-- Financial Details Row -->
+        <!-- Invoice Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -85,30 +35,97 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/tv_invoice_balance"
+                    android:id="@+id/tv_invoice_project"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Còn lại: 50.000.000 ₫"
-                    android:textSize="14sp"
+                    android:text="Dự án ABC"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
                     android:textColor="?attr/colorOnSurface"
-                    android:alpha="0.8" />
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:id="@+id/tv_invoice_number"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="INV-001"
+                    android:textSize="12sp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:alpha="0.7" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_invoice_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Đã gửi"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_status_pending"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:textColor="@android:color/white" />
+
+        </LinearLayout>
+
+        <!-- Invoice Details -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tổng tiền"
+                    android:textSize="12sp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:alpha="0.7"
+                    android:layout_marginBottom="2dp" />
+
+                <TextView
+                    android:id="@+id/tv_invoice_total"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="50,000,000 ₫"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorPrimary" />
 
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:orientation="vertical"
-                android:gravity="end">
+                android:gravity="center">
 
                 <TextView
-                    android:id="@+id/tv_invoice_due_date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hạn: 31/12/2024"
+                    android:text="Còn lại"
                     android:textSize="12sp"
                     android:textColor="?attr/colorOnSurface"
-                    android:alpha="0.6" />
+                    android:alpha="0.7"
+                    android:layout_marginBottom="2dp" />
+
+                <TextView
+                    android:id="@+id/tv_invoice_balance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="50,000,000 ₫"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/color_warning" />
 
             </LinearLayout>
 
@@ -120,7 +137,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:layout_marginTop="8dp">
 
             <ImageView
                 android:layout_width="16dp"
@@ -141,43 +158,14 @@
                 android:maxLines="1"
                 android:ellipsize="end" />
 
-        </LinearLayout>
-
-        <!-- Action Buttons -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_mark_paid"
+            <TextView
+                android:id="@+id/tv_invoice_due_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Đã TT"
+                android:text="31/12/2024"
                 android:textSize="12sp"
-                android:icon="@drawable/ic_check"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_marginEnd="8dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_add_payment"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Thêm TT"
-                android:textSize="12sp"
-                android:icon="@drawable/ic_add"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_marginEnd="8dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_send_customer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Gửi"
-                android:textSize="12sp"
-                android:icon="@drawable/ic_email"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                android:textColor="?attr/colorOnSurface"
+                android:alpha="0.6" />
 
         </LinearLayout>
 

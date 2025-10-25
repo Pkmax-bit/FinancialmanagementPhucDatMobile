@@ -305,6 +305,11 @@ public class RevenueFragment extends Fragment {
             }
             
             @Override
+            public void onSuccess() {
+                // Not used
+            }
+            
+            @Override
             public void onError(String error) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
@@ -354,8 +359,8 @@ public class RevenueFragment extends Fragment {
                         double totalRevenue = 0;
                         if (invoices != null) {
                             for (Invoice invoice : invoices) {
-                                if (invoice.getTotal() != null) {
-                                    totalRevenue += invoice.getTotal();
+                                if (invoice.getTotalAmount() != null) {
+                                    totalRevenue += invoice.getTotalAmount();
                                 }
                             }
                         }

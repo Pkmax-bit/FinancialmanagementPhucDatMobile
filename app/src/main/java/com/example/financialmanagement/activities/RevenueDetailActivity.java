@@ -2,6 +2,8 @@ package com.example.financialmanagement.activities;
 
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,7 +41,12 @@ public class RevenueDetailActivity extends AppCompatActivity {
     private TextView tvTitle, tvCustomerName, tvCustomerEmail, tvCustomerPhone;
     private TextView tvTotalAmount, tvStatus, tvCreatedDate, tvDueDate;
     private TextView tvNotes, tvPaymentMethod, tvTaxRate, tvDiscount;
-    private RecyclerView rvProducts;
+    private TextView tvProductsCount, tvNoProducts;
+    private LinearLayout llProductsContainer;
+    private LinearLayout llProduct1, llProduct2, llProduct3;
+    private TextView tvProductName1, tvProductDescription1, tvProductQuantity1, tvProductPrice1;
+    private TextView tvProductName2, tvProductDescription2, tvProductQuantity2, tvProductPrice2;
+    private TextView tvProductName3, tvProductDescription3, tvProductQuantity3, tvProductPrice3;
     
     // Services
     private InvoiceService invoiceService;
@@ -84,12 +91,32 @@ public class RevenueDetailActivity extends AppCompatActivity {
         tvPaymentMethod = findViewById(R.id.tv_payment_method);
         tvTaxRate = findViewById(R.id.tv_tax_rate);
         tvDiscount = findViewById(R.id.tv_discount);
-        rvProducts = findViewById(R.id.rv_products);
+        tvProductsCount = findViewById(R.id.tv_products_count);
+        tvNoProducts = findViewById(R.id.tv_no_products);
+        llProductsContainer = findViewById(R.id.ll_products_container);
         
-        // Setup RecyclerView
-        rvProducts.setLayoutManager(new LinearLayoutManager(this));
-        productAdapter = new ProductDetailAdapter(products);
-        rvProducts.setAdapter(productAdapter);
+        // Product layouts
+        llProduct1 = findViewById(R.id.ll_product_1);
+        llProduct2 = findViewById(R.id.ll_product_2);
+        llProduct3 = findViewById(R.id.ll_product_3);
+        
+        // Product 1
+        tvProductName1 = findViewById(R.id.tv_product_name_1);
+        tvProductDescription1 = findViewById(R.id.tv_product_description_1);
+        tvProductQuantity1 = findViewById(R.id.tv_product_quantity_1);
+        tvProductPrice1 = findViewById(R.id.tv_product_price_1);
+        
+        // Product 2
+        tvProductName2 = findViewById(R.id.tv_product_name_2);
+        tvProductDescription2 = findViewById(R.id.tv_product_description_2);
+        tvProductQuantity2 = findViewById(R.id.tv_product_quantity_2);
+        tvProductPrice2 = findViewById(R.id.tv_product_price_2);
+        
+        // Product 3
+        tvProductName3 = findViewById(R.id.tv_product_name_3);
+        tvProductDescription3 = findViewById(R.id.tv_product_description_3);
+        tvProductQuantity3 = findViewById(R.id.tv_product_quantity_3);
+        tvProductPrice3 = findViewById(R.id.tv_product_price_3);
     }
     
     private void setupToolbar() {
@@ -179,7 +206,7 @@ public class RevenueDetailActivity extends AppCompatActivity {
             tvCustomerName.setText(invoice.getCustomer() != null ? invoice.getCustomer().getName() : "N/A");
             tvCustomerEmail.setText(invoice.getCustomer() != null ? invoice.getCustomer().getEmail() : "N/A");
             tvCustomerPhone.setText(invoice.getCustomer() != null ? invoice.getCustomer().getPhone() : "N/A");
-            tvTotalAmount.setText(String.format("%,.0f VNĐ", invoice.getTotal()));
+            tvTotalAmount.setText(String.format("%,.0f VNĐ", invoice.getTotalAmount()));
             tvStatus.setText(getStatusDisplayName(invoice.getStatus()));
             tvCreatedDate.setText(invoice.getCreatedAt() != null ? invoice.getCreatedAt().toString() : "N/A");
             tvDueDate.setText(invoice.getDueDate() != null ? invoice.getDueDate().toString() : "N/A");
@@ -189,11 +216,36 @@ public class RevenueDetailActivity extends AppCompatActivity {
             tvDiscount.setText("0.0%");
             
             // Load products
-            if (invoice.getProducts() != null) {
-                products.clear();
+            // Hiển thị danh sách sản phẩm từ items hoặc products
+            products.clear();
+            
+            // Ưu tiên hiển thị từ items (chi tiết hóa đơn)
+            if (invoice.getItems() != null && !invoice.getItems().isEmpty()) {
+                for (Invoice.InvoiceItem item : invoice.getItems()) {
+                    Product product = new Product();
+                    product.setNameProduct(item.getNameProduct() != null ? item.getNameProduct() : "Sản phẩm");
+                    product.setDescription(item.getDescription() != null ? item.getDescription() : "Không có mô tả");
+                    product.setQuantity(item.getQuantity() != null ? item.getQuantity() : 0.0);
+                    product.setUnitPrice(item.getUnitPrice() != null ? item.getUnitPrice() : 0.0);
+                    product.setTotalPrice(item.getTotalPrice() != null ? item.getTotalPrice() : 0.0);
+                    product.setUnit(item.getUnit() != null ? item.getUnit() : "cái");
+                    product.setArea(item.getArea());
+                    product.setVolume(item.getVolume());
+                    product.setHeight(item.getHeight());
+                    product.setLength(item.getLength());
+                    product.setDepth(item.getDepth());
+                    product.setDiscountRate(item.getDiscountRate());
+                    products.add(product);
+                }
+            } else if (invoice.getProducts() != null && !invoice.getProducts().isEmpty()) {
+                // Fallback: sử dụng products nếu có
                 products.addAll(invoice.getProducts());
-                productAdapter.notifyDataSetChanged();
             }
+            
+            productAdapter.notifyDataSetChanged();
+            
+            // Hiển thị sản phẩm
+            displayProducts(products);
         });
     }
     
@@ -205,7 +257,7 @@ public class RevenueDetailActivity extends AppCompatActivity {
             tvCustomerName.setText(quote.getCustomer() != null ? quote.getCustomer().getName() : "N/A");
             tvCustomerEmail.setText(quote.getCustomer() != null ? quote.getCustomer().getEmail() : "N/A");
             tvCustomerPhone.setText(quote.getCustomer() != null ? quote.getCustomer().getPhone() : "N/A");
-            tvTotalAmount.setText(String.format("%,.0f VNĐ", quote.getTotal()));
+            tvTotalAmount.setText(String.format("%,.0f VNĐ", quote.getTotalAmount()));
             tvStatus.setText(getStatusDisplayName(quote.getStatus()));
             tvCreatedDate.setText(quote.getCreatedAt() != null ? quote.getCreatedAt().toString() : "N/A");
             tvDueDate.setText(quote.getValidUntil() != null ? quote.getValidUntil().toString() : "N/A");
@@ -215,12 +267,91 @@ public class RevenueDetailActivity extends AppCompatActivity {
             tvDiscount.setText("0.0%");
             
             // Load products
-            if (quote.getProducts() != null) {
-                products.clear();
+            // Hiển thị danh sách sản phẩm từ items hoặc products
+            products.clear();
+            
+            // Ưu tiên hiển thị từ items (chi tiết báo giá)
+            if (quote.getItems() != null && !quote.getItems().isEmpty()) {
+                for (Quote.QuoteItem item : quote.getItems()) {
+                    Product product = new Product();
+                    product.setNameProduct(item.getNameProduct() != null ? item.getNameProduct() : "Sản phẩm");
+                    product.setDescription(item.getDescription() != null ? item.getDescription() : "Không có mô tả");
+                    product.setQuantity(item.getQuantity() != null ? item.getQuantity() : 0.0);
+                    product.setUnitPrice(item.getUnitPrice() != null ? item.getUnitPrice() : 0.0);
+                    product.setTotalPrice(item.getTotalPrice() != null ? item.getTotalPrice() : 0.0);
+                    product.setUnit(item.getUnit() != null ? item.getUnit() : "cái");
+                    product.setArea(item.getArea());
+                    product.setVolume(item.getVolume());
+                    product.setHeight(item.getHeight());
+                    product.setLength(item.getLength());
+                    product.setDepth(item.getDepth());
+                    product.setDiscountRate(item.getDiscountRate());
+                    products.add(product);
+                }
+            } else if (quote.getProducts() != null && !quote.getProducts().isEmpty()) {
+                // Fallback: sử dụng products nếu có
                 products.addAll(quote.getProducts());
-                productAdapter.notifyDataSetChanged();
             }
+            
+            productAdapter.notifyDataSetChanged();
+            
+            // Hiển thị sản phẩm
+            displayProducts(products);
         });
+    }
+    
+    private void displayProducts(List<Product> products) {
+        if (products == null || products.isEmpty()) {
+            // Hiển thị empty state
+            tvNoProducts.setVisibility(View.VISIBLE);
+            llProduct1.setVisibility(View.GONE);
+            llProduct2.setVisibility(View.GONE);
+            llProduct3.setVisibility(View.GONE);
+            tvProductsCount.setText("0 sản phẩm");
+            return;
+        }
+        
+        // Ẩn empty state
+        tvNoProducts.setVisibility(View.GONE);
+        
+        // Hiển thị sản phẩm 1
+        if (products.size() > 0) {
+            Product product1 = products.get(0);
+            tvProductName1.setText(product1.getNameProduct() != null ? product1.getNameProduct() : "Sản phẩm");
+            tvProductDescription1.setText(product1.getDescription() != null ? product1.getDescription() : "Không có mô tả");
+            tvProductQuantity1.setText(String.format("%.0f x", product1.getQuantity() != null ? product1.getQuantity() : 0));
+            tvProductPrice1.setText(String.format("%,.0f VNĐ", product1.getTotalPrice() != null ? product1.getTotalPrice() : 0));
+            llProduct1.setVisibility(View.VISIBLE);
+        } else {
+            llProduct1.setVisibility(View.GONE);
+        }
+        
+        // Hiển thị sản phẩm 2
+        if (products.size() > 1) {
+            Product product2 = products.get(1);
+            tvProductName2.setText(product2.getNameProduct() != null ? product2.getNameProduct() : "Sản phẩm");
+            tvProductDescription2.setText(product2.getDescription() != null ? product2.getDescription() : "Không có mô tả");
+            tvProductQuantity2.setText(String.format("%.0f x", product2.getQuantity() != null ? product2.getQuantity() : 0));
+            tvProductPrice2.setText(String.format("%,.0f VNĐ", product2.getTotalPrice() != null ? product2.getTotalPrice() : 0));
+            llProduct2.setVisibility(View.VISIBLE);
+        } else {
+            llProduct2.setVisibility(View.GONE);
+        }
+        
+        // Hiển thị sản phẩm 3
+        if (products.size() > 2) {
+            Product product3 = products.get(2);
+            tvProductName3.setText(product3.getNameProduct() != null ? product3.getNameProduct() : "Sản phẩm");
+            tvProductDescription3.setText(product3.getDescription() != null ? product3.getDescription() : "Không có mô tả");
+            tvProductQuantity3.setText(String.format("%.0f x", product3.getQuantity() != null ? product3.getQuantity() : 0));
+            tvProductPrice3.setText(String.format("%,.0f VNĐ", product3.getTotalPrice() != null ? product3.getTotalPrice() : 0));
+            llProduct3.setVisibility(View.VISIBLE);
+        } else {
+            llProduct3.setVisibility(View.GONE);
+        }
+        
+        // Cập nhật số lượng sản phẩm
+        tvProductsCount.setText(products.size() + " sản phẩm");
     }
     
     private String getStatusDisplayName(String status) {

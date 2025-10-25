@@ -3,23 +3,26 @@ package com.example.financialmanagement.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import com.example.financialmanagement.R;
 import com.example.financialmanagement.fragments.DashboardFragment;
+import com.example.financialmanagement.fragments.ProjectsFragment;
 import com.example.financialmanagement.fragments.RevenueFragment;
-import com.example.financialmanagement.fragments.ScanExpenseFragment;
 import com.example.financialmanagement.fragments.ExpensesFragment;
-import com.example.financialmanagement.fragments.SettingsFragment;
+import com.example.financialmanagement.fragments.ReportsFragment;
 import com.example.financialmanagement.fragments.CustomersFragment;
 import com.example.financialmanagement.fragments.QuotesFragment;
-import com.example.financialmanagement.fragments.BudgetFragment;
 import com.example.financialmanagement.fragments.InvoicesFragment;
+import com.example.financialmanagement.fragments.SettingsFragment;
 import com.example.financialmanagement.auth.AuthManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
@@ -31,10 +34,13 @@ import com.google.android.material.navigation.NavigationView;
 public class MainActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener, NavigationView.OnNavigationItemSelectedListener {
 
     private BottomNavigationView bottomNavigationView;
-    private DrawerLayout drawerLayout;
     private NavigationView navigationView;
+    private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
+    private Toolbar toolbar;
     private AuthManager authManager;
+    private boolean isSettingUpNavigation = false;
+    private boolean isUpdatingFromDrawer = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,9 +54,11 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 return;
             }
             
-            setContentView(R.layout.activity_main);
+            setContentView(R.layout.drawer_layout);
             
             initializeViews();
+            setupToolbar();
+            setupDrawer();
             setupBottomNavigation();
             
             // Load Dashboard fragment mặc định
@@ -66,81 +74,184 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
 
     private void initializeViews() {
         bottomNavigationView = findViewById(R.id.bottom_navigation);
-        drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
+        drawerLayout = findViewById(R.id.drawer_layout);
+        toolbar = findViewById(R.id.toolbar);
         
-        // Check for null views
+        // Check for null views with better error messages
         if (bottomNavigationView == null) {
-            throw new RuntimeException("BottomNavigationView not found");
-        }
-        if (drawerLayout == null) {
-            throw new RuntimeException("DrawerLayout not found");
+            android.util.Log.e("MainActivity", "BottomNavigationView not found in layout");
+            throw new RuntimeException("BottomNavigationView not found - check if R.id.bottom_navigation exists in drawer_layout.xml");
         }
         if (navigationView == null) {
-            throw new RuntimeException("NavigationView not found");
+            android.util.Log.e("MainActivity", "NavigationView not found in layout");
+            throw new RuntimeException("NavigationView not found - check if R.id.nav_view exists in drawer_layout.xml");
+        }
+        if (drawerLayout == null) {
+            android.util.Log.e("MainActivity", "DrawerLayout not found in layout");
+            throw new RuntimeException("DrawerLayout not found - check if R.id.drawer_layout exists in drawer_layout.xml");
+        }
+        if (toolbar == null) {
+            android.util.Log.e("MainActivity", "Toolbar not found in layout");
+            throw new RuntimeException("Toolbar not found - check if R.id.toolbar exists in drawer_layout.xml");
+        }
+        
+        android.util.Log.d("MainActivity", "All views initialized successfully");
+    }
+
+    private void setupToolbar() {
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu);
         }
     }
 
-    private void setupBottomNavigation() {
-        bottomNavigationView.setOnNavigationItemSelectedListener(this);
-        navigationView.setNavigationItemSelectedListener(this);
-        
-        // Setup toolbar
-        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        // Setup drawer toggle
+    private void setupDrawer() {
         drawerToggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar,
-                R.string.nav_header_title, R.string.nav_header_subtitle);
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close
+        );
         drawerLayout.addDrawerListener(drawerToggle);
         drawerToggle.syncState();
+        
+        navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    private void setupBottomNavigation() {
+        if (bottomNavigationView == null) {
+            android.util.Log.e("MainActivity", "BottomNavigationView is null!");
+            return;
+        }
+        
+        try {
+            isSettingUpNavigation = true;
+            bottomNavigationView.setOnNavigationItemSelectedListener(this);
+            
+            // Set default fragment
+            loadFragment(new DashboardFragment());
+            
+            // Use post to ensure the view is fully initialized
+            bottomNavigationView.post(() -> {
+                bottomNavigationView.setSelectedItemId(R.id.nav_dashboard);
+                isSettingUpNavigation = false;
+            });
+        } catch (Exception e) {
+            android.util.Log.e("MainActivity", "Error setting up bottom navigation: " + e.getMessage(), e);
+            isSettingUpNavigation = false;
+        }
     }
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        Fragment selectedFragment = null;
+        // Prevent circular calls during setup
+        if (isSettingUpNavigation) {
+            return false;
+        }
         
         int itemId = item.getItemId();
         
-        // Handle bottom navigation items
-        if (itemId == R.id.nav_dashboard) {
-            selectedFragment = new DashboardFragment();
-        } else if (itemId == R.id.nav_revenue) {
-            selectedFragment = new RevenueFragment();
-        } else if (itemId == R.id.nav_scan_expense) {
-            selectedFragment = new ScanExpenseFragment();
-        } else if (itemId == R.id.nav_expenses) {
-            selectedFragment = new ExpensesFragment();
-        } else if (itemId == R.id.nav_settings) {
-            selectedFragment = new SettingsFragment();
+        // Handle navigation based on source
+        if (isFromBottomNavigation(item)) {
+            return handleBottomNavigation(itemId);
+        } else {
+            return handleDrawerNavigation(itemId);
         }
-        // Handle drawer navigation items
-        else if (itemId == R.id.nav_customers) {
-            selectedFragment = new CustomersFragment();
-        } else if (itemId == R.id.nav_quotes) {
-            selectedFragment = new QuotesFragment();
-        } else if (itemId == R.id.nav_budget) {
-            selectedFragment = new BudgetFragment();
-        } else if (itemId == R.id.nav_invoices) {
-            selectedFragment = new InvoicesFragment();
-        } else if (itemId == R.id.nav_help) {
-            // Handle help
-            return true;
-        } else if (itemId == R.id.nav_about) {
-            // Handle about
-            return true;
-        }
-
+    }
+    
+    private boolean isFromBottomNavigation(MenuItem item) {
+        return bottomNavigationView != null && bottomNavigationView.getMenu().findItem(item.getItemId()) != null;
+    }
+    
+    private boolean handleBottomNavigation(int itemId) {
+        Fragment selectedFragment = getFragmentForItem(itemId);
+        String title = getTitleForItem(itemId);
+        
         if (selectedFragment != null) {
             loadFragment(selectedFragment);
-            // Close drawer if it's open
-            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                drawerLayout.closeDrawer(GravityCompat.START);
-            }
+            updateToolbarTitle(title);
             return true;
         }
         return false;
+    }
+    
+    private boolean handleDrawerNavigation(int itemId) {
+        // Handle special drawer-only items first
+        if (itemId == R.id.nav_logout) {
+            showLogoutDialog();
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        } else if (itemId == R.id.nav_profile) {
+            Toast.makeText(this, "Chức năng hồ sơ cá nhân sẽ được triển khai", Toast.LENGTH_SHORT).show();
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        } else if (itemId == R.id.nav_help) {
+            Toast.makeText(this, "Chức năng trợ giúp sẽ được triển khai", Toast.LENGTH_SHORT).show();
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        } else if (itemId == R.id.nav_about) {
+            Toast.makeText(this, "Chức năng giới thiệu sẽ được triển khai", Toast.LENGTH_SHORT).show();
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+        
+        // Handle navigation items that exist in both drawer and bottom nav
+        Fragment selectedFragment = getFragmentForItem(itemId);
+        String title = getTitleForItem(itemId);
+        
+        if (selectedFragment != null) {
+            loadFragment(selectedFragment);
+            updateToolbarTitle(title);
+            
+            // Update bottom navigation if the item exists there
+            if (itemId == R.id.nav_dashboard || itemId == R.id.nav_projects || 
+                itemId == R.id.nav_revenue || itemId == R.id.nav_expenses || 
+                itemId == R.id.nav_reports) {
+                updateBottomNavigation(itemId);
+            }
+            
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+        
+        return false;
+    }
+    
+    private Fragment getFragmentForItem(int itemId) {
+        if (itemId == R.id.nav_dashboard) {
+            return new DashboardFragment();
+        } else if (itemId == R.id.nav_projects) {
+            return new ProjectsFragment();
+        } else if (itemId == R.id.nav_revenue) {
+            return new RevenueFragment();
+        } else if (itemId == R.id.nav_expenses) {
+            return new ExpensesFragment();
+        } else if (itemId == R.id.nav_reports) {
+            return new ReportsFragment();
+        } else if (itemId == R.id.nav_customers) {
+            return new CustomersFragment();
+        } else if (itemId == R.id.nav_quotes) {
+            return new QuotesFragment();
+        } else if (itemId == R.id.nav_invoices) {
+            return new InvoicesFragment();
+        } else if (itemId == R.id.nav_settings) {
+            return new SettingsFragment();
+        }
+        return null;
+    }
+    
+    private String getTitleForItem(int itemId) {
+        if (itemId == R.id.nav_dashboard) return "Dashboard";
+        else if (itemId == R.id.nav_projects) return "Dự án";
+        else if (itemId == R.id.nav_revenue) return "Doanh thu";
+        else if (itemId == R.id.nav_expenses) return "Chi phí";
+        else if (itemId == R.id.nav_reports) return "Báo cáo";
+        else if (itemId == R.id.nav_customers) return "Khách hàng";
+        else if (itemId == R.id.nav_quotes) return "Báo giá";
+        else if (itemId == R.id.nav_invoices) return "Hóa đơn";
+        else if (itemId == R.id.nav_settings) return "Cài đặt";
+        return "Dashboard";
     }
 
     private void loadFragment(Fragment fragment) {
@@ -148,11 +259,82 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         transaction.replace(R.id.fragment_container, fragment);
         transaction.commit();
     }
+
+    private void updateToolbarTitle(String title) {
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(title);
+        }
+    }
+
+    private void updateBottomNavigation(int itemId) {
+        if (bottomNavigationView == null || isSettingUpNavigation) {
+            return;
+        }
+        
+        // Only update bottom navigation if the item exists in bottom nav
+        if (itemId == R.id.nav_dashboard || itemId == R.id.nav_projects || 
+            itemId == R.id.nav_revenue || itemId == R.id.nav_expenses || 
+            itemId == R.id.nav_reports) {
+            bottomNavigationView.setSelectedItemId(itemId);
+        }
+    }
     
     private void navigateToLogin() {
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);
         finish();
+    }
+    
+    @Override
+    public boolean onCreateOptionsMenu(android.view.Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+        
+        if (itemId == R.id.action_logout) {
+            showLogoutDialog();
+            return true;
+        } else if (itemId == R.id.action_settings) {
+            // TODO: Navigate to settings
+            Toast.makeText(this, "Chức năng cài đặt sẽ được triển khai", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        
+        return super.onOptionsItemSelected(item);
+    }
+    
+    private void showLogoutDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Đăng xuất")
+                .setMessage("Bạn có chắc chắn muốn đăng xuất?")
+                .setPositiveButton("Đăng xuất", (dialog, which) -> {
+                    performLogout();
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+    
+    private void performLogout() {
+        try {
+            authManager.logout();
+            Toast.makeText(this, "Đã đăng xuất thành công", Toast.LENGTH_SHORT).show();
+            navigateToLogin();
+        } catch (Exception e) {
+            Toast.makeText(this, "Lỗi đăng xuất: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+    
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
     }
     
     /**

@@ -49,6 +49,14 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <!-- Bottom Navigation Active Indicator -->
+    <style name="BottomNavigationActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/primary_light</item>
+        <item name="android:width">64dp</item>
+        <item name="android:height">32dp</item>
+        <item name="cornerRadius">16dp</item>
+    </style>
+
     <!-- Floating Action Button Theme -->
     <style name="FABStyle" parent="Widget.Material3.FloatingActionButton.Primary">
         <item name="android:layout_margin">16dp</item>

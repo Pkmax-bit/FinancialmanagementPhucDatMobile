@@ -53,6 +53,16 @@ public class LoginActivity extends AppCompatActivity implements AuthCallback {
                 performLogin();
             }
         });
+        
+        // Thêm click listener cho forgot password
+        findViewById(R.id.tv_forgot_password).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                handleForgotPassword();
+            }
+        });
+        
+        // Register functionality removed - not needed for this app
     }
 
     private void performLogin() {
@@ -94,5 +104,21 @@ public class LoginActivity extends AppCompatActivity implements AuthCallback {
             showLoading(false);
             Toast.makeText(this, "Lỗi đăng nhập: " + error, Toast.LENGTH_LONG).show();
         });
+    }
+    
+    private void handleForgotPassword() {
+        String email = etEmail.getText().toString().trim();
+        if (email.isEmpty()) {
+            Toast.makeText(this, "Vui lòng nhập email để reset mật khẩu", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // TODO: Implement forgot password functionality
+        Toast.makeText(this, "Chức năng quên mật khẩu sẽ được triển khai", Toast.LENGTH_SHORT).show();
+    }
+    
+    private void handleRegister() {
+        // TODO: Navigate to register activity
+        Toast.makeText(this, "Chức năng đăng ký sẽ được triển khai", Toast.LENGTH_SHORT).show();
     }
 }

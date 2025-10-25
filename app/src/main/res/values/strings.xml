@@ -132,4 +132,14 @@
     <string name="nav_header_title">Phúc Đạt Financial</string>
     <string name="nav_header_subtitle">Quản lý tài chính thông minh</string>
     <string name="nav_header_desc">Navigation header</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    
+    <!-- Additional Navigation Items -->
+    <string name="nav_customers">Khách hàng</string>
+    <string name="nav_quotes">Báo giá</string>
+    <string name="nav_invoices">Hóa đơn</string>
+    <string name="nav_profile">Hồ sơ cá nhân</string>
+    <string name="nav_help">Trợ giúp</string>
+    <string name="nav_about">Giới thiệu</string>
 </resources>

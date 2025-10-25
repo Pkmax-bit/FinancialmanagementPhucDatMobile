@@ -32,8 +32,8 @@ public class AuthManager {
     private SharedPreferences prefs;
     private AuthApi authApi;
     // AuthManager.java
-public static final String SUPABASE_URL = "https://ncqfxuhyfqumrdclcpkr.supabase.co";
-public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jcWZ4dWl5ZnF1bXJkY2xjcGtyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1NTM0OTEsImV4cCI6MjA0MDEyOTQ5MX0.B_qWnYl79v5NzDjD0fYgA_qVqAaQ1x63_6WpYyXcJ4";
+public static final String SUPABASE_URL = "https://mfmijckzlhevduwfigkl.supabase.co";
+public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mbWlqY2t6bGhldmR1d2ZpZ2tsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1MzkxMTIsImV4cCI6MjA3MjExNTExMn0.VPFmvLghhO32JybxDzq-CGVQedgI-LN7Q07rwDhxU4E";
     public AuthManager(Context context) {
         this.context = context;
         this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -347,4 +347,5 @@ public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX
             this.userRole = userRole;
         }
     }
+    
 }

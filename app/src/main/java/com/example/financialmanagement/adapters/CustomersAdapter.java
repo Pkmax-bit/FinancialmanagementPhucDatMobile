@@ -65,6 +65,11 @@ public class CustomersAdapter extends RecyclerView.Adapter<CustomersAdapter.Cust
         private TextView tvCustomerCredit;
         private TextView tvCustomerProjects;
         private TextView tvCustomerStatus;
+        
+        // Action buttons
+        private com.google.android.material.button.MaterialButton btnCreateProject;
+        private com.google.android.material.button.MaterialButton btnEditCustomer;
+        private com.google.android.material.button.MaterialButton btnDeleteCustomer;
 
         public CustomerViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -76,6 +81,11 @@ public class CustomersAdapter extends RecyclerView.Adapter<CustomersAdapter.Cust
             tvCustomerCredit = itemView.findViewById(R.id.tv_customer_credit);
             tvCustomerProjects = itemView.findViewById(R.id.tv_customer_projects);
             tvCustomerStatus = itemView.findViewById(R.id.tv_customer_status);
+            
+            // Initialize action buttons
+            btnCreateProject = itemView.findViewById(R.id.btn_create_project);
+            btnEditCustomer = itemView.findViewById(R.id.btn_edit_customer);
+            btnDeleteCustomer = itemView.findViewById(R.id.btn_delete_customer);
         }
 
         public void bind(Customer customer, CustomerClickListener clickListener) {
@@ -107,6 +117,25 @@ public class CustomersAdapter extends RecyclerView.Adapter<CustomersAdapter.Cust
             itemView.setOnClickListener(v -> {
                 if (clickListener != null) {
                     clickListener.onCustomerClick(customer);
+                }
+            });
+            
+            // Action button listeners
+            btnCreateProject.setOnClickListener(v -> {
+                if (clickListener != null) {
+                    clickListener.onCustomerCreateProject(customer);
+                }
+            });
+            
+            btnEditCustomer.setOnClickListener(v -> {
+                if (clickListener != null) {
+                    clickListener.onCustomerEdit(customer);
+                }
+            });
+            
+            btnDeleteCustomer.setOnClickListener(v -> {
+                if (clickListener != null) {
+                    clickListener.onCustomerDelete(customer);
                 }
             });
         }

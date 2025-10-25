@@ -60,6 +60,22 @@
             android:label="Chi tiết dự án"
             android:theme="@style/Theme.FinancialManagement.NoActionBar"
             android:parentActivityName=".activities.MainActivity" />
+        
+        <!-- Customer Form Activity -->
+        <activity
+            android:name=".activities.CustomerFormActivity"
+            android:exported="false"
+            android:label="Thêm khách hàng"
+            android:theme="@style/Theme.FinancialManagement.NoActionBar"
+            android:parentActivityName=".activities.MainActivity" />
+        
+        <!-- Project Form Activity -->
+        <activity
+            android:name=".activities.ProjectFormActivity"
+            android:exported="false"
+            android:label="Tạo dự án"
+            android:theme="@style/Theme.FinancialManagement.NoActionBar"
+            android:parentActivityName=".activities.MainActivity" />
 
     </application>
 

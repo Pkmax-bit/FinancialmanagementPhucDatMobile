@@ -87,8 +87,8 @@ public class InvoicesAdapter extends RecyclerView.Adapter<InvoicesAdapter.Invoic
             tvInvoiceStatus.setText(getInvoiceStatusText(invoice.getStatus()));
             
             // Financial information
-            if (invoice.getTotal() != null) {
-                tvInvoiceTotal.setText(CurrencyFormatter.format(invoice.getTotal()));
+            if (invoice.getTotalAmount() != null) {
+                tvInvoiceTotal.setText(CurrencyFormatter.format(invoice.getTotalAmount()));
             } else {
                 tvInvoiceTotal.setText("Chưa có tổng tiền");
             }

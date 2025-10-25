@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary Colors -->
-    <color name="primary_color">#2196F3</color>
-    <color name="primary_dark">#1976D2</color>
-    <color name="primary_light">#BBDEFB</color>
+    <!-- Primary Colors - Light Blue Theme -->
+    <color name="primary_color">#4A90E2</color>
+    <color name="primary_dark">#357ABD</color>
+    <color name="primary_light">#B3D9FF</color>
     
     <!-- Secondary Colors -->
     <color name="secondary_color">#FF9800</color>
@@ -15,10 +15,12 @@
     <color name="accent_dark">#388E3C</color>
     <color name="accent_light">#C8E6C9</color>
     
-    <!-- Background Colors -->
-    <color name="background_color">#FAFAFA</color>
+    <!-- Background Colors - Figma Design -->
+    <color name="background_color">#FFFFFF</color>
     <color name="surface_color">#FFFFFF</color>
-    <color name="surface_variant">#F5F5F5</color>
+    <color name="surface_variant">#F3F3F5</color>
+    <color name="muted">#ECECF0</color>
+    <color name="muted_foreground">#717182</color>
     
     <!-- Text Colors -->
     <color name="text_primary">#212121</color>
@@ -100,4 +102,12 @@
     <color name="color_error">#F44336</color>
     <color name="color_warning">#FF9800</color>
     <color name="progress_color">#2196F3</color>
+    
+    <!-- Additional Colors for CRUD -->
+    <color name="primary">@color/primary_color</color>
+    <color name="gray_light">#E0E0E0</color>
+    
+    <!-- Status Colors for Projects -->
+    <color name="color_danger">#F44336</color>
+    <color name="color_info">#2196F3</color>
 </resources>
