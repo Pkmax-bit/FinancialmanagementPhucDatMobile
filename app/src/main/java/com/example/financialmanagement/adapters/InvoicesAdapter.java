@@ -71,7 +71,7 @@ public class InvoicesAdapter extends RecyclerView.Adapter<InvoicesAdapter.Invoic
         public InvoiceViewHolder(@NonNull View itemView) {
             super(itemView);
             tvInvoiceNumber = itemView.findViewById(R.id.tv_invoice_number);
-            tvInvoiceTitle = itemView.findViewById(R.id.tv_invoice_title);
+            // tvInvoiceTitle removed - no longer needed
             tvInvoiceStatus = itemView.findViewById(R.id.tv_invoice_status);
             tvInvoiceTotal = itemView.findViewById(R.id.tv_invoice_total);
             tvInvoiceBalance = itemView.findViewById(R.id.tv_invoice_balance);
@@ -83,7 +83,7 @@ public class InvoicesAdapter extends RecyclerView.Adapter<InvoicesAdapter.Invoic
         public void bind(Invoice invoice, InvoiceClickListener clickListener) {
             // Basic information
             tvInvoiceNumber.setText(invoice.getInvoiceNumber());
-            tvInvoiceTitle.setText(invoice.getTitle());
+            // tvInvoiceTitle removed - no longer needed
             tvInvoiceStatus.setText(getInvoiceStatusText(invoice.getStatus()));
             
             // Financial information

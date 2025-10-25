@@ -1,5 +1,6 @@
 package com.example.financialmanagement.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.financialmanagement.R;
+import com.example.financialmanagement.activities.ProjectDetailActivity;
 import com.example.financialmanagement.adapters.RecentProjectsAdapter;
 import com.example.financialmanagement.models.Project;
 import com.example.financialmanagement.services.ProjectService;
@@ -101,7 +103,16 @@ public class DashboardFragment extends Fragment {
 
     private void setupRecyclerView() {
         try {
-            recentProjectsAdapter = new RecentProjectsAdapter(new ArrayList<>());
+            recentProjectsAdapter = new RecentProjectsAdapter(new ArrayList<>(), new RecentProjectsAdapter.ProjectClickListener() {
+                @Override
+                public void onProjectClick(Project project) {
+                    // Navigate to project detail
+                    Intent intent = new Intent(getContext(), ProjectDetailActivity.class);
+                    intent.putExtra(ProjectDetailActivity.EXTRA_PROJECT_ID, project.getId());
+                    intent.putExtra(ProjectDetailActivity.EXTRA_PROJECT_NAME, project.getName());
+                    startActivity(intent);
+                }
+            });
             rvRecentProjects.setLayoutManager(new LinearLayoutManager(getContext()));
             rvRecentProjects.setAdapter(recentProjectsAdapter);
         } catch (Exception e) {

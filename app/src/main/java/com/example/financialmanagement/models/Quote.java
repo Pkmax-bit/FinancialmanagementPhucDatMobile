@@ -39,6 +39,7 @@ public class Quote {
     private Project project;
     private Customer customer;
     private List<QuoteItem> items;
+    private List<Product> products;
 
     // Constructors
     public Quote() {}
@@ -158,5 +159,13 @@ public class Quote {
         
         public String getQuoteId() { return quoteId; }
         public void setQuoteId(String quoteId) { this.quoteId = quoteId; }
+    }
+    
+    public List<Product> getProducts() {
+        return products;
+    }
+    
+    public void setProducts(List<Product> products) {
+        this.products = products;
     }
 }

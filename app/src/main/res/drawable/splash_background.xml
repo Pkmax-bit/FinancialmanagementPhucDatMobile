@@ -1,14 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background Gradient -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="@color/gradient_start"
+                android:endColor="@color/gradient_end"
+                android:angle="135" />
+        </shape>
+    </item>
     
-    <!-- Background Color -->
-    <item android:drawable="@color/primary_color" />
-    
-    <!-- App Logo -->
+    <!-- Logo Background Circle -->
     <item
-        android:drawable="@mipmap/ic_launcher"
-        android:gravity="center"
         android:width="120dp"
-        android:height="120dp" />
+        android:height="120dp"
+        android:gravity="center">
+        <shape android:shape="oval">
+            <solid android:color="@color/white" />
+            <stroke
+                android:width="4dp"
+                android:color="@color/primary_color" />
+        </shape>
+    </item>
     
+    <!-- Logo Icon -->
+    <item
+        android:width="60dp"
+        android:height="60dp"
+        android:gravity="center">
+        <bitmap
+            android:src="@drawable/ic_launcher_foreground"
+            android:gravity="center" />
+    </item>
 </layer-list>

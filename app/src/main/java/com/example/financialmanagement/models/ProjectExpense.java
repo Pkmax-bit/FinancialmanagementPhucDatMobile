@@ -12,6 +12,8 @@ public class ProjectExpense {
     private String expenseObjectId;
     private String description;
     private Double amount;
+    private Double plannedAmount;
+    private Double actualAmount;
     private String currency;
     private String status;
     private String role;
@@ -156,6 +158,22 @@ public class ProjectExpense {
 
     public void setExpenseObject(ExpenseObject expenseObject) {
         this.expenseObject = expenseObject;
+    }
+
+    public Double getPlannedAmount() {
+        return plannedAmount;
+    }
+
+    public void setPlannedAmount(Double plannedAmount) {
+        this.plannedAmount = plannedAmount;
+    }
+
+    public Double getActualAmount() {
+        return actualAmount;
+    }
+
+    public void setActualAmount(Double actualAmount) {
+        this.actualAmount = actualAmount;
     }
 
     // Utility methods

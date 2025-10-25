@@ -1,5 +1,6 @@
 package com.example.financialmanagement.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.financialmanagement.R;
+import com.example.financialmanagement.activities.RevenueDetailActivity;
 import com.example.financialmanagement.adapters.QuotesAdapter;
 import com.example.financialmanagement.adapters.InvoicesAdapter;
 import com.example.financialmanagement.models.Quote;
@@ -35,6 +37,7 @@ import java.util.HashMap;
 public class RevenueFragment extends Fragment {
 
     private TextView tvTotalRevenue, tvTotalQuotes, tvTotalInvoices, tvProjectInfo;
+    private TextView tvViewAllQuotes, tvViewAllInvoices;
     private RecyclerView rvQuotes, rvInvoices;
     private QuotesAdapter quotesAdapter;
     private InvoicesAdapter invoicesAdapter;
@@ -43,6 +46,10 @@ public class RevenueFragment extends Fragment {
     private ProjectService projectService;
     private AuthManager authManager;
     private List<Project> userProjects;
+    
+    // Toggle state
+    private boolean showingAllQuotes = false;
+    private boolean showingAllInvoices = false;
 
     @Nullable
     @Override
@@ -52,6 +59,7 @@ public class RevenueFragment extends Fragment {
             
             initializeViews(view);
             setupRecyclerViews();
+            setupToggleButtons();
             loadRevenueData();
             
             return view;
@@ -68,6 +76,8 @@ public class RevenueFragment extends Fragment {
             tvTotalQuotes = view.findViewById(R.id.tv_total_quotes);
             tvTotalInvoices = view.findViewById(R.id.tv_total_invoices);
             tvProjectInfo = view.findViewById(R.id.tv_project_info);
+            tvViewAllQuotes = view.findViewById(R.id.tv_view_all_quotes);
+            tvViewAllInvoices = view.findViewById(R.id.tv_view_all_invoices);
             rvQuotes = view.findViewById(R.id.rv_quotes);
             rvInvoices = view.findViewById(R.id.rv_invoices);
             
@@ -110,7 +120,11 @@ public class RevenueFragment extends Fragment {
             quotesAdapter = new QuotesAdapter(new ArrayList<>(), new QuotesAdapter.QuoteClickListener() {
                 @Override
                 public void onQuoteClick(Quote quote) {
-                    // Handle quote click
+                    // Navigate to quote detail
+                    Intent intent = new Intent(getContext(), RevenueDetailActivity.class);
+                    intent.putExtra(RevenueDetailActivity.EXTRA_TYPE, RevenueDetailActivity.TYPE_QUOTE);
+                    intent.putExtra(RevenueDetailActivity.EXTRA_ID, quote.getId());
+                    startActivity(intent);
                 }
                 
                 @Override
@@ -145,7 +159,11 @@ public class RevenueFragment extends Fragment {
             invoicesAdapter = new InvoicesAdapter(new ArrayList<>(), new InvoicesAdapter.InvoiceClickListener() {
                 @Override
                 public void onInvoiceClick(Invoice invoice) {
-                    // Handle invoice click
+                    // Navigate to invoice detail
+                    Intent intent = new Intent(getContext(), RevenueDetailActivity.class);
+                    intent.putExtra(RevenueDetailActivity.EXTRA_TYPE, RevenueDetailActivity.TYPE_INVOICE);
+                    intent.putExtra(RevenueDetailActivity.EXTRA_ID, invoice.getId());
+                    startActivity(intent);
                 }
                 
                 @Override
@@ -180,7 +198,39 @@ public class RevenueFragment extends Fragment {
             Toast.makeText(getContext(), "Lỗi setup RecyclerView: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
-
+    
+    private void setupToggleButtons() {
+        // Setup Quotes toggle
+        tvViewAllQuotes.setOnClickListener(v -> {
+            if (showingAllQuotes) {
+                // Show recent quotes only
+                showingAllQuotes = false;
+                tvViewAllQuotes.setText("Xem tất cả");
+                loadRecentQuotes();
+            } else {
+                // Show all quotes
+                showingAllQuotes = true;
+                tvViewAllQuotes.setText("Thu gọn");
+                loadAllQuotes();
+            }
+        });
+        
+        // Setup Invoices toggle
+        tvViewAllInvoices.setOnClickListener(v -> {
+            if (showingAllInvoices) {
+                // Show recent invoices only
+                showingAllInvoices = false;
+                tvViewAllInvoices.setText("Xem tất cả");
+                loadRecentInvoices();
+            } else {
+                // Show all invoices
+                showingAllInvoices = true;
+                tvViewAllInvoices.setText("Thu gọn");
+                loadAllInvoices();
+            }
+        });
+    }
+    
     private void loadRevenueData() {
         try {
             // Check authentication first
@@ -237,8 +287,11 @@ public class RevenueFragment extends Fragment {
                         updateProjectInfo();
                         
                         // Load revenue data for all projects
+                        ApiDebugger.logAuth("Loading revenue stats for " + userProjects.size() + " projects", true);
                         loadRevenueStats();
+                        ApiDebugger.logAuth("Loading recent quotes for " + userProjects.size() + " projects", true);
                         loadRecentQuotes();
+                        ApiDebugger.logAuth("Loading recent invoices for " + userProjects.size() + " projects", true);
                         loadRecentInvoices();
                         
                         ApiDebugger.logResponse(200, "Success", "User projects loaded: " + userProjects.size());
@@ -270,6 +323,9 @@ public class RevenueFragment extends Fragment {
                 projectInfo += "\nDự án gần đây: " + userProjects.get(0).getName();
             }
             tvProjectInfo.setText(projectInfo);
+            ApiDebugger.logAuth("Project info updated: " + projectInfo, true);
+        } else {
+            ApiDebugger.logAuth("tvProjectInfo is null", false);
         }
     }
 
@@ -428,14 +484,20 @@ public class RevenueFragment extends Fragment {
         }
         
         ApiDebugger.logRequest("GET", "Recent Quotes", null, params);
+        ApiDebugger.logAuth("Recent Quotes params: " + params.toString(), true);
         
         quoteService.getAllQuotes(params, new QuoteService.QuoteCallback() {
             @Override
             public void onSuccess(List<Quote> quotes) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        quotesAdapter.updateQuotes(quotes);
-                        ApiDebugger.logResponse(200, "Success", "Recent quotes loaded: " + quotes.size());
+                        if (quotes != null) {
+                            quotesAdapter.updateQuotes(quotes);
+                            ApiDebugger.logResponse(200, "Success", "Recent quotes loaded: " + quotes.size());
+                        } else {
+                            quotesAdapter.updateQuotes(new ArrayList<>());
+                            ApiDebugger.logResponse(200, "Success", "Recent quotes loaded: 0 (null response)");
+                        }
                     });
                 }
             }
@@ -478,14 +540,20 @@ public class RevenueFragment extends Fragment {
         }
         
         ApiDebugger.logRequest("GET", "Recent Invoices", null, params);
+        ApiDebugger.logAuth("Recent Invoices params: " + params.toString(), true);
         
         invoiceService.getAllInvoices(params, new InvoiceService.InvoiceCallback() {
             @Override
             public void onSuccess(List<Invoice> invoices) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        invoicesAdapter.updateInvoices(invoices);
-                        ApiDebugger.logResponse(200, "Success", "Recent invoices loaded: " + invoices.size());
+                        if (invoices != null) {
+                            invoicesAdapter.updateInvoices(invoices);
+                            ApiDebugger.logResponse(200, "Success", "Recent invoices loaded: " + invoices.size());
+                        } else {
+                            invoicesAdapter.updateInvoices(new ArrayList<>());
+                            ApiDebugger.logResponse(200, "Success", "Recent invoices loaded: 0 (null response)");
+                        }
                     });
                 }
             }
@@ -506,6 +574,106 @@ public class RevenueFragment extends Fragment {
                     getActivity().runOnUiThread(() -> {
                         Toast.makeText(getContext(), "Lỗi tải hóa đơn gần đây: " + error, Toast.LENGTH_SHORT).show();
                         ApiDebugger.logError("loadRecentInvoices", new Exception(error));
+                    });
+                }
+            }
+        });
+    }
+    
+    private void loadAllQuotes() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("limit", 1000);
+        params.put("sort", "created_at");
+        params.put("order", "desc");
+        
+        // Filter by user's projects
+        if (userProjects != null && !userProjects.isEmpty()) {
+            List<String> projectIds = new ArrayList<>();
+            for (Project project : userProjects) {
+                projectIds.add(project.getId());
+            }
+            params.put("project_id", String.join(",", projectIds));
+        }
+        
+        ApiDebugger.logRequest("GET", "All Quotes", null, params);
+        
+        quoteService.getAllQuotes(params, new QuoteService.QuoteCallback() {
+            @Override
+            public void onSuccess(List<Quote> quotes) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        quotesAdapter.updateQuotes(quotes);
+                        ApiDebugger.logResponse(200, "Success", "All quotes loaded: " + quotes.size());
+                    });
+                }
+            }
+            
+            @Override
+            public void onSuccess(Quote quote) {
+                // Not used
+            }
+            
+            @Override
+            public void onSuccess() {
+                // Not used
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Lỗi tải tất cả báo giá: " + error, Toast.LENGTH_SHORT).show();
+                        ApiDebugger.logError("loadAllQuotes", new Exception(error));
+                    });
+                }
+            }
+        });
+    }
+    
+    private void loadAllInvoices() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("limit", 1000);
+        params.put("sort", "created_at");
+        params.put("order", "desc");
+        
+        // Filter by user's projects
+        if (userProjects != null && !userProjects.isEmpty()) {
+            List<String> projectIds = new ArrayList<>();
+            for (Project project : userProjects) {
+                projectIds.add(project.getId());
+            }
+            params.put("project_id", String.join(",", projectIds));
+        }
+        
+        ApiDebugger.logRequest("GET", "All Invoices", null, params);
+        
+        invoiceService.getAllInvoices(params, new InvoiceService.InvoiceCallback() {
+            @Override
+            public void onSuccess(List<Invoice> invoices) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        invoicesAdapter.updateInvoices(invoices);
+                        ApiDebugger.logResponse(200, "Success", "All invoices loaded: " + invoices.size());
+                    });
+                }
+            }
+            
+            @Override
+            public void onSuccess(Invoice invoice) {
+                // Not used
+            }
+            
+            @Override
+            public void onSuccess() {
+                // Not used
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Lỗi tải tất cả hóa đơn: " + error, Toast.LENGTH_SHORT).show();
+                        ApiDebugger.logError("loadAllInvoices", new Exception(error));
                     });
                 }
             }

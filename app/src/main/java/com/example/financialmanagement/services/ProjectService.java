@@ -218,6 +218,29 @@ public class ProjectService {
     }
     
     /**
+     * Get project by ID
+     */
+    public void getProjectById(String projectId, ProjectCallback callback) {
+        ApiDebugger.logRequest("GET", "Project Detail", null, "Project ID: " + projectId);
+        
+        projectApi.getProject(projectId).enqueue(new Callback<Project>() {
+            @Override
+            public void onResponse(Call<Project> call, Response<Project> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Lỗi tải thông tin dự án: " + response.code());
+                }
+            }
+            
+            @Override
+            public void onFailure(Call<Project> call, Throwable t) {
+                callback.onError("Lỗi kết nối: " + t.getMessage());
+            }
+        });
+    }
+    
+    /**
      * Project Callback Interface
      */
     public interface ProjectCallback {

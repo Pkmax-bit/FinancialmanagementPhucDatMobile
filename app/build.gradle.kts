@@ -76,6 +76,14 @@ dependencies {
     // CardView
     implementation("androidx.cardview:cardview:1.0.0")
     
+    // UI Enhancement Libraries
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+    implementation("com.airbnb.android:lottie:6.1.0")
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
+    
     // Network
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")

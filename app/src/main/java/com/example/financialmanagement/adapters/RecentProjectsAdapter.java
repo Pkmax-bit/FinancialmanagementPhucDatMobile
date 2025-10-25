@@ -18,9 +18,15 @@ import java.util.List;
 public class RecentProjectsAdapter extends RecyclerView.Adapter<RecentProjectsAdapter.ProjectViewHolder> {
     
     private List<Project> projects;
+    private ProjectClickListener clickListener;
     
-    public RecentProjectsAdapter(List<Project> projects) {
+    public interface ProjectClickListener {
+        void onProjectClick(Project project);
+    }
+    
+    public RecentProjectsAdapter(List<Project> projects, ProjectClickListener clickListener) {
         this.projects = projects;
+        this.clickListener = clickListener;
     }
     
     @NonNull
@@ -35,6 +41,13 @@ public class RecentProjectsAdapter extends RecyclerView.Adapter<RecentProjectsAd
     public void onBindViewHolder(@NonNull ProjectViewHolder holder, int position) {
         Project project = projects.get(position);
         holder.bind(project);
+        
+        // Set click listener
+        holder.itemView.setOnClickListener(v -> {
+            if (clickListener != null) {
+                clickListener.onProjectClick(project);
+            }
+        });
     }
     
     @Override

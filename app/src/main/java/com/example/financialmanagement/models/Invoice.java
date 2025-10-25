@@ -34,6 +34,9 @@ public class Invoice {
     private Date createdAt;
     @SerializedName("updated_at")
     private Date updatedAt;
+    
+    // Products list
+    private List<Product> products;
     @SerializedName("created_by")
     private String createdBy;
     
@@ -225,5 +228,13 @@ public class Invoice {
         
         public String getCreatedBy() { return createdBy; }
         public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+    }
+    
+    public List<Product> getProducts() {
+        return products;
+    }
+    
+    public void setProducts(List<Product> products) {
+        this.products = products;
     }
 }

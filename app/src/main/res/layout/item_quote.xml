@@ -14,7 +14,20 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Header Row -->
+        <!-- Project Name at Top -->
+        <TextView
+            android:id="@+id/tv_quote_project"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Dự án ABC"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            android:layout_marginBottom="8dp"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <!-- Quote ID and Status Row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -22,31 +35,15 @@
             android:gravity="center_vertical"
             android:layout_marginBottom="8dp">
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/tv_quote_number"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tv_quote_number"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="QUO001"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="?attr/colorOnSurface" />
-
-                <TextView
-                    android:id="@+id/tv_quote_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Báo giá dự án ABC"
-                    android:textSize="14sp"
-                    android:textColor="?attr/colorOnSurface"
-                    android:alpha="0.8" />
-
-            </LinearLayout>
+                android:text="QUO001"
+                android:textSize="14sp"
+                android:textColor="?attr/colorOnSurface"
+                android:alpha="0.7" />
 
             <TextView
                 android:id="@+id/tv_quote_status"
@@ -62,7 +59,37 @@
 
         </LinearLayout>
 
-        <!-- Financial Information -->
+        <!-- Total Amount - Prominent Display -->
+        <TextView
+            android:id="@+id/tv_quote_total"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="50.000.000 ₫"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            android:layout_marginBottom="8dp"
+            android:gravity="start" />
+
+        <!-- Valid Until Date -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/tv_quote_valid_until"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hiệu lực đến: 31/12/2024"
+                android:textSize="12sp"
+                android:textColor="?attr/colorOnSurface"
+                android:alpha="0.6" />
+
+        </LinearLayout>
+
+        <!-- Customer Information -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -70,99 +97,24 @@
             android:gravity="center_vertical"
             android:layout_marginBottom="8dp">
 
-            <LinearLayout
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_person"
+                android:alpha="0.6"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/tv_quote_customer"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tv_quote_total"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="50.000.000 ₫"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="?attr/colorPrimary" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="end">
-
-                <TextView
-                    android:id="@+id/tv_quote_valid_until"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Có hiệu lực đến: 31/12/2024"
-                    android:textSize="12sp"
-                    android:textColor="?attr/colorOnSurface"
-                    android:alpha="0.6" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <!-- Related Information -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="8dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="4dp">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@drawable/ic_person"
-                    android:alpha="0.6"
-                    android:layout_marginEnd="8dp" />
-
-                <TextView
-                    android:id="@+id/tv_quote_customer"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Nguyễn Văn A"
-                    android:textSize="12sp"
-                    android:textColor="?attr/colorOnSurface"
-                    android:alpha="0.8" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@drawable/ic_projects"
-                    android:alpha="0.6"
-                    android:layout_marginEnd="8dp" />
-
-                <TextView
-                    android:id="@+id/tv_quote_project"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Dự án ABC"
-                    android:textSize="12sp"
-                    android:textColor="?attr/colorOnSurface"
-                    android:alpha="0.8" />
-
-            </LinearLayout>
+                android:text="Nguyễn Văn A"
+                android:textSize="14sp"
+                android:textColor="?attr/colorOnSurface"
+                android:alpha="0.8"
+                android:maxLines="1"
+                android:ellipsize="end" />
 
         </LinearLayout>
 

@@ -70,7 +70,7 @@ public class QuotesAdapter extends RecyclerView.Adapter<QuotesAdapter.QuoteViewH
         public QuoteViewHolder(@NonNull View itemView) {
             super(itemView);
             tvQuoteNumber = itemView.findViewById(R.id.tv_quote_number);
-            tvQuoteTitle = itemView.findViewById(R.id.tv_quote_title);
+            // tvQuoteTitle removed - no longer needed
             tvQuoteStatus = itemView.findViewById(R.id.tv_quote_status);
             tvQuoteTotal = itemView.findViewById(R.id.tv_quote_total);
             tvQuoteCustomer = itemView.findViewById(R.id.tv_quote_customer);
@@ -81,7 +81,7 @@ public class QuotesAdapter extends RecyclerView.Adapter<QuotesAdapter.QuoteViewH
         public void bind(Quote quote, QuoteClickListener clickListener) {
             // Basic information
             tvQuoteNumber.setText(quote.getQuoteNumber());
-            tvQuoteTitle.setText(quote.getTitle());
+            // tvQuoteTitle removed - no longer needed
             tvQuoteStatus.setText(getQuoteStatusText(quote.getStatus()));
             
             // Financial information
