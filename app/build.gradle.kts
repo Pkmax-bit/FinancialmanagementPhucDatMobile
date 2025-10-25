@@ -33,8 +33,8 @@ android {
     }
     
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
     
     tasks.withType<JavaCompile> {
@@ -45,7 +45,7 @@ android {
         viewBinding = true
     }
     
-    packagingOptions {
+    packaging {
         resources {
             excludes += setOf("META-INF/DEPENDENCIES", "META-INF/LICENSE", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/NOTICE", "META-INF/NOTICE.txt", "META-INF/notice.txt", "META-INF/ASL2.0")
         }
@@ -54,21 +54,21 @@ android {
 
 dependencies {
     // Android Core
-    implementation("androidx.core:core:1.12.0")
+    implementation("androidx.core:core:1.10.1")
     implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.11.0")
+    implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("androidx.activity:activity:1.8.2")
-    implementation("androidx.fragment:fragment:1.6.2")
+    implementation("androidx.activity:activity:1.7.2")
+    implementation("androidx.fragment:fragment:1.6.1")
     
     // Navigation
-    implementation("androidx.navigation:navigation-fragment:2.7.6")
-    implementation("androidx.navigation:navigation-ui:2.7.6")
+    implementation("androidx.navigation:navigation-fragment:2.6.0")
+    implementation("androidx.navigation:navigation-ui:2.6.0")
     
     // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-viewmodel:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-livedata:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-livedata:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-runtime:2.6.2")
     
     // RecyclerView
     implementation("androidx.recyclerview:recyclerview:1.3.2")
@@ -86,6 +86,12 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
     
+    // Camera and Image Processing
+    implementation("androidx.camera:camera-core:1.2.3")
+    implementation("androidx.camera:camera-camera2:1.2.3")
+    implementation("androidx.camera:camera-lifecycle:1.2.3")
+    implementation("androidx.camera:camera-view:1.2.3")
+    
     // Charts
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     
@@ -93,8 +99,8 @@ dependencies {
     implementation("de.hdodenhof:circleimageview:3.1.0")
     
     // Room Database
-    implementation("androidx.room:room-runtime:2.6.1")
-    annotationProcessor("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-runtime:2.5.0")
+    annotationProcessor("androidx.room:room-compiler:2.5.0")
     
     // JSON
     implementation("com.google.code.gson:gson:2.10.1")

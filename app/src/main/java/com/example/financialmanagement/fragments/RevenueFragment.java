@@ -1,0 +1,410 @@
+package com.example.financialmanagement.fragments;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import com.example.financialmanagement.R;
+import com.example.financialmanagement.adapters.QuotesAdapter;
+import com.example.financialmanagement.adapters.InvoicesAdapter;
+import com.example.financialmanagement.models.Quote;
+import com.example.financialmanagement.models.Invoice;
+import com.example.financialmanagement.services.QuoteService;
+import com.example.financialmanagement.services.InvoiceService;
+import com.example.financialmanagement.utils.CurrencyFormatter;
+import com.example.financialmanagement.utils.ApiDebugger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
+/**
+ * Revenue Fragment - Màn hình doanh thu
+ * Hiển thị báo giá và hóa đơn
+ */
+public class RevenueFragment extends Fragment {
+
+    private TextView tvTotalRevenue, tvTotalQuotes, tvTotalInvoices;
+    private RecyclerView rvQuotes, rvInvoices;
+    private QuotesAdapter quotesAdapter;
+    private InvoicesAdapter invoicesAdapter;
+    private QuoteService quoteService;
+    private InvoiceService invoiceService;
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        try {
+            View view = inflater.inflate(R.layout.fragment_revenue, container, false);
+            
+            initializeViews(view);
+            setupRecyclerViews();
+            loadRevenueData();
+            
+            return view;
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Lỗi tải Doanh thu: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            return inflater.inflate(R.layout.fragment_revenue, container, false);
+        }
+    }
+
+    private void initializeViews(View view) {
+        try {
+            tvTotalRevenue = view.findViewById(R.id.tv_total_revenue);
+            tvTotalQuotes = view.findViewById(R.id.tv_total_quotes);
+            tvTotalInvoices = view.findViewById(R.id.tv_total_invoices);
+            rvQuotes = view.findViewById(R.id.rv_quotes);
+            rvInvoices = view.findViewById(R.id.rv_invoices);
+            
+            // Check for null views
+            if (tvTotalRevenue == null) {
+                throw new RuntimeException("tvTotalRevenue not found");
+            }
+            if (tvTotalQuotes == null) {
+                throw new RuntimeException("tvTotalQuotes not found");
+            }
+            if (tvTotalInvoices == null) {
+                throw new RuntimeException("tvTotalInvoices not found");
+            }
+            if (rvQuotes == null) {
+                throw new RuntimeException("rvQuotes not found");
+            }
+            if (rvInvoices == null) {
+                throw new RuntimeException("rvInvoices not found");
+            }
+            
+            // Initialize services
+            if (getContext() != null) {
+                quoteService = new QuoteService(getContext());
+                invoiceService = new InvoiceService(getContext());
+            } else {
+                throw new RuntimeException("Context is null");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Lỗi khởi tạo views: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void setupRecyclerViews() {
+        try {
+            // Setup Quotes RecyclerView
+            quotesAdapter = new QuotesAdapter(new ArrayList<>(), new QuotesAdapter.QuoteClickListener() {
+                @Override
+                public void onQuoteClick(Quote quote) {
+                    // Handle quote click
+                }
+                
+                @Override
+                public void onQuoteEdit(Quote quote) {
+                    // Handle quote edit
+                }
+                
+                @Override
+                public void onQuoteDelete(Quote quote) {
+                    // Handle quote delete
+                }
+                
+                @Override
+                public void onQuoteApprove(Quote quote) {
+                    // Handle quote approve
+                }
+                
+                @Override
+                public void onQuoteConvertToInvoice(Quote quote) {
+                    // Handle quote convert to invoice
+                }
+                
+                @Override
+                public void onQuoteSendToCustomer(Quote quote) {
+                    // Handle quote send to customer
+                }
+            });
+            rvQuotes.setLayoutManager(new LinearLayoutManager(getContext()));
+            rvQuotes.setAdapter(quotesAdapter);
+            
+            // Setup Invoices RecyclerView
+            invoicesAdapter = new InvoicesAdapter(new ArrayList<>(), new InvoicesAdapter.InvoiceClickListener() {
+                @Override
+                public void onInvoiceClick(Invoice invoice) {
+                    // Handle invoice click
+                }
+                
+                @Override
+                public void onInvoiceEdit(Invoice invoice) {
+                    // Handle invoice edit
+                }
+                
+                @Override
+                public void onInvoiceDelete(Invoice invoice) {
+                    // Handle invoice delete
+                }
+                
+                @Override
+                public void onInvoiceMarkAsPaid(Invoice invoice) {
+                    // Handle invoice mark as paid
+                }
+                
+                @Override
+                public void onInvoiceSendToCustomer(Invoice invoice) {
+                    // Handle invoice send to customer
+                }
+                
+                @Override
+                public void onInvoiceAddPayment(Invoice invoice) {
+                    // Handle invoice add payment
+                }
+            });
+            rvInvoices.setLayoutManager(new LinearLayoutManager(getContext()));
+            rvInvoices.setAdapter(invoicesAdapter);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Lỗi setup RecyclerView: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void loadRevenueData() {
+        try {
+            // Load revenue statistics
+            loadRevenueStats();
+            
+            // Load recent quotes
+            loadRecentQuotes();
+            
+            // Load recent invoices
+            loadRecentInvoices();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Lỗi tải dữ liệu doanh thu: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void loadRevenueStats() {
+        // Load total revenue from invoices
+        loadTotalRevenue();
+        
+        // Load quotes count
+        loadTotalQuotes();
+        
+        // Load invoices count
+        loadTotalInvoices();
+    }
+    
+    private void loadTotalRevenue() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("limit", 1000);
+        
+        ApiDebugger.logRequest("GET", "Total Revenue", null, params);
+        
+        invoiceService.getAllInvoices(params, new InvoiceService.InvoiceCallback() {
+            @Override
+            public void onSuccess(List<Invoice> invoices) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        double totalRevenue = 0;
+                        if (invoices != null) {
+                            for (Invoice invoice : invoices) {
+                                if (invoice.getTotal() != null) {
+                                    totalRevenue += invoice.getTotal();
+                                }
+                            }
+                        }
+                        tvTotalRevenue.setText(CurrencyFormatter.format(totalRevenue));
+                        ApiDebugger.logResponse(200, "Success", "Total revenue: " + totalRevenue);
+                    });
+                }
+            }
+            
+            @Override
+            public void onSuccess(Invoice invoice) {
+                // Not used
+            }
+            
+            @Override
+            public void onSuccess() {
+                // Not used
+            }
+            
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        tvTotalRevenue.setText("0 ₫");
+                        ApiDebugger.logError("loadTotalRevenue", new Exception(error));
+                        Toast.makeText(getContext(), "Lỗi tải doanh thu: " + error, Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+        });
+    }
+    
+    private void loadTotalQuotes() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("limit", 1000);
+        
+        ApiDebugger.logRequest("GET", "Total Quotes", null, params);
+        
+        quoteService.getAllQuotes(params, new QuoteService.QuoteCallback() {
+            @Override
+            public void onSuccess(List<Quote> quotes) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        int quoteCount = quotes != null ? quotes.size() : 0;
+                        tvTotalQuotes.setText(String.valueOf(quoteCount));
+                        ApiDebugger.logResponse(200, "Success", "Total quotes: " + quoteCount);
+                    });
+                }
+            }
+            
+            @Override
+            public void onSuccess(Quote quote) {
+                // Not used
+            }
+            
+            @Override
+            public void onSuccess() {
+                // Not used
+            }
+            
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        tvTotalQuotes.setText("0");
+                        ApiDebugger.logError("loadTotalQuotes", new Exception(error));
+                    });
+                }
+            }
+        });
+    }
+    
+    private void loadTotalInvoices() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("limit", 1000);
+        
+        ApiDebugger.logRequest("GET", "Total Invoices", null, params);
+        
+        invoiceService.getAllInvoices(params, new InvoiceService.InvoiceCallback() {
+            @Override
+            public void onSuccess(List<Invoice> invoices) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        int invoiceCount = invoices != null ? invoices.size() : 0;
+                        tvTotalInvoices.setText(String.valueOf(invoiceCount));
+                        ApiDebugger.logResponse(200, "Success", "Total invoices: " + invoiceCount);
+                    });
+                }
+            }
+            
+            @Override
+            public void onSuccess(Invoice invoice) {
+                // Not used
+            }
+            
+            @Override
+            public void onSuccess() {
+                // Not used
+            }
+            
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        tvTotalInvoices.setText("0");
+                        ApiDebugger.logError("loadTotalInvoices", new Exception(error));
+                    });
+                }
+            }
+        });
+    }
+
+    private void loadRecentQuotes() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("limit", 5);
+        params.put("sort", "created_at");
+        params.put("order", "desc");
+        
+        ApiDebugger.logRequest("GET", "Recent Quotes", null, params);
+        
+        quoteService.getAllQuotes(params, new QuoteService.QuoteCallback() {
+            @Override
+            public void onSuccess(List<Quote> quotes) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        quotesAdapter.updateQuotes(quotes);
+                        ApiDebugger.logResponse(200, "Success", "Recent quotes loaded: " + quotes.size());
+                    });
+                }
+            }
+            
+            @Override
+            public void onSuccess(Quote quote) {
+                // Not used
+            }
+            
+            @Override
+            public void onSuccess() {
+                // Not used
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Lỗi tải báo giá gần đây: " + error, Toast.LENGTH_SHORT).show();
+                        ApiDebugger.logError("loadRecentQuotes", new Exception(error));
+                    });
+                }
+            }
+        });
+    }
+    
+    private void loadRecentInvoices() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("limit", 5);
+        params.put("sort", "created_at");
+        params.put("order", "desc");
+        
+        ApiDebugger.logRequest("GET", "Recent Invoices", null, params);
+        
+        invoiceService.getAllInvoices(params, new InvoiceService.InvoiceCallback() {
+            @Override
+            public void onSuccess(List<Invoice> invoices) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        invoicesAdapter.updateInvoices(invoices);
+                        ApiDebugger.logResponse(200, "Success", "Recent invoices loaded: " + invoices.size());
+                    });
+                }
+            }
+            
+            @Override
+            public void onSuccess(Invoice invoice) {
+                // Not used
+            }
+            
+            @Override
+            public void onSuccess() {
+                // Not used
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Lỗi tải hóa đơn gần đây: " + error, Toast.LENGTH_SHORT).show();
+                        ApiDebugger.logError("loadRecentInvoices", new Exception(error));
+                    });
+                }
+            }
+        });
+    }
+}

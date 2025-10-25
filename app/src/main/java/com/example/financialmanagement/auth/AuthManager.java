@@ -54,6 +54,14 @@ public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX
             public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     AuthResponse authResponse = response.body();
+                    
+                    // Parse JWT token to extract user information
+                    try {
+                        parseJWTToken(authResponse);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error parsing JWT token", e);
+                    }
+                    
                     saveAuthData(authResponse);
                     callback.onAuthSuccess();
                 } else {
@@ -128,6 +136,54 @@ public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX
     }
     
     /**
+     * Parse JWT token to extract user information
+     */
+    private void parseJWTToken(AuthResponse authResponse) {
+        try {
+            String token = authResponse.getAccessToken();
+            if (token != null && !token.isEmpty()) {
+                // JWT token has 3 parts separated by dots
+                String[] parts = token.split("\\.");
+                if (parts.length == 3) {
+                    // Decode the payload (second part)
+                    String payload = parts[1];
+                    
+                    // Add padding if needed
+                    while (payload.length() % 4 != 0) {
+                        payload += "=";
+                    }
+                    
+                    // Decode base64
+                    byte[] decodedBytes = android.util.Base64.decode(payload, android.util.Base64.DEFAULT);
+                    String decodedPayload = new String(decodedBytes);
+                    
+                    // Parse JSON payload
+                    JSONObject payloadJson = new JSONObject(decodedPayload);
+                    
+                    // Extract user information
+                    authResponse.setUserId(payloadJson.optString("sub", null));
+                    authResponse.setUserEmail(payloadJson.optString("email", null));
+                    
+                    // Extract user metadata
+                    JSONObject userMetadata = payloadJson.optJSONObject("user_metadata");
+                    if (userMetadata != null) {
+                        authResponse.setUserName(userMetadata.optString("full_name", null));
+                        authResponse.setUserRole(userMetadata.optString("role", null));
+                    }
+                    
+                    Log.d(TAG, "JWT Token parsed successfully:");
+                    Log.d(TAG, "User ID: " + authResponse.getUserId());
+                    Log.d(TAG, "User Email: " + authResponse.getUserEmail());
+                    Log.d(TAG, "User Name: " + authResponse.getUserName());
+                    Log.d(TAG, "User Role: " + authResponse.getUserRole());
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error parsing JWT token", e);
+        }
+    }
+    
+    /**
      * Lưu dữ liệu xác thực
      */
     private void saveAuthData(AuthResponse authResponse) {
@@ -137,7 +193,16 @@ public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX
         editor.putString(KEY_USER_ID, authResponse.getUserId());
         editor.putString(KEY_USER_EMAIL, authResponse.getUserEmail());
         editor.putString(KEY_USER_NAME, authResponse.getUserName());
+        editor.putString(KEY_USER_ROLE, authResponse.getUserRole());
         editor.apply();
+        
+        // Debug log saved data
+        Log.d(TAG, "Auth data saved:");
+        Log.d(TAG, "Access Token: " + (authResponse.getAccessToken() != null ? "Present" : "Null"));
+        Log.d(TAG, "User ID: " + authResponse.getUserId());
+        Log.d(TAG, "User Email: " + authResponse.getUserEmail());
+        Log.d(TAG, "User Name: " + authResponse.getUserName());
+        Log.d(TAG, "User Role: " + authResponse.getUserRole());
     }
     
     /**
@@ -150,7 +215,10 @@ public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX
         editor.remove(KEY_USER_ID);
         editor.remove(KEY_USER_EMAIL);
         editor.remove(KEY_USER_NAME);
+        editor.remove(KEY_USER_ROLE);
         editor.apply();
+        
+        Log.d(TAG, "Auth data cleared");
     }
     
     /**
@@ -205,27 +273,46 @@ public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX
      * Auth Response Model
      */
     public static class AuthResponse {
-        private String accessToken;
-        private String refreshToken;
+        private String access_token;
+        private String refresh_token;
+        private String token_type;
+        private int expires_in;
         private String userId;
         private String userEmail;
         private String userName;
+        private String userRole;
         
         // Getters and Setters
         public String getAccessToken() {
-            return accessToken;
+            return access_token;
         }
         
         public void setAccessToken(String accessToken) {
-            this.accessToken = accessToken;
+            this.access_token = accessToken;
         }
         
         public String getRefreshToken() {
-            return refreshToken;
+            return refresh_token;
         }
         
         public void setRefreshToken(String refreshToken) {
-            this.refreshToken = refreshToken;
+            this.refresh_token = refreshToken;
+        }
+        
+        public String getTokenType() {
+            return token_type;
+        }
+        
+        public void setTokenType(String tokenType) {
+            this.token_type = tokenType;
+        }
+        
+        public int getExpiresIn() {
+            return expires_in;
+        }
+        
+        public void setExpiresIn(int expiresIn) {
+            this.expires_in = expiresIn;
         }
         
         public String getUserId() {
@@ -250,6 +337,14 @@ public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX
         
         public void setUserName(String userName) {
             this.userName = userName;
+        }
+        
+        public String getUserRole() {
+            return userRole;
+        }
+        
+        public void setUserRole(String userRole) {
+            this.userRole = userRole;
         }
     }
 }

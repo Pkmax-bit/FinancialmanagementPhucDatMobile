@@ -7,19 +7,19 @@
         android:title="Tổng quan" />
 
     <item
-        android:id="@+id/nav_projects"
-        android:icon="@drawable/ic_projects"
-        android:title="Dự án" />
+        android:id="@+id/nav_revenue"
+        android:icon="@drawable/ic_balance_sheet"
+        android:title="Doanh thu" />
+
+    <item
+        android:id="@+id/nav_scan_expense"
+        android:icon="@drawable/ic_camera"
+        android:title="Quét chi phí" />
 
     <item
         android:id="@+id/nav_expenses"
         android:icon="@drawable/ic_expenses"
-        android:title="Chi phí" />
-
-    <item
-        android:id="@+id/nav_reports"
-        android:icon="@drawable/ic_reports"
-        android:title="Báo cáo" />
+        android:title="Quản lý chi phí" />
 
     <item
         android:id="@+id/nav_settings"

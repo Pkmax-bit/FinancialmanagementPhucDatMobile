@@ -1,5 +1,6 @@
 package com.example.financialmanagement.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import androidx.annotation.NonNull;
@@ -11,14 +12,15 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import com.example.financialmanagement.R;
 import com.example.financialmanagement.fragments.DashboardFragment;
-import com.example.financialmanagement.fragments.ProjectsFragment;
+import com.example.financialmanagement.fragments.RevenueFragment;
+import com.example.financialmanagement.fragments.ScanExpenseFragment;
 import com.example.financialmanagement.fragments.ExpensesFragment;
-import com.example.financialmanagement.fragments.ReportsFragment;
 import com.example.financialmanagement.fragments.SettingsFragment;
 import com.example.financialmanagement.fragments.CustomersFragment;
 import com.example.financialmanagement.fragments.QuotesFragment;
 import com.example.financialmanagement.fragments.BudgetFragment;
 import com.example.financialmanagement.fragments.InvoicesFragment;
+import com.example.financialmanagement.auth.AuthManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 
@@ -32,12 +34,20 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private ActionBarDrawerToggle drawerToggle;
+    private AuthManager authManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
         try {
+            // Kiểm tra authentication trước khi khởi tạo UI
+            authManager = new AuthManager(this);
+            if (!authManager.isLoggedIn()) {
+                navigateToLogin();
+                return;
+            }
+            
             setContentView(R.layout.activity_main);
             
             initializeViews();
@@ -96,12 +106,12 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         // Handle bottom navigation items
         if (itemId == R.id.nav_dashboard) {
             selectedFragment = new DashboardFragment();
-        } else if (itemId == R.id.nav_projects) {
-            selectedFragment = new ProjectsFragment();
+        } else if (itemId == R.id.nav_revenue) {
+            selectedFragment = new RevenueFragment();
+        } else if (itemId == R.id.nav_scan_expense) {
+            selectedFragment = new ScanExpenseFragment();
         } else if (itemId == R.id.nav_expenses) {
             selectedFragment = new ExpensesFragment();
-        } else if (itemId == R.id.nav_reports) {
-            selectedFragment = new ReportsFragment();
         } else if (itemId == R.id.nav_settings) {
             selectedFragment = new SettingsFragment();
         }
@@ -137,5 +147,18 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.fragment_container, fragment);
         transaction.commit();
+    }
+    
+    private void navigateToLogin() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+        finish();
+    }
+    
+    /**
+     * Lấy AuthManager instance để các fragment có thể sử dụng
+     */
+    public AuthManager getAuthManager() {
+        return authManager;
     }
 }

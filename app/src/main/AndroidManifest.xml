@@ -45,40 +45,6 @@
             android:theme="@style/Theme.PhucDatFinancial.NoActionBar"
             android:screenOrientation="portrait" />
         
-        <!-- Project Detail Activity -->
-        <activity
-            android:name=".activities.ProjectDetailActivity"
-            android:exported="false"
-            android:label="@string/projects_title"
-            android:parentActivityName=".activities.MainActivity" />
-        
-        <!-- Expense Detail Activity -->
-        <activity
-            android:name=".activities.ExpenseDetailActivity"
-            android:exported="false"
-            android:label="@string/expenses_title"
-            android:parentActivityName=".activities.MainActivity" />
-        
-        <!-- Customer Detail Activity -->
-        <activity
-            android:name=".activities.CustomerDetailActivity"
-            android:exported="false"
-            android:label="Khách hàng"
-            android:parentActivityName=".activities.MainActivity" />
-        
-        <!-- Reports Activity -->
-        <activity
-            android:name=".activities.ReportsActivity"
-            android:exported="false"
-            android:label="@string/reports_title"
-            android:parentActivityName=".activities.MainActivity" />
-        
-        <!-- Settings Activity -->
-        <activity
-            android:name=".activities.SettingsActivity"
-            android:exported="false"
-            android:label="@string/settings_title"
-            android:parentActivityName=".activities.MainActivity" />
 
     </application>
 

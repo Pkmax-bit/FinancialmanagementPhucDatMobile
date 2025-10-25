@@ -16,6 +16,8 @@ import com.example.financialmanagement.adapters.RecentProjectsAdapter;
 import com.example.financialmanagement.models.Project;
 import com.example.financialmanagement.services.ProjectService;
 import com.example.financialmanagement.services.ExpenseService;
+import com.example.financialmanagement.services.UserService;
+import com.example.financialmanagement.models.User;
 import com.example.financialmanagement.utils.CurrencyFormatter;
 import com.example.financialmanagement.utils.ApiDebugger;
 import java.util.ArrayList;
@@ -29,11 +31,12 @@ import java.util.HashMap;
  */
 public class DashboardFragment extends Fragment {
 
-    private TextView tvTotalProjects, tvTotalExpenses, tvTotalRevenue;
+    private TextView tvUserName, tvUserRole, tvTotalProjects, tvTotalExpenses, tvTotalRevenue;
     private RecyclerView rvRecentProjects;
     private RecentProjectsAdapter recentProjectsAdapter;
     private ProjectService projectService;
     private ExpenseService expenseService;
+    private UserService userService;
 
     @Nullable
     @Override
@@ -55,12 +58,20 @@ public class DashboardFragment extends Fragment {
 
     private void initializeViews(View view) {
         try {
+            tvUserName = view.findViewById(R.id.tv_user_name);
+            tvUserRole = view.findViewById(R.id.tv_user_role);
             tvTotalProjects = view.findViewById(R.id.tv_total_projects);
             tvTotalExpenses = view.findViewById(R.id.tv_total_expenses);
             tvTotalRevenue = view.findViewById(R.id.tv_total_revenue);
             rvRecentProjects = view.findViewById(R.id.rv_recent_projects);
             
             // Check for null views
+            if (tvUserName == null) {
+                throw new RuntimeException("tvUserName not found");
+            }
+            if (tvUserRole == null) {
+                throw new RuntimeException("tvUserRole not found");
+            }
             if (tvTotalProjects == null) {
                 throw new RuntimeException("tvTotalProjects not found");
             }
@@ -78,6 +89,7 @@ public class DashboardFragment extends Fragment {
             if (getContext() != null) {
                 projectService = new ProjectService(getContext());
                 expenseService = new ExpenseService(getContext());
+                userService = new UserService(getContext());
             } else {
                 throw new RuntimeException("Context is null");
             }
@@ -100,6 +112,9 @@ public class DashboardFragment extends Fragment {
 
     private void loadDashboardData() {
         try {
+            // Load user information
+            loadUserInfo();
+            
             // Load dashboard statistics
             loadDashboardStats();
             
@@ -109,6 +124,37 @@ public class DashboardFragment extends Fragment {
             e.printStackTrace();
             Toast.makeText(getContext(), "Lỗi tải dữ liệu: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void loadUserInfo() {
+        // Load current user information
+        userService.getCurrentUser(new UserService.UserCallback() {
+            @Override
+            public void onSuccess(User user) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        if (user != null) {
+                            tvUserName.setText(user.getFullName() != null ? user.getFullName() : "Người dùng");
+                            tvUserRole.setText(user.getRole() != null ? user.getRole() : "Nhân viên");
+                        } else {
+                            tvUserName.setText("Người dùng");
+                            tvUserRole.setText("Nhân viên");
+                        }
+                    });
+                }
+            }
+            
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        tvUserName.setText("Người dùng");
+                        tvUserRole.setText("Nhân viên");
+                        ApiDebugger.logError("loadUserInfo", new Exception(error));
+                    });
+                }
+            }
+        });
     }
 
     private void loadDashboardStats() {
