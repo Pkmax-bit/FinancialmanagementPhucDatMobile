@@ -75,3 +75,5 @@ if __name__ == "__main__":
     test_quotes_api()
     test_quotes_with_auth()
     test_quotes_database()
+
+

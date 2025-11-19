@@ -262,3 +262,5 @@ public class ScanExpenseFragment extends Fragment {
         }
     }
 }
+
+

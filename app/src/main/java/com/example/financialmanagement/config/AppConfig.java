@@ -42,11 +42,11 @@ public class AppConfig {
     public static String getBaseUrl() {
         switch (CURRENT_ENVIRONMENT) {
             case LOCAL:
-                return "http://192.168.1.17:8000/api/";
+                return "http://192.168.1.25:8000/api/";
             case NETWORK:
-                return "http://192.168.1.17:3000/api/";
+                return "http://192.168.1.25:3000/api/";
             default:
-                return "http://192.168.1.17:8000/api/";
+                return "http://192.168.1.25:8000/api/";
         }
     }
     

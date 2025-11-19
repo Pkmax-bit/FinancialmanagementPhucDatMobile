@@ -88,3 +88,5 @@ for user in confirmed_users:
             
     except Exception as e:
         print(f'❌ Error with {user["email"]}: {e}')
+
+
