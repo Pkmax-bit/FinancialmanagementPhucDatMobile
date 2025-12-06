@@ -8,12 +8,13 @@ public class AppConfig {
     
     // Environment Configuration
     public enum Environment {
-        LOCAL,      // http://192.168.1.17:8000
-        NETWORK     // http://192.168.1.17:3000
+        LOCAL,      // http://192.168.1.25:8000
+        NETWORK,    // http://192.168.1.25:3000
+        PRODUCTION  // https://financial-management-backend-3m78.onrender.com
     }
     
     // Current environment - thay đổi ở đây để chuyển môi trường
-    private static final Environment CURRENT_ENVIRONMENT = Environment.LOCAL;
+    private static final Environment CURRENT_ENVIRONMENT = Environment.PRODUCTION;
     
     /**
      * Lấy environment hiện tại
@@ -45,8 +46,10 @@ public class AppConfig {
                 return "http://192.168.1.25:8000/api/";
             case NETWORK:
                 return "http://192.168.1.25:3000/api/";
+            case PRODUCTION:
+                return "https://financial-management-backend-3m78.onrender.com/api/";
             default:
-                return "http://192.168.1.25:8000/api/";
+                return "https://financial-management-backend-3m78.onrender.com/api/";
         }
     }
     

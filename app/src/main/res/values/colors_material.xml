@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors - Matching Web App -->
+    <color name="md_primary">#4A90E2</color>
+    <color name="md_primary_dark">#357ABD</color>
+    <color name="md_primary_light">#B3D9FF</color>
+    <color name="md_on_primary">#FFFFFF</color>
+    
+    <!-- Secondary Colors -->
+    <color name="md_secondary">#FF9800</color>
+    <color name="md_secondary_dark">#F57C00</color>
+    <color name="md_secondary_light">#FFE0B2</color>
+    <color name="md_on_secondary">#000000</color>
+    
+    <!-- Tertiary/Accent -->
+    <color name="md_tertiary">#4CAF50</color>
+    <color name="md_tertiary_dark">#388E3C</color>
+    <color name="md_tertiary_light">#C8E6C9</color>
+    <color name="md_on_tertiary">#FFFFFF</color>
+    
+    <!-- Background Colors -->
+    <color name="md_background">#FFFFFF</color>
+    <color name="md_surface">#FFFFFF</color>
+    <color name="md_surface_variant">#F3F3F5</color>
+    <color name="md_on_background">#212121</color>
+    <color name="md_on_surface">#212121</color>
+    
+    <!-- Status Colors -->
+    <color name="md_success">#4CAF50</color>
+    <color name="md_warning">#FF9800</color>
+    <color name="md_error">#F44336</color>
+    <color name="md_info">#2196F3</color>
+    
+    <!-- Text Colors -->
+    <color name="md_text_primary">#212121</color>
+    <color name="md_text_secondary">#757575</color>
+    <color name="md_text_hint">#BDBDBD</color>
+    <color name="md_text_disabled">#E0E0E0</color>
+    
+    <!-- Outline & Divider -->
+    <color name="md_outline">#E0E0E0</color>
+    <color name="md_outline_variant">#BDBDBD</color>
+    <color name="md_divider">#E0E0E0</color>
+    
+    <!-- Card & Shadow -->
+    <color name="md_card_background">#FFFFFF</color>
+    <color name="md_shadow">#1F000000</color>
+    
+    <!-- Navigation Colors -->
+    <color name="md_nav_active_bg">#EBF5FF</color>
+    <color name="md_nav_active_text">#1976D2</color>
+    <color name="md_nav_inactive_text">#757575</color>
+    
+    <!-- Financial Theme Colors -->
+    <color name="md_revenue">#4CAF50</color>
+    <color name="md_expense">#F44336</color>
+    <color name="md_profit">#2196F3</color>
+    <color name="md_loss">#FF9800</color>
+</resources>

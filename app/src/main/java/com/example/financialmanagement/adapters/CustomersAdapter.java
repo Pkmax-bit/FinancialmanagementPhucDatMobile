@@ -3,18 +3,15 @@ package com.example.financialmanagement.adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.financialmanagement.R;
 import com.example.financialmanagement.models.Customer;
-import com.example.financialmanagement.utils.CurrencyFormatter;
 import java.util.List;
 
-/**
- * Customers Adapter - Adapter cho danh sách khách hàng
- * Hiển thị thông tin khách hàng với các thao tác CRUD
- */
 public class CustomersAdapter extends RecyclerView.Adapter<CustomersAdapter.CustomerViewHolder> {
 
     private List<Customer> customers;
@@ -37,18 +34,18 @@ public class CustomersAdapter extends RecyclerView.Adapter<CustomersAdapter.Cust
     public CustomerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_customer, parent, false);
-        return new CustomerViewHolder(view);
+        return new CustomerViewHolder(view, clickListener, customers);
     }
 
     @Override
     public void onBindViewHolder(@NonNull CustomerViewHolder holder, int position) {
         Customer customer = customers.get(position);
-        holder.bind(customer, clickListener);
+        holder.bind(customer);
     }
 
     @Override
     public int getItemCount() {
-        return customers.size();
+        return customers != null ? customers.size() : 0;
     }
 
     public void updateCustomers(List<Customer> newCustomers) {
@@ -57,115 +54,66 @@ public class CustomersAdapter extends RecyclerView.Adapter<CustomersAdapter.Cust
     }
 
     static class CustomerViewHolder extends RecyclerView.ViewHolder {
-        private TextView tvCustomerName;
-        private TextView tvCustomerCode;
-        private TextView tvCustomerType;
-        private TextView tvCustomerEmail;
-        private TextView tvCustomerPhone;
-        private TextView tvCustomerCredit;
-        private TextView tvCustomerProjects;
-        private TextView tvCustomerStatus;
-        
-        // Action buttons
-        private com.google.android.material.button.MaterialButton btnCreateProject;
-        private com.google.android.material.button.MaterialButton btnEditCustomer;
-        private com.google.android.material.button.MaterialButton btnDeleteCustomer;
+        TextView tvAvatar;
+        TextView tvCustomerName;
+        ImageButton btnMenu;
+        List<Customer> customers;
+        CustomerClickListener listener;
 
-        public CustomerViewHolder(@NonNull View itemView) {
+        CustomerViewHolder(@NonNull View itemView, CustomerClickListener listener, List<Customer> customers) {
             super(itemView);
+            this.customers = customers;
+            this.listener = listener;
+            
+            tvAvatar = itemView.findViewById(R.id.tv_avatar);
             tvCustomerName = itemView.findViewById(R.id.tv_customer_name);
-            tvCustomerCode = itemView.findViewById(R.id.tv_customer_code);
-            tvCustomerType = itemView.findViewById(R.id.tv_customer_type);
-            tvCustomerEmail = itemView.findViewById(R.id.tv_customer_email);
-            tvCustomerPhone = itemView.findViewById(R.id.tv_customer_phone);
-            tvCustomerCredit = itemView.findViewById(R.id.tv_customer_credit);
-            tvCustomerProjects = itemView.findViewById(R.id.tv_customer_projects);
-            tvCustomerStatus = itemView.findViewById(R.id.tv_customer_status);
-            
-            // Initialize action buttons
-            btnCreateProject = itemView.findViewById(R.id.btn_create_project);
-            btnEditCustomer = itemView.findViewById(R.id.btn_edit_customer);
-            btnDeleteCustomer = itemView.findViewById(R.id.btn_delete_customer);
-        }
+            btnMenu = itemView.findViewById(R.id.btn_menu);
 
-        public void bind(Customer customer, CustomerClickListener clickListener) {
-            // Basic information
-            tvCustomerName.setText(customer.getName());
-            tvCustomerCode.setText(customer.getCustomerCode());
-            tvCustomerType.setText(getCustomerTypeText(customer.getCustomerType()));
-            tvCustomerEmail.setText(customer.getEmail() != null ? customer.getEmail() : "Chưa có email");
-            tvCustomerPhone.setText(customer.getPhone() != null ? customer.getPhone() : "Chưa có SĐT");
-            
-            // Financial information
-            if (customer.getCreditLimit() != null) {
-                tvCustomerCredit.setText("Hạn mức: " + CurrencyFormatter.format(customer.getCreditLimit()));
-            } else {
-                tvCustomerCredit.setText("Chưa thiết lập hạn mức");
-            }
-            
-            // Project count
-            if (customer.getProjectCount() != null) {
-                tvCustomerProjects.setText(customer.getProjectCount() + " dự án");
-            } else {
-                tvCustomerProjects.setText("0 dự án");
-            }
-            
-            // Status
-            tvCustomerStatus.setText(getCustomerStatusText(customer.getStatus()));
-            
-            // Click listeners
+            // Click on item to view details
             itemView.setOnClickListener(v -> {
-                if (clickListener != null) {
-                    clickListener.onCustomerClick(customer);
-                }
-            });
-            
-            // Action button listeners
-            btnCreateProject.setOnClickListener(v -> {
-                if (clickListener != null) {
-                    clickListener.onCustomerCreateProject(customer);
-                }
-            });
-            
-            btnEditCustomer.setOnClickListener(v -> {
-                if (clickListener != null) {
-                    clickListener.onCustomerEdit(customer);
-                }
-            });
-            
-            btnDeleteCustomer.setOnClickListener(v -> {
-                if (clickListener != null) {
-                    clickListener.onCustomerDelete(customer);
+                if (listener != null) {
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION && customers != null) {
+                        listener.onCustomerClick(customers.get(position));
+                    }
                 }
             });
         }
 
-        private String getCustomerTypeText(String type) {
-            if (type == null) return "Chưa xác định";
-            switch (type.toLowerCase()) {
-                case "individual":
-                    return "Cá nhân";
-                case "company":
-                    return "Công ty";
-                case "government":
-                    return "Chính phủ";
-                default:
-                    return type;
-            }
+        void bind(Customer customer) {
+            // Avatar - first letter of name
+            String initial = customer.getName() != null && !customer.getName().isEmpty() 
+                ? customer.getName().substring(0, 1).toUpperCase() 
+                : "?";
+            tvAvatar.setText(initial);
+            
+            // Name
+            tvCustomerName.setText(customer.getName() != null ? customer.getName() : "");
+            
+            // 3-dot menu button
+            btnMenu.setOnClickListener(v -> showPopupMenu(v, customer));
         }
-
-        private String getCustomerStatusText(String status) {
-            if (status == null) return "Hoạt động";
-            switch (status.toLowerCase()) {
-                case "active":
-                    return "Hoạt động";
-                case "inactive":
-                    return "Không hoạt động";
-                case "suspended":
-                    return "Tạm dừng";
-                default:
-                    return status;
-            }
+        
+        private void showPopupMenu(View anchor, Customer customer) {
+            PopupMenu popup = new PopupMenu(anchor.getContext(), anchor);
+            popup.inflate(R.menu.menu_customer_item);
+            
+            popup.setOnMenuItemClickListener(item -> {
+                int id = item.getItemId();
+                if (id == R.id.action_view) {
+                    if (listener != null) listener.onCustomerClick(customer);
+                    return true;
+                } else if (id == R.id.action_edit) {
+                    if (listener != null) listener.onCustomerEdit(customer);
+                    return true;
+                } else if (id == R.id.action_delete) {
+                    if (listener != null) listener.onCustomerDelete(customer);
+                    return true;
+                }
+                return false;
+            });
+            
+            popup.show();
         }
     }
 }

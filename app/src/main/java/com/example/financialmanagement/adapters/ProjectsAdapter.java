@@ -8,18 +8,13 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.financialmanagement.R;
 import com.example.financialmanagement.models.Project;
-import com.example.financialmanagement.utils.CurrencyFormatter;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * ProjectsAdapter - Adapter cho danh sách dự án
- */
 public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.ProjectViewHolder> {
 
-    private List<Project> projects;
+    private static List<Project> projects;
     private ProjectClickListener clickListener;
 
     public interface ProjectClickListener {
@@ -29,7 +24,7 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.Projec
     }
 
     public ProjectsAdapter(List<Project> projects, ProjectClickListener clickListener) {
-        this.projects = projects;
+        ProjectsAdapter.projects = projects;
         this.clickListener = clickListener;
     }
 
@@ -38,170 +33,157 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.Projec
     public ProjectViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_project, parent, false);
-        return new ProjectViewHolder(view);
+        return new ProjectViewHolder(view, clickListener);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ProjectViewHolder holder, int position) {
         Project project = projects.get(position);
-        holder.bind(project, clickListener);
+        holder.bind(project);
     }
 
     @Override
     public int getItemCount() {
-        return projects.size();
+        return projects != null ? projects.size() : 0;
     }
 
     public void updateProjects(List<Project> newProjects) {
-        this.projects = newProjects;
+        ProjectsAdapter.projects = newProjects;
         notifyDataSetChanged();
     }
 
     static class ProjectViewHolder extends RecyclerView.ViewHolder {
-        private TextView tvProjectName;
-        private TextView tvProjectCode;
-        private TextView tvCustomerName;
-        private TextView tvProjectStatus;
-        private TextView tvProjectPriority;
-        private TextView tvProjectBudget;
-        private TextView tvProjectDates;
-        private TextView tvAssignedTo;
-        
-        // Action buttons
-        private com.google.android.material.button.MaterialButton btnEditProject;
-        private com.google.android.material.button.MaterialButton btnDeleteProject;
+        com.google.android.material.chip.Chip chipProjectCode;
+        com.google.android.material.chip.Chip chipStatus;
+        TextView tvProjectName;
+        TextView tvCustomerName;
+        TextView tvDateRange;
+        TextView tvProgressLabel;
+        com.google.android.material.progressindicator.LinearProgressIndicator progressIndicator;
+        TextView tvBudget;
+        TextView tvSpent;
 
-        public ProjectViewHolder(@NonNull View itemView) {
+        ProjectViewHolder(@NonNull View itemView, ProjectClickListener listener) {
             super(itemView);
+            chipProjectCode = itemView.findViewById(R.id.chip_project_code);
+            chipStatus = itemView.findViewById(R.id.chip_status);
             tvProjectName = itemView.findViewById(R.id.tv_project_name);
-            tvProjectCode = itemView.findViewById(R.id.tv_project_code);
             tvCustomerName = itemView.findViewById(R.id.tv_customer_name);
-            tvProjectStatus = itemView.findViewById(R.id.tv_project_status);
-            tvProjectPriority = itemView.findViewById(R.id.tv_project_priority);
-            tvProjectBudget = itemView.findViewById(R.id.tv_project_budget);
-            tvProjectDates = itemView.findViewById(R.id.tv_project_dates);
-            tvAssignedTo = itemView.findViewById(R.id.tv_assigned_to);
-            
-            // Initialize action buttons
-            btnEditProject = itemView.findViewById(R.id.btn_edit_project);
-            btnDeleteProject = itemView.findViewById(R.id.btn_delete_project);
+            tvDateRange = itemView.findViewById(R.id.tv_date_range);
+            tvProgressLabel = itemView.findViewById(R.id.tv_progress_label);
+            progressIndicator = itemView.findViewById(R.id.progress_indicator);
+            tvBudget = itemView.findViewById(R.id.tv_budget);
+            tvSpent = itemView.findViewById(R.id.tv_spent);
+
+            // Click listener
+            itemView.setOnClickListener(v -> {
+                if (listener != null) {
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION) {
+                        listener.onProjectClick(projects.get(position));
+                    }
+                }
+            });
         }
 
-        public void bind(Project project, ProjectClickListener clickListener) {
-            // Basic information
-            tvProjectName.setText(project.getName());
-            tvProjectCode.setText(project.getProjectCode());
-            tvCustomerName.setText(project.getCustomerName() != null ? project.getCustomerName() : "Chưa có khách hàng");
+        void bind(Project project) {
+            // Project code
+            chipProjectCode.setText(project.getProjectCode() != null ? project.getProjectCode() : "N/A");
             
             // Status
-            tvProjectStatus.setText(project.getStatusDisplayName());
-            setStatusColor(project.getStatus());
+            String status = project.getStatus() != null ? project.getStatus() : "active";
+            chipStatus.setText(getStatusText(status));
+            chipStatus.setChipBackgroundColorResource(getStatusColor(status));
             
-            // Priority
-            tvProjectPriority.setText(project.getPriorityDisplayName());
-            setPriorityColor(project.getPriority());
+            // Project name
+            tvProjectName.setText(project.getName());
+            
+            // Customer name - use customer_name field instead of nested object
+            if (project.getCustomerName() != null && !project.getCustomerName().isEmpty()) {
+                tvCustomerName.setText(project.getCustomerName());
+            } else {
+                tvCustomerName.setText("Chưa có khách hàng");
+            }
+            
+            // Date range - format Date objects to String
+            String dateRange = "";
+            if (project.getStartDate() != null) {
+                dateRange = formatDate(project.getStartDate());
+                if (project.getEndDate() != null) {
+                    dateRange += " - " + formatDate(project.getEndDate());
+                }
+            }
+            tvDateRange.setText(dateRange.isEmpty() ? "Chưa có thời gian" : dateRange);
+            
+            // Progress (can be calculated or from project data)
+            int progress = calculateProgress(project);
+            tvProgressLabel.setText("Tiến độ: " + progress + "%");
+            progressIndicator.setProgress(progress);
             
             // Budget
-            if (project.getBudget() != null) {
-                tvProjectBudget.setText(CurrencyFormatter.format(project.getBudget()));
-            } else {
-                tvProjectBudget.setText("Chưa thiết lập");
-            }
+            tvBudget.setText(formatCurrency(project.getBudget()));
             
-            // Dates
-            String dateRange = formatDateRange(project.getStartDate(), project.getEndDate());
-            tvProjectDates.setText(dateRange);
-            
-            // Assigned to
-            if (project.getAssignedTo() != null && !project.getAssignedTo().isEmpty()) {
-                tvAssignedTo.setText("Phụ trách: " + project.getAssignedTo());
-                tvAssignedTo.setVisibility(View.VISIBLE);
-            } else {
-                tvAssignedTo.setVisibility(View.GONE);
-            }
-            
-            // Click listeners
-            itemView.setOnClickListener(v -> {
-                if (clickListener != null) {
-                    clickListener.onProjectClick(project);
-                }
-            });
-            
-            // Action button listeners
-            btnEditProject.setOnClickListener(v -> {
-                if (clickListener != null) {
-                    clickListener.onProjectEdit(project);
-                }
-            });
-            
-            btnDeleteProject.setOnClickListener(v -> {
-                if (clickListener != null) {
-                    clickListener.onProjectDelete(project);
-                }
-            });
+            // Spent (if available, otherwise show 0)
+            tvSpent.setText(formatCurrency(0.0)); // Can be enhanced with actual data
         }
 
-        private void setStatusColor(String status) {
-            int colorRes;
-            switch (status) {
+        private String formatDate(java.util.Date date) {
+            if (date == null) return "";
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+            return sdf.format(date);
+        }
+
+        private String getStatusText(String status) {
+            switch (status.toLowerCase()) {
                 case "active":
-                    colorRes = R.color.color_success;
-                    break;
+                    return "Đang hoạt động";
                 case "completed":
-                    colorRes = R.color.color_info;
-                    break;
+                    return "Hoàn thành";
                 case "on_hold":
-                    colorRes = R.color.color_warning;
-                    break;
+                    return "Tạm dừng";
                 case "cancelled":
-                    colorRes = R.color.color_danger;
-                    break;
+                    return "Đã hủy";
                 default:
-                    colorRes = R.color.text_secondary;
-                    break;
+                    return status;
             }
-            tvProjectStatus.setTextColor(itemView.getContext().getColor(colorRes));
         }
 
-        private void setPriorityColor(String priority) {
-            int colorRes;
-            switch (priority) {
-                case "high":
-                    colorRes = R.color.color_danger;
-                    break;
-                case "medium":
-                    colorRes = R.color.color_warning;
-                    break;
-                case "low":
-                    colorRes = R.color.color_success;
-                    break;
+        private int getStatusColor(String status) {
+            switch (status.toLowerCase()) {
+                case "active":
+                    return R.color.md_success;
+                case "completed":
+                    return R.color.md_primary;
+                case "on_hold":
+                    return R.color.md_warning;
+                case "cancelled":
+                    return R.color.md_error;
                 default:
-                    colorRes = R.color.text_secondary;
-                    break;
+                    return R.color.md_outline;
             }
-            tvProjectPriority.setTextColor(itemView.getContext().getColor(colorRes));
         }
 
-        private String formatDateRange(Date startDate, Date endDate) {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            StringBuilder dateRange = new StringBuilder();
-            
-            if (startDate != null) {
-                dateRange.append("Từ: ").append(dateFormat.format(startDate));
-            }
-            
-            if (endDate != null) {
-                if (dateRange.length() > 0) {
-                    dateRange.append(" - ");
+        private int calculateProgress(Project project) {
+            // Simple progress calculation - can be enhanced
+            if (project.getStatus() != null) {
+                switch (project.getStatus().toLowerCase()) {
+                    case "completed":
+                        return 100;
+                    case "active":
+                        return 50;
+                    case "on_hold":
+                        return 25;
+                    default:
+                        return 0;
                 }
-                dateRange.append("Đến: ").append(dateFormat.format(endDate));
             }
-            
-            if (dateRange.length() == 0) {
-                return "Chưa thiết lập thời gian";
-            }
-            
-            return dateRange.toString();
+            return 0;
+        }
+
+        private String formatCurrency(Double amount) {
+            if (amount == null) amount = 0.0;
+            NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+            return formatter.format(amount);
         }
     }
 }

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    
+    <item
+        android:id="@+id/action_search"
+        android:title="Tìm kiếm"
+        android:icon="@drawable/ic_search"
+        app:showAsAction="ifRoom" />
+    
+    <item
+        android:id="@+id/action_filter"
+        android:title="Lọc"
+        android:icon="@drawable/ic_filter"
+        app:showAsAction="ifRoom" />
+    
+    <item
+        android:id="@+id/action_sort"
+        android:title="Sắp xếp">
+        <menu>
+            <item
+                android:id="@+id/sort_by_name"
+                android:title="Theo tên" />
+            <item
+                android:id="@+id/sort_by_date"
+                android:title="Theo ngày tạo" />
+            <item
+                android:id="@+id/sort_by_debt"
+                android:title="Theo công nợ" />
+        </menu>
+    </item>
+    
+</menu>

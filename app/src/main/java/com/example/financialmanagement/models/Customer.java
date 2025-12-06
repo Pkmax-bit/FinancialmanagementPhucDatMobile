@@ -26,6 +26,7 @@ public class Customer implements Serializable {
     private Integer projectCount;
     private Date createdAt;
     private Date updatedAt;
+    private Double debt;
 
     // Constructors
     public Customer() {}
@@ -188,6 +189,14 @@ public class Customer implements Serializable {
 
     public void setProjectCount(Integer projectCount) {
         this.projectCount = projectCount;
+    }
+
+    public Double getDebt() {
+        return debt;
+    }
+
+    public void setDebt(Double debt) {
+        this.debt = debt;
     }
 
     // Utility methods

@@ -129,6 +129,25 @@ public class CurrencyFormatter {
     }
     
     /**
+     * Format số tiền ngắn gọn
+     * @param amount Số tiền (đơn vị VND)
+     * @return Chuỗi đã format ngắn gọn
+     */
+    public static String formatShort(double amount) {
+        if (amount >= 1_000_000_000) {
+            return String.format("%.1f tỷ", amount / 1_000_000_000);
+        } else if (amount >= 1_000_000) {
+            return String.format("%.1f tr", amount / 1_000_000);
+        } else if (amount >= 1_000) {
+            return String.format("%.0fk", amount / 1_000);
+        } else if (amount == 0) {
+            return "0 ₫";
+        } else {
+            return formatVND(amount);
+        }
+    }
+    
+    /**
      * Parse chuỗi tiền tệ thành số
      * @param currencyString Chuỗi tiền tệ
      * @return Số tiền

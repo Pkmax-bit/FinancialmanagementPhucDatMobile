@@ -28,6 +28,13 @@
         <!-- Main Activity -->
         <activity
             android:name=".activities.MainActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.FinancialManagement.NoActionBar" />
+        
+        <!-- Intro/Onboarding Activity -->
+        <activity
+            android:name=".activities.IntroActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.FinancialManagement.NoActionBar">
@@ -42,6 +49,22 @@
             android:name=".activities.LoginActivity"
             android:exported="false"
             android:label="@string/login_title"
+            android:theme="@style/Theme.FinancialManagement.NoActionBar"
+            android:screenOrientation="portrait" />
+
+        <!-- Register Activity -->
+        <activity
+            android:name=".activities.RegisterActivity"
+            android:exported="false"
+            android:label="Đăng ký"
+            android:theme="@style/Theme.FinancialManagement.NoActionBar"
+            android:screenOrientation="portrait" />
+
+        <!-- Forgot Password Activity -->
+        <activity
+            android:name=".activities.ForgotPasswordActivity"
+            android:exported="false"
+            android:label="Quên mật khẩu"
             android:theme="@style/Theme.FinancialManagement.NoActionBar"
             android:screenOrientation="portrait" />
         
@@ -60,12 +83,36 @@
             android:label="Chi tiết dự án"
             android:theme="@style/Theme.FinancialManagement.NoActionBar"
             android:parentActivityName=".activities.MainActivity" />
+
+        <!-- Employee Detail Activity -->
+        <activity
+            android:name=".activities.EmployeeDetailActivity"
+            android:exported="false"
+            android:label="Chi tiết nhân viên"
+            android:theme="@style/Theme.FinancialManagement.NoActionBar"
+            android:parentActivityName=".activities.MainActivity" />
+
+        <!-- Task Detail Activity -->
+        <activity
+            android:name=".activities.TaskDetailActivity"
+            android:exported="false"
+            android:label="Chi tiết công việc"
+            android:theme="@style/Theme.FinancialManagement.NoActionBar"
+            android:parentActivityName=".activities.MainActivity" />
         
         <!-- Customer Form Activity -->
         <activity
             android:name=".activities.CustomerFormActivity"
             android:exported="false"
             android:label="Thêm khách hàng"
+            android:theme="@style/Theme.FinancialManagement.NoActionBar"
+            android:parentActivityName=".activities.MainActivity" />
+
+        <!-- Customer Detail Activity -->
+        <activity
+            android:name=".activities.CustomerDetailActivity"
+            android:exported="false"
+            android:label="Chi tiết khách hàng"
             android:theme="@style/Theme.FinancialManagement.NoActionBar"
             android:parentActivityName=".activities.MainActivity" />
         

@@ -3,233 +3,66 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp"
-    app:strokeWidth="0dp">
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="1dp"
+    app:cardBackgroundColor="@android:color/white"
+    app:strokeWidth="0dp"
+    android:clickable="true"
+    android:focusable="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:padding="16dp">
 
-        <!-- Header Row -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tv_customer_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Nguyễn Văn A"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="?attr/colorOnSurface" />
-
-                <TextView
-                    android:id="@+id/tv_customer_code"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="CUS001"
-                    android:textSize="12sp"
-                    android:textColor="?attr/colorOnSurface"
-                    android:alpha="0.6" />
-
-            </LinearLayout>
+        <!-- Avatar -->
+        <FrameLayout
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_avatar_blue">
 
             <TextView
-                android:id="@+id/tv_customer_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Hoạt động"
-                android:textSize="12sp"
-                android:textColor="@color/color_success"
-                android:background="@drawable/bg_status_active"
-                android:padding="4dp"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp" />
-
-        </LinearLayout>
-
-        <!-- Customer Type -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Loại: "
-                android:textSize="12sp"
-                android:textColor="?attr/colorOnSurface"
-                android:alpha="0.7" />
-
-            <TextView
-                android:id="@+id/tv_customer_type"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Cá nhân"
-                android:textSize="12sp"
-                android:textColor="?attr/colorOnSurface"
-                android:alpha="0.8" />
-
-        </LinearLayout>
-
-        <!-- Contact Information -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="8dp">
-
-            <LinearLayout
+                android:id="@+id/tv_avatar"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="4dp">
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="A"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white" />
 
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@drawable/ic_email"
-                    android:alpha="0.6"
-                    android:layout_marginEnd="8dp" />
+        </FrameLayout>
 
-                <TextView
-                    android:id="@+id/tv_customer_email"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="nguyenvana@email.com"
-                    android:textSize="12sp"
-                    android:textColor="?attr/colorOnSurface"
-                    android:alpha="0.8" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@drawable/ic_phone"
-                    android:alpha="0.6"
-                    android:layout_marginEnd="8dp" />
-
-                <TextView
-                    android:id="@+id/tv_customer_phone"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="0901234567"
-                    android:textSize="12sp"
-                    android:textColor="?attr/colorOnSurface"
-                    android:alpha="0.8" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <!-- Financial Information -->
-        <LinearLayout
-            android:layout_width="match_parent"
+        <!-- Customer Name -->
+        <TextView
+            android:id="@+id/tv_customer_name"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:text="Tên khách hàng"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#111827"
+            android:maxLines="1"
+            android:ellipsize="end" />
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tv_customer_credit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Hạn mức: 50.000.000 ₫"
-                    android:textSize="12sp"
-                    android:textColor="?attr/colorOnSurface"
-                    android:alpha="0.8" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="end">
-
-                <TextView
-                    android:id="@+id/tv_customer_projects"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="3 dự án"
-                    android:textSize="12sp"
-                    android:textColor="?attr/colorPrimary"
-                    android:textStyle="bold" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <!-- Action Buttons -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_create_project"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tạo dự án"
-                android:textSize="12sp"
-                android:icon="@drawable/ic_add"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_marginEnd="8dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_edit_customer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Sửa"
-                android:textSize="12sp"
-                android:icon="@drawable/ic_edit"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_marginEnd="8dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_delete_customer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Xóa"
-                android:textSize="12sp"
-                android:icon="@drawable/ic_delete"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
-        </LinearLayout>
+        <!-- 3-dot Menu Button -->
+        <ImageButton
+            android:id="@+id/btn_menu"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_more_vert"
+            android:contentDescription="Menu"
+            app:tint="#6B7280" />
 
     </LinearLayout>
 

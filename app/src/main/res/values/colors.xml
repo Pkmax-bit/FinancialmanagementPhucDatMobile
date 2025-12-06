@@ -110,4 +110,7 @@
     <!-- Status Colors for Projects -->
     <color name="color_danger">#F44336</color>
     <color name="color_info">#2196F3</color>
+    
+    <!-- Common Colors -->
+    <color name="gray">#808080</color>
 </resources>
