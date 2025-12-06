@@ -1,178 +1,168 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/background_color"
-    android:padding="16dp">
+    android:background="@color/md_surface_variant">
 
-    <!-- Header Section -->
-    <LinearLayout
+    <!-- AppBar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="16dp">
+        android:background="@color/md_surface"
+        app:elevation="0dp">
 
-        <TextView
-            android:layout_width="0dp"
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/md_surface"
+            app:title="Dự án"
+            app:titleTextColor="@color/md_text_primary"
+            app:menu="@menu/menu_projects" />
+
+        <!-- Search Bar -->
+        <com.google.android.material.search.SearchBar
+            android:id="@+id/searchBar"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Quản lý Dự án"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary" />
+            android:layout_margin="@dimen/spacing_md"
+            android:hint="Tìm kiếm dự án..."
+            app:backgroundTint="@color/md_surface" />
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fab_add_project"
-            android:layout_width="wrap_content"
+        <!-- Filter Chip Group -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_add"
-            android:contentDescription="Thêm dự án"
-            app:backgroundTint="@color/primary_color"
-            app:tint="@color/white" />
+            android:paddingStart="@dimen/spacing_md"
+            android:paddingEnd="@dimen/spacing_md"
+            android:paddingBottom="@dimen/spacing_sm"
+            android:scrollbars="none">
 
-    </LinearLayout>
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleSelection="false">
 
-    <!-- Search and Filter Section -->
-    <LinearLayout
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_all"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="Tất cả" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_active"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Đang hoạt động" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_completed"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hoàn thành" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_on_hold"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tạm dừng" />
+
+            </com.google.android.material.chip.ChipGroup>
+
+        </HorizontalScrollView>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Main Content -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="16dp">
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="8dp"
-            app:startIconDrawable="@drawable/ic_search"
-            app:boxBackgroundMode="outline">
+        <!-- SwipeRefreshLayout -->
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefreshLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_search_projects"
+            <!-- RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_projects"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Tìm kiếm dự án..."
-                android:inputType="text" />
+                android:layout_height="match_parent"
+                android:padding="@dimen/spacing_sm"
+                android:clipToPadding="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-        </com.google.android.material.textfield.TextInputLayout>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_filter_projects"
+        <!-- Empty State -->
+        <LinearLayout
+            android:id="@+id/emptyState"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Lọc"
-            android:icon="@drawable/ic_filter"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_2xl"
+            android:visibility="gone">
 
-    </LinearLayout>
+            <ImageView
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_projects"
+                app:tint="@color/md_outline" />
 
-    <!-- Statistics Cards -->
-    <LinearLayout
-        android:layout_width="match_parent"
+            <TextView
+                style="@style/TextAppearance.App.TitleMedium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="@dimen/spacing_lg"
+                android:text="Chưa có dự án"
+                android:textColor="@color/md_text_primary" />
+
+            <TextView
+                style="@style/TextAppearance.App.BodyMedium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="@dimen/spacing_sm"
+                android:text="Tạo dự án đầu tiên cho khách hàng"
+                android:textAlignment="center"
+                android:textColor="@color/md_text_secondary" />
+
+        </LinearLayout>
+
+        <!-- Loading -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+    <!-- FAB -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fab_add_project"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="16dp">
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/spacing_md"
+        android:text="Thêm dự án"
+        app:icon="@android:drawable/ic_input_add"
+        app:backgroundTint="@color/md_primary"
+        app:iconTint="@color/md_on_primary"
+        android:textColor="@color/md_on_primary" />
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:background="@drawable/bg_card"
-            android:padding="16dp"
-            android:layout_marginEnd="8dp">
-
-            <TextView
-                android:id="@+id/tv_total_projects"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@color/primary_color" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tổng dự án"
-                android:textSize="12sp"
-                android:textColor="@color/text_secondary" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:background="@drawable/bg_card"
-            android:padding="16dp"
-            android:layout_marginStart="8dp">
-
-            <TextView
-                android:id="@+id/tv_active_projects"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@color/primary_color" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Dự án hoạt động"
-                android:textSize="12sp"
-                android:textColor="@color/text_secondary" />
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <!-- Projects List -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_projects"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:paddingBottom="16dp" />
-
-    <!-- Empty State -->
-    <LinearLayout
-        android:id="@+id/layout_empty_state"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:visibility="gone">
-
-        <ImageView
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:src="@drawable/ic_projects"
-            android:alpha="0.3"
-            android:layout_marginBottom="16dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Chưa có dự án nào"
-            android:textSize="16sp"
-            android:textColor="@color/text_secondary"
-            android:layout_marginBottom="8dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Nhấn nút + để tạo dự án đầu tiên"
-            android:textSize="14sp"
-            android:textColor="@color/text_hint" />
-
-    </LinearLayout>
-
-</LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

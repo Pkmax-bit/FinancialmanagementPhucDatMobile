@@ -42,6 +42,16 @@
             android:id="@+id/nav_invoices"
             android:icon="@drawable/ic_invoices"
             android:title="Hóa đơn" />
+        
+        <item
+            android:id="@+id/nav_employees"
+            android:icon="@drawable/ic_employees"
+            android:title="Nhân viên" />
+        
+        <item
+            android:id="@+id/nav_tasks"
+            android:icon="@drawable/ic_tasks"
+            android:title="Công việc" />
     </group>
 
     <item android:title="Cài đặt">

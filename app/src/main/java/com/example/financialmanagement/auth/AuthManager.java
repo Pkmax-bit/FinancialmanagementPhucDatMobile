@@ -256,17 +256,105 @@ public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX
     }
     
     /**
+     * Đăng ký
+     */
+    public void register(String email, String password, String fullName, AuthCallback callback) {
+        Map<String, Object> registerData = new HashMap<>();
+        registerData.put("email", email);
+        registerData.put("password", password);
+        
+        Map<String, String> data = new HashMap<>();
+        data.put("full_name", fullName);
+        registerData.put("data", data);
+        
+        Call<AuthResponse> call = authApi.register(registerData);
+        call.enqueue(new Callback<AuthResponse>() {
+            @Override
+            public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    AuthResponse authResponse = response.body();
+                    // Auto login after register if token is present
+                    if (authResponse.getAccessToken() != null) {
+                        saveAuthData(authResponse);
+                    }
+                    callback.onAuthSuccess();
+                } else {
+                    String error = "Lỗi đăng ký: " + response.code();
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorBody = response.errorBody().string();
+                            JSONObject errorJson = new JSONObject(errorBody);
+                            error = errorJson.optString("msg", errorJson.optString("message", error));
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error parsing error response", e);
+                    }
+                    callback.onAuthError(error);
+                }
+            }
+            
+            @Override
+            public void onFailure(Call<AuthResponse> call, Throwable t) {
+                Log.e(TAG, "Register failed", t);
+                callback.onAuthError("Lỗi kết nối: " + t.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Quên mật khẩu (Gửi email reset)
+     */
+    public void resetPassword(String email, AuthCallback callback) {
+        Map<String, String> resetData = new HashMap<>();
+        resetData.put("email", email);
+        
+        Call<Void> call = authApi.resetPassword(resetData);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    callback.onAuthSuccess();
+                } else {
+                    String error = "Lỗi gửi email: " + response.code();
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorBody = response.errorBody().string();
+                            JSONObject errorJson = new JSONObject(errorBody);
+                            error = errorJson.optString("msg", errorJson.optString("message", error));
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error parsing error response", e);
+                    }
+                    callback.onAuthError(error);
+                }
+            }
+            
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e(TAG, "Reset password failed", t);
+                callback.onAuthError("Lỗi kết nối: " + t.getMessage());
+            }
+        });
+    }
+
+    /**
      * Auth API Interface
      */
     public interface AuthApi {
         @POST(NetworkConfig.Endpoints.LOGIN)
         Call<AuthResponse> login(@Body Map<String, String> loginData);
         
+        @POST(NetworkConfig.Endpoints.REGISTER)
+        Call<AuthResponse> register(@Body Map<String, Object> registerData);
+
         @POST(NetworkConfig.Endpoints.LOGOUT)
         Call<Void> logout();
         
         @POST(NetworkConfig.Endpoints.REFRESH_TOKEN)
         Call<AuthResponse> refreshToken(@Body Map<String, String> refreshData);
+
+        @POST(NetworkConfig.Endpoints.RESET_PASSWORD)
+        Call<Void> resetPassword(@Body Map<String, String> resetData);
     }
     
     /**

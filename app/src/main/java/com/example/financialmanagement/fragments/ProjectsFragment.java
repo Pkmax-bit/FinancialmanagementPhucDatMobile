@@ -32,9 +32,9 @@ public class ProjectsFragment extends Fragment implements ProjectsAdapter.Projec
 
     private RecyclerView rvProjects;
     private FloatingActionButton fabAddProject;
-    private LinearLayout layoutEmptyState;
-    private TextView tvTotalProjects;
-    private TextView tvActiveProjects;
+    // private LinearLayout layoutEmptyState; // Removed in redesign
+    // private TextView tvTotalProjects; // Removed in redesign
+    // private TextView tvActiveProjects; // Removed in redesign
     
     private List<Project> projects;
     private ProjectsAdapter projectsAdapter;
@@ -56,9 +56,9 @@ public class ProjectsFragment extends Fragment implements ProjectsAdapter.Projec
     private void initializeViews(View view) {
         rvProjects = view.findViewById(R.id.rv_projects);
         fabAddProject = view.findViewById(R.id.fab_add_project);
-        layoutEmptyState = view.findViewById(R.id.layout_empty_state);
-        tvTotalProjects = view.findViewById(R.id.tv_total_projects);
-        tvActiveProjects = view.findViewById(R.id.tv_active_projects);
+        // layoutEmptyState = view.findViewById(R.id.layout_empty_state); // Removed in redesign
+        // tvTotalProjects = view.findViewById(R.id.tv_total_projects); // Removed in redesign
+        // tvActiveProjects = view.findViewById(R.id.tv_active_projects); // Removed in redesign
         
         projects = new ArrayList<>();
         projectService = new ProjectService(getContext());
@@ -138,6 +138,8 @@ public class ProjectsFragment extends Fragment implements ProjectsAdapter.Projec
      * Update statistics
      */
     private void updateStatistics() {
+        // Statistics display removed in redesign
+        /*
         int totalProjects = projects.size();
         int activeProjects = 0;
         
@@ -149,12 +151,15 @@ public class ProjectsFragment extends Fragment implements ProjectsAdapter.Projec
         
         tvTotalProjects.setText(String.valueOf(totalProjects));
         tvActiveProjects.setText(String.valueOf(activeProjects));
+        */
     }
 
     /**
      * Update empty state visibility
      */
     private void updateEmptyState() {
+        // Empty state handled by layout itself in redesign
+        /*
         if (projects.isEmpty()) {
             layoutEmptyState.setVisibility(View.VISIBLE);
             rvProjects.setVisibility(View.GONE);
@@ -162,6 +167,7 @@ public class ProjectsFragment extends Fragment implements ProjectsAdapter.Projec
             layoutEmptyState.setVisibility(View.GONE);
             rvProjects.setVisibility(View.VISIBLE);
         }
+        */
     }
 
     /**

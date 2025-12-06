@@ -33,8 +33,10 @@ public class NetworkConfig {
     public static class Endpoints {
         // Authentication
         public static final String LOGIN = "auth/login";
+        public static final String REGISTER = "auth/signup";
         public static final String LOGOUT = "auth/logout";
         public static final String REFRESH_TOKEN = "auth/refresh";
+        public static final String RESET_PASSWORD = "auth/reset-password";
         
         // Projects
         public static final String PROJECTS = "projects";
@@ -89,6 +91,10 @@ public class NetworkConfig {
         public static final String COST_RATIOS = "cost-breakdown/cost-ratios";
         public static final String COST_PARTIES = "cost-breakdown/cost-parties";
         public static final String COST_CATEGORIES = "cost-breakdown/cost-categories";
+        
+        // Tasks
+        public static final String TASKS = "tasks";
+        public static final String TASK_DETAIL = "tasks/{id}";
     }
     
     // HTTP Status Codes

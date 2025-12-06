@@ -237,6 +237,10 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
             return new InvoicesFragment();
         } else if (itemId == R.id.nav_settings) {
             return new SettingsFragment();
+        } else if (itemId == R.id.nav_employees) {
+            return new com.example.financialmanagement.fragments.EmployeesFragment();
+        } else if (itemId == R.id.nav_tasks) {
+            return new com.example.financialmanagement.fragments.TasksFragment();
         }
         return null;
     }
@@ -251,6 +255,8 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         else if (itemId == R.id.nav_quotes) return "Báo giá";
         else if (itemId == R.id.nav_invoices) return "Hóa đơn";
         else if (itemId == R.id.nav_settings) return "Cài đặt";
+        else if (itemId == R.id.nav_employees) return "Nhân viên";
+        else if (itemId == R.id.nav_tasks) return "Công việc";
         return "Dashboard";
     }
 
