@@ -3,7 +3,11 @@ package com.example.financialmanagement.services;
 import android.content.Context;
 import com.example.financialmanagement.models.Project;
 import com.example.financialmanagement.network.ApiClient;
-// import com.example.financialmanagement.network.ApiService; // TODO: Create this interface
+import com.example.financialmanagement.network.ApiService;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import retrofit2.Call;
@@ -14,12 +18,12 @@ import retrofit2.Response;
  * Project Service - Xử lý API calls cho dự án
  */
 public class ProjectService {
-    // private ApiService apiService; // TODO: Create this interface
+    private ApiService apiService;
     private Context context;
 
     public ProjectService(Context context) {
         this.context = context;
-        // this.apiService = ApiClient.getInstance(context).getApiService(); // TODO: Implement API
+        this.apiService = ApiClient.getRetrofit(context).create(ApiService.class);
     }
 
     /**
@@ -36,31 +40,54 @@ public class ProjectService {
      * Get all projects
      */
     public void getProjects(ProjectCallback callback) {
-        getProjects(null, callback);
+        getProjects(new HashMap<>(), callback);
     }
 
     /**
      * Get projects with filters
      */
-    public void getProjects(Map<String, Object> params, ProjectCallback callback) {
-        // TODO: Implement real API call
-        callback.onError("API chưa được triển khai");
-    }
-
     /**
-     * Get public projects (fallback)
+     * Get projects with filters
      */
-    public void getProjectsPublic(ProjectCallback callback) {
-        // TODO: Implement real API call
-        callback.onError("API chưa được triển khai");
+    public void getProjects(Map<String, Object> params, ProjectCallback callback) {
+        Call<List<Project>> call = apiService.getProjects(params);
+        call.enqueue(new Callback<List<Project>>() {
+            @Override
+            public void onResponse(Call<List<Project>> call, Response<List<Project>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Lỗi tải dự án: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Project>> call, Throwable t) {
+                callback.onError("Lỗi kết nối: " + t.getMessage());
+            }
+        });
     }
 
     /**
      * Get project by ID
      */
     public void getProject(String projectId, ProjectCallback callback) {
-        // TODO: Implement real API call
-        callback.onError("API chưa được triển khai");
+        Call<Project> call = apiService.getProject(projectId);
+        call.enqueue(new Callback<Project>() {
+            @Override
+            public void onResponse(Call<Project> call, Response<Project> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Lỗi tải chi tiết dự án: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Project> call, Throwable t) {
+                callback.onError("Lỗi kết nối: " + t.getMessage());
+            }
+        });
     }
 
     /**
@@ -78,30 +105,75 @@ public class ProjectService {
     }
 
     /**
+     * Get public projects (fallback)
+     */
+    public void getProjectsPublic(ProjectCallback callback) {
+        getProjects(callback);
+    }
+
+    /**
      * Create new project
      */
     public void createProject(Project project, ProjectCallback callback) {
-        // TODO: Implement real API call
-        // For now, simulate success
-        callback.onSuccess(project);
+        Call<Project> call = apiService.createProject(project);
+        call.enqueue(new Callback<Project>() {
+            @Override
+            public void onResponse(Call<Project> call, Response<Project> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Lỗi tạo dự án: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Project> call, Throwable t) {
+                callback.onError("Lỗi kết nối: " + t.getMessage());
+            }
+        });
     }
 
     /**
      * Update project
      */
     public void updateProject(String projectId, Project project, ProjectCallback callback) {
-        // TODO: Implement real API call
-        // For now, simulate success
-        callback.onSuccess(project);
+        Call<Project> call = apiService.updateProject(projectId, project);
+        call.enqueue(new Callback<Project>() {
+            @Override
+            public void onResponse(Call<Project> call, Response<Project> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Lỗi cập nhật dự án: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Project> call, Throwable t) {
+                callback.onError("Lỗi kết nối: " + t.getMessage());
+            }
+        });
     }
 
     /**
      * Delete project
      */
     public void deleteProject(String projectId, ProjectCallback callback) {
-        // TODO: Implement real API call
-        // For now, simulate success
-        callback.onSuccess();
-    }
+        Call<Void> call = apiService.deleteProject(projectId);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    callback.onSuccess();
+                } else {
+                    callback.onError("Lỗi xóa dự án: " + response.code());
+                }
+            }
 
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                callback.onError("Lỗi kết nối: " + t.getMessage());
+            }
+        });
+    }
 }

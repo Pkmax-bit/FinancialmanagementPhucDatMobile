@@ -3,10 +3,14 @@ package com.example.financialmanagement.fragments;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -14,14 +18,16 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.example.financialmanagement.R;
 import com.example.financialmanagement.activities.LoginActivity;
 import com.example.financialmanagement.activities.ProjectFormActivity;
 import com.example.financialmanagement.adapters.ProjectsAdapter;
 import com.example.financialmanagement.models.Project;
 import com.example.financialmanagement.services.ProjectService;
-import com.example.financialmanagement.utils.ApiDebugger;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,14 +37,22 @@ public class ProjectsFragment extends Fragment implements ProjectsAdapter.Projec
     private static final int REQUEST_CODE_EDIT_PROJECT = 1002;
 
     private RecyclerView rvProjects;
-    private FloatingActionButton fabAddProject;
-    // private LinearLayout layoutEmptyState; // Removed in redesign
-    // private TextView tvTotalProjects; // Removed in redesign
-    // private TextView tvActiveProjects; // Removed in redesign
+    private SwipeRefreshLayout swipeRefresh;
+    private ExtendedFloatingActionButton fabAddProject;
+    private LinearLayout emptyState;
+    private ProgressBar progressBar;
+    private EditText etSearch;
+    private TextView tvProjectCount;
     
-    private List<Project> projects;
+    private ChipGroup chipGroupFilter;
+    private Chip chipAll, chipActive, chipCompleted, chipOnHold;
+    
+    private List<Project> allProjects = new ArrayList<>();
     private ProjectsAdapter projectsAdapter;
     private ProjectService projectService;
+    
+    private String currentFilter = "all";
+    private String searchQuery = "";
 
     @Nullable
     @Override
@@ -47,7 +61,9 @@ public class ProjectsFragment extends Fragment implements ProjectsAdapter.Projec
         
         initializeViews(view);
         setupRecyclerView();
-        setupListeners();
+        setupSwipeRefresh();
+        setupSearch();
+        setupFilterChips();
         loadProjects();
         
         return view;
@@ -55,135 +71,163 @@ public class ProjectsFragment extends Fragment implements ProjectsAdapter.Projec
 
     private void initializeViews(View view) {
         rvProjects = view.findViewById(R.id.rv_projects);
+        swipeRefresh = view.findViewById(R.id.swipe_refresh);
         fabAddProject = view.findViewById(R.id.fab_add_project);
-        // layoutEmptyState = view.findViewById(R.id.layout_empty_state); // Removed in redesign
-        // tvTotalProjects = view.findViewById(R.id.tv_total_projects); // Removed in redesign
-        // tvActiveProjects = view.findViewById(R.id.tv_active_projects); // Removed in redesign
+        emptyState = view.findViewById(R.id.empty_state);
+        progressBar = view.findViewById(R.id.progress_bar);
+        etSearch = view.findViewById(R.id.et_search);
+        tvProjectCount = view.findViewById(R.id.tv_project_count);
         
-        projects = new ArrayList<>();
+        chipGroupFilter = view.findViewById(R.id.chip_group_filter);
+        chipAll = view.findViewById(R.id.chip_all);
+        chipActive = view.findViewById(R.id.chip_active);
+        chipCompleted = view.findViewById(R.id.chip_completed);
+        chipOnHold = view.findViewById(R.id.chip_on_hold);
+        
         projectService = new ProjectService(getContext());
+        
+        fabAddProject.setOnClickListener(v -> createNewProject());
     }
 
     private void setupRecyclerView() {
-        projectsAdapter = new ProjectsAdapter(projects, this);
+        projectsAdapter = new ProjectsAdapter(new ArrayList<>(), this);
         rvProjects.setLayoutManager(new LinearLayoutManager(getContext()));
         rvProjects.setAdapter(projectsAdapter);
     }
+    
+    private void setupSwipeRefresh() {
+        swipeRefresh.setColorSchemeResources(R.color.md_primary);
+        swipeRefresh.setOnRefreshListener(this::loadProjects);
+    }
+    
+    private void setupSearch() {
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-    private void setupListeners() {
-        fabAddProject.setOnClickListener(v -> {
-            createNewProject();
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                searchQuery = s.toString().toLowerCase().trim();
+                filterAndDisplayProjects();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+    
+    private void setupFilterChips() {
+        chipGroupFilter.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds.isEmpty()) {
+                chipAll.setChecked(true);
+                return;
+            }
+            
+            int checkedId = checkedIds.get(0);
+            if (checkedId == R.id.chip_all) {
+                currentFilter = "all";
+            } else if (checkedId == R.id.chip_active) {
+                currentFilter = "active";
+            } else if (checkedId == R.id.chip_completed) {
+                currentFilter = "completed";
+            } else if (checkedId == R.id.chip_on_hold) {
+                currentFilter = "on_hold";
+            }
+            
+            filterAndDisplayProjects();
         });
     }
 
-    /**
-     * Load projects from API
-     */
     private void loadProjects() {
-        ApiDebugger.logAuth("Loading projects", true);
+        showLoading(true);
         
         projectService.getProjects(new ProjectService.ProjectCallback() {
             @Override
             public void onSuccess(List<Project> projectsList) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        projects.clear();
-                        projects.addAll(projectsList);
-                        projectsAdapter.updateProjects(projects);
-                        updateStatistics();
-                        updateEmptyState();
+                        allProjects = projectsList != null ? projectsList : new ArrayList<>();
+                        filterAndDisplayProjects();
+                        showLoading(false);
+                        swipeRefresh.setRefreshing(false);
                     });
                 }
             }
             
             @Override
-            public void onSuccess(Project project) {
-                // Not used
-            }
+            public void onSuccess(Project project) {}
             
             @Override
-            public void onSuccess() {
-                // Not used
-            }
+            public void onSuccess() {}
             
             @Override
             public void onError(String error) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        ApiDebugger.logAuth("Projects load failed: " + error, false);
+                        showLoading(false);
+                        swipeRefresh.setRefreshing(false);
                         
-                        // Check if it's an authentication error
                         if (error.contains("403") || error.contains("401")) {
-                            Toast.makeText(getContext(), "Không có quyền truy cập. Vui lòng đăng nhập lại.", Toast.LENGTH_LONG).show();
-                            // Redirect to login
+                            Toast.makeText(getContext(), "Không có quyền truy cập", Toast.LENGTH_LONG).show();
                             Intent intent = new Intent(getContext(), LoginActivity.class);
                             startActivity(intent);
-                            if (getActivity() != null) {
-                                getActivity().finish();
-                            }
+                            if (getActivity() != null) getActivity().finish();
                         } else {
-                            Toast.makeText(getContext(), "Lỗi tải dự án: " + error, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), "Lỗi: " + error, Toast.LENGTH_SHORT).show();
+                            showEmptyState(true);
                         }
-                        
-                        // Show empty state when error occurs
-                        updateEmptyState();
                     });
                 }
             }
         });
     }
-
-
-    /**
-     * Update statistics
-     */
-    private void updateStatistics() {
-        // Statistics display removed in redesign
-        /*
-        int totalProjects = projects.size();
-        int activeProjects = 0;
+    
+    private void filterAndDisplayProjects() {
+        List<Project> filtered = new ArrayList<>();
         
-        for (Project project : projects) {
-            if ("active".equals(project.getStatus())) {
-                activeProjects++;
+        for (Project p : allProjects) {
+            boolean matchesFilter = currentFilter.equals("all") || 
+                (p.getStatus() != null && p.getStatus().equalsIgnoreCase(currentFilter));
+            
+            boolean matchesSearch = searchQuery.isEmpty() ||
+                (p.getName() != null && p.getName().toLowerCase().contains(searchQuery)) ||
+                (p.getProjectCode() != null && p.getProjectCode().toLowerCase().contains(searchQuery)) ||
+                (p.getCustomerName() != null && p.getCustomerName().toLowerCase().contains(searchQuery));
+            
+            if (matchesFilter && matchesSearch) {
+                filtered.add(p);
             }
         }
         
-        tvTotalProjects.setText(String.valueOf(totalProjects));
-        tvActiveProjects.setText(String.valueOf(activeProjects));
-        */
+        projectsAdapter.updateProjects(filtered);
+        tvProjectCount.setText(filtered.size() + " dự án");
+        showEmptyState(filtered.isEmpty());
     }
-
-    /**
-     * Update empty state visibility
-     */
-    private void updateEmptyState() {
-        // Empty state handled by layout itself in redesign
-        /*
-        if (projects.isEmpty()) {
-            layoutEmptyState.setVisibility(View.VISIBLE);
-            rvProjects.setVisibility(View.GONE);
-        } else {
-            layoutEmptyState.setVisibility(View.GONE);
-            rvProjects.setVisibility(View.VISIBLE);
+    
+    private void showEmptyState(boolean show) {
+        if (emptyState != null) {
+            emptyState.setVisibility(show ? View.VISIBLE : View.GONE);
         }
-        */
+        if (rvProjects != null) {
+            rvProjects.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
+    }
+    
+    private void showLoading(boolean show) {
+        if (progressBar != null) {
+            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
     }
 
-    /**
-     * Create new project
-     */
     public void createNewProject() {
         Intent intent = new Intent(getContext(), ProjectFormActivity.class);
         intent.putExtra(ProjectFormActivity.EXTRA_MODE, ProjectFormActivity.MODE_CREATE);
         startActivityForResult(intent, REQUEST_CODE_ADD_PROJECT);
     }
 
-    // ProjectClickListener implementation
     @Override
     public void onProjectClick(Project project) {
-        // Navigate to project detail
-        Toast.makeText(getContext(), "Chi tiết dự án: " + project.getName(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Chi tiết: " + project.getName(), Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -196,44 +240,28 @@ public class ProjectsFragment extends Fragment implements ProjectsAdapter.Projec
 
     @Override
     public void onProjectDelete(Project project) {
-        showDeleteConfirmationDialog(project);
-    }
-
-    /**
-     * Show delete confirmation dialog
-     */
-    private void showDeleteConfirmationDialog(Project project) {
         new AlertDialog.Builder(getContext())
-                .setTitle("Xóa dự án")
-                .setMessage("Bạn có chắc chắn muốn xóa dự án \"" + project.getName() + "\"?")
-                .setPositiveButton("Xóa", (dialog, which) -> {
-                    deleteProject(project);
-                })
-                .setNegativeButton("Hủy", null)
-                .show();
+            .setTitle("Xóa dự án")
+            .setMessage("Bạn có chắc muốn xóa \"" + project.getName() + "\"?")
+            .setPositiveButton("Xóa", (d, w) -> deleteProject(project))
+            .setNegativeButton("Hủy", null)
+            .show();
     }
 
-    /**
-     * Delete project
-     */
     private void deleteProject(Project project) {
         projectService.deleteProject(project.getId(), new ProjectService.ProjectCallback() {
             @Override
-            public void onSuccess(List<Project> projects) {
-                // Not used
-            }
+            public void onSuccess(List<Project> projects) {}
             
             @Override
-            public void onSuccess(Project project) {
-                // Not used
-            }
+            public void onSuccess(Project project) {}
             
             @Override
             public void onSuccess() {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(), "Xóa dự án thành công", Toast.LENGTH_SHORT).show();
-                        loadProjects(); // Reload projects
+                        Toast.makeText(getContext(), "Đã xóa", Toast.LENGTH_SHORT).show();
+                        loadProjects();
                     });
                 }
             }
@@ -242,7 +270,7 @@ public class ProjectsFragment extends Fragment implements ProjectsAdapter.Projec
             public void onError(String error) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(), "Lỗi xóa dự án: " + error, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Lỗi: " + error, Toast.LENGTH_SHORT).show();
                     });
                 }
             }
@@ -252,12 +280,8 @@ public class ProjectsFragment extends Fragment implements ProjectsAdapter.Projec
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        
         if (resultCode == getActivity().RESULT_OK) {
-            if (requestCode == REQUEST_CODE_ADD_PROJECT || requestCode == REQUEST_CODE_EDIT_PROJECT) {
-                // Reload projects after add/edit
-                loadProjects();
-            }
+            loadProjects();
         }
     }
 }

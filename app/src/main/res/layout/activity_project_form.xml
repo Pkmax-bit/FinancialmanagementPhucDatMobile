@@ -40,6 +40,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:hint="Mã dự án *"
+                android:visibility="gone"
                 app:startIconDrawable="@drawable/ic_info">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -197,20 +198,30 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Assigned To -->
-            <com.google.android.material.textfield.TextInputLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="Người phụ trách"
-                app:startIconDrawable="@drawable/ic_person">
+                android:orientation="vertical">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_assigned_to"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:inputType="text" />
+                    android:text="Tên nhân viên"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_primary"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
 
-            </com.google.android.material.textfield.TextInputLayout>
+                <Spinner
+                    android:id="@+id/spinner_assigned_to"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:background="@drawable/spinner_background"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp" />
+
+            </LinearLayout>
 
             <!-- Description -->
             <com.google.android.material.textfield.TextInputLayout

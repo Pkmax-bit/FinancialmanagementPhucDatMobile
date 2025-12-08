@@ -262,10 +262,53 @@ public class CustomerFormActivity extends AppCompatActivity {
     }
 
     private void generateCustomerCode() {
-        // Generate a simple customer code (in real app, this would be from server)
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        String customerCode = "CUST" + timestamp.substring(timestamp.length() - 6);
-        etCustomerCode.setText(customerCode);
+        // Fetch all customers to find the last code
+        // Use a large limit to ensure we get the latest customer
+        java.util.Map<String, Object> params = new java.util.HashMap<>();
+        params.put("limit", 1000);
+        
+        customerService.getAllCustomers(params, new CustomerService.CustomerCallback() {
+            @Override
+            public void onSuccess(List<Customer> customersList) {
+                runOnUiThread(() -> {
+                    String nextCode = generateNextCode(customersList, "CUS", 3);
+                    etCustomerCode.setText(nextCode);
+                });
+            }
+            
+            @Override
+            public void onSuccess(Customer customer) {}
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    // Default code if error
+                    etCustomerCode.setText("CUS001");
+                });
+            }
+        });
+    }
+    
+    private String generateNextCode(List<Customer> customers, String prefix, int digits) {
+        int maxNumber = 0;
+        
+        for (Customer c : customers) {
+            String code = c.getCustomerCode();
+            if (code != null && code.startsWith(prefix)) {
+                try {
+                    String numberPart = code.substring(prefix.length());
+                    int number = Integer.parseInt(numberPart);
+                    if (number > maxNumber) {
+                        maxNumber = number;
+                    }
+                } catch (NumberFormatException e) {
+                    // Skip invalid codes
+                }
+            }
+        }
+        
+        int nextNumber = maxNumber + 1;
+        return prefix + String.format("%0" + digits + "d", nextNumber);
     }
 
     private void setupListeners() {
