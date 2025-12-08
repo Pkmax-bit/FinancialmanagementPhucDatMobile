@@ -9,24 +9,56 @@ import com.example.financialmanagement.models.Position;
  * Tương ứng với API endpoint /api/employees
  */
 public class Employee {
+    @com.google.gson.annotations.SerializedName("id")
     private String id;
+    
+    @com.google.gson.annotations.SerializedName("first_name")
     private String firstName;
+    
+    @com.google.gson.annotations.SerializedName("last_name")
     private String lastName;
+    
+    @com.google.gson.annotations.SerializedName("email")
     private String email;
+    
+    @com.google.gson.annotations.SerializedName("phone")
     private String phone;
+    
+    @com.google.gson.annotations.SerializedName("department_id")
     private String departmentId;
+    
+    @com.google.gson.annotations.SerializedName("position_id")
     private String positionId;
+    
+    @com.google.gson.annotations.SerializedName("hire_date")
     private Date hireDate;
+    
+    @com.google.gson.annotations.SerializedName("salary")
     private Double salary;
+    
+    @com.google.gson.annotations.SerializedName("manager_id")
     private String managerId;
+    
+    @com.google.gson.annotations.SerializedName("employee_code")
     private String employeeCode;
+    
+    @com.google.gson.annotations.SerializedName("status")
     private String status;
+    
+    @com.google.gson.annotations.SerializedName("created_at")
     private Date createdAt;
+    
+    @com.google.gson.annotations.SerializedName("updated_at")
     private Date updatedAt;
-
+    
     // Related objects
+    @com.google.gson.annotations.SerializedName("departments")
     private Department department;
+    
+    @com.google.gson.annotations.SerializedName("positions")
     private Position position;
+    
+    @com.google.gson.annotations.SerializedName("managers")
     private Employee manager;
 
     // Constructors
@@ -178,8 +210,20 @@ public class Employee {
     }
 
     // Utility methods
+    @com.google.gson.annotations.SerializedName("full_name")
+    private String fullName;
+
+    // ... existing fields ...
+
     public String getFullName() {
+        if (fullName != null && !fullName.isEmpty()) {
+            return fullName;
+        }
         return firstName + " " + lastName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public boolean isActive() {

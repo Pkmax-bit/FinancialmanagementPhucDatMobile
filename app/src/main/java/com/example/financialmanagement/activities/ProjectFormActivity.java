@@ -14,6 +14,9 @@ import androidx.appcompat.widget.Toolbar;
 import com.example.financialmanagement.R;
 import com.example.financialmanagement.models.Customer;
 import com.example.financialmanagement.models.Project;
+import com.example.financialmanagement.models.Employee;
+import com.example.financialmanagement.services.CustomerService;
+import com.example.financialmanagement.services.EmployeeService;
 import com.example.financialmanagement.services.ProjectService;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -40,7 +43,7 @@ public class ProjectFormActivity extends AppCompatActivity {
     private TextInputEditText etProjectBudget;
     private TextInputEditText etStartDate;
     private TextInputEditText etEndDate;
-    private TextInputEditText etAssignedTo;
+    private Spinner spinnerAssignedTo;
     private TextInputEditText etProjectDescription;
     private TextInputEditText etProjectNotes;
     
@@ -52,7 +55,10 @@ public class ProjectFormActivity extends AppCompatActivity {
     private Customer customer;
     private String mode;
     private ProjectService projectService;
+    private CustomerService customerService;
+    private EmployeeService employeeService;
     private List<Customer> customers;
+    private List<Employee> employees;
     private SimpleDateFormat dateFormat;
 
     @Override
@@ -75,7 +81,7 @@ public class ProjectFormActivity extends AppCompatActivity {
         etProjectBudget = findViewById(R.id.et_project_budget);
         etStartDate = findViewById(R.id.et_start_date);
         etEndDate = findViewById(R.id.et_end_date);
-        etAssignedTo = findViewById(R.id.et_assigned_to);
+        spinnerAssignedTo = findViewById(R.id.spinner_assigned_to);
         etProjectDescription = findViewById(R.id.et_project_description);
         etProjectNotes = findViewById(R.id.et_project_notes);
         
@@ -84,7 +90,10 @@ public class ProjectFormActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progress_bar);
         
         projectService = new ProjectService(this);
-        customers = new ArrayList<Customer>();
+        customerService = new CustomerService(this);
+        employeeService = new EmployeeService(this);
+        customers = new ArrayList<>();
+        employees = new ArrayList<>();
         dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
     }
 
@@ -116,6 +125,7 @@ public class ProjectFormActivity extends AppCompatActivity {
         setupStatusSpinner();
         setupPrioritySpinner();
         setupCustomerSpinner();
+        setupEmployeeSpinner();
         
         // Populate form if editing
         if (project != null) {
@@ -153,15 +163,77 @@ public class ProjectFormActivity extends AppCompatActivity {
     }
 
     private void setupCustomerSpinner() {
-        // TODO: Load customers from API
-        // For now, show empty spinner
-        List<String> customerNames = new ArrayList<String>();
-        customerNames.add("Không có khách hàng");
+        // Fetch customers
+        java.util.Map<String, Object> params = new java.util.HashMap<>();
+        params.put("limit", 1000);
         
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, 
-            android.R.layout.simple_spinner_item, customerNames);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerCustomer.setAdapter(adapter);
+        customerService.getAllCustomers(params, new CustomerService.CustomerCallback() {
+            @Override
+            public void onSuccess(List<Customer> customersList) {
+                customers = customersList;
+                List<String> customerNames = new ArrayList<>();
+                for (Customer c : customers) {
+                    customerNames.add(c.getName());
+                }
+                
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(ProjectFormActivity.this, 
+                    android.R.layout.simple_spinner_item, customerNames);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                
+                runOnUiThread(() -> {
+                    spinnerCustomer.setAdapter(adapter);
+                    // If editing, set selection
+                    if (project != null && project.getCustomerName() != null) {
+                        setSpinnerSelection(spinnerCustomer, project.getCustomerName());
+                    }
+                });
+            }
+            
+            @Override
+            public void onSuccess(Customer customer) {}
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> 
+                    Toast.makeText(ProjectFormActivity.this, "Lỗi tải khách hàng: " + error, Toast.LENGTH_SHORT).show()
+                );
+            }
+        });
+    }
+
+    private void setupEmployeeSpinner() {
+        android.util.Log.d("ProjectFormActivity", "setupEmployeeSpinner: Starting to fetch employees");
+        employeeService.getEmployees(new EmployeeService.EmployeeCallback<List<Employee>>() {
+            @Override
+            public void onSuccess(List<Employee> employeesList) {
+                android.util.Log.d("ProjectFormActivity", "setupEmployeeSpinner: Success, found " + employeesList.size() + " employees");
+                employees = employeesList;
+                List<String> employeeNames = new ArrayList<>();
+                for (Employee e : employees) {
+                    employeeNames.add(e.getFullName());
+                }
+                
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(ProjectFormActivity.this, 
+                    android.R.layout.simple_spinner_item, employeeNames);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                
+                runOnUiThread(() -> {
+                    spinnerAssignedTo.setAdapter(adapter);
+                    // If editing, set selection
+                    if (project != null && project.getAssignedTo() != null) {
+                        setSpinnerSelection(spinnerAssignedTo, project.getAssignedTo());
+                    }
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                android.util.Log.e("ProjectFormActivity", "setupEmployeeSpinner: Error - " + error);
+                runOnUiThread(() -> 
+                    Toast.makeText(ProjectFormActivity.this, "Lỗi tải nhân viên: " + error, Toast.LENGTH_SHORT).show()
+                );
+            }
+        });
     }
 
     private void populateForm() {
@@ -171,7 +243,7 @@ public class ProjectFormActivity extends AppCompatActivity {
         etProjectName.setText(project.getName());
         etProjectDescription.setText(project.getDescription());
         etProjectBudget.setText(project.getBudget() != null ? project.getBudget().toString() : "");
-        etAssignedTo.setText(project.getAssignedTo());
+        // etAssignedTo.setText(project.getAssignedTo()); // Removed, handled in setupEmployeeSpinner
         etProjectNotes.setText(project.getNotes());
         
         // Set dates
@@ -201,10 +273,56 @@ public class ProjectFormActivity extends AppCompatActivity {
     }
 
     private void generateProjectCode() {
-        // Generate a simple project code (in real app, this would be from server)
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        String projectCode = "PRJ" + timestamp.substring(timestamp.length() - 6);
-        etProjectCode.setText(projectCode);
+        // Fetch all projects to find the last code
+        // Use a large limit to ensure we get the latest project
+        java.util.Map<String, Object> params = new java.util.HashMap<>();
+        params.put("limit", 1000);
+        
+        projectService.getProjects(params, new ProjectService.ProjectCallback() {
+            @Override
+            public void onSuccess(List<Project> projectsList) {
+                runOnUiThread(() -> {
+                    String nextCode = generateNextCode(projectsList, "PRJ", 3);
+                    etProjectCode.setText(nextCode);
+                });
+            }
+            
+            @Override
+            public void onSuccess(Project project) {}
+            
+            @Override
+            public void onSuccess() {}
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    // Default code if error
+                    etProjectCode.setText("PRJ001");
+                });
+            }
+        });
+    }
+    
+    private String generateNextCode(List<Project> projects, String prefix, int digits) {
+        int maxNumber = 0;
+        
+        for (Project p : projects) {
+            String code = p.getProjectCode();
+            if (code != null && code.startsWith(prefix)) {
+                try {
+                    String numberPart = code.substring(prefix.length());
+                    int number = Integer.parseInt(numberPart);
+                    if (number > maxNumber) {
+                        maxNumber = number;
+                    }
+                } catch (NumberFormatException e) {
+                    // Skip invalid codes
+                }
+            }
+        }
+        
+        int nextNumber = maxNumber + 1;
+        return prefix + String.format("%0" + digits + "d", nextNumber);
     }
 
     private void setupListeners() {
@@ -284,7 +402,21 @@ public class ProjectFormActivity extends AppCompatActivity {
         projectData.setName(etProjectName.getText().toString().trim());
         projectData.setDescription(etProjectDescription.getText().toString().trim());
         projectData.setNotes(etProjectNotes.getText().toString().trim());
-        projectData.setAssignedTo(etAssignedTo.getText().toString().trim());
+        
+        // Set assigned to
+        int employeeIndex = spinnerAssignedTo.getSelectedItemPosition();
+        if (employeeIndex >= 0 && employeeIndex < employees.size()) {
+            Employee selectedEmployee = employees.get(employeeIndex);
+            projectData.setAssignedTo(selectedEmployee.getFullName());
+            // You might want to save employee ID as well if Project model supports it
+            // projectData.setManagerId(selectedEmployee.getId());
+        } else if (spinnerAssignedTo.getAdapter() != null && spinnerAssignedTo.getAdapter().getCount() > 0) {
+             // Fallback to text if spinner has items but index is weird, or just take the string
+             Object selectedItem = spinnerAssignedTo.getSelectedItem();
+             if (selectedItem != null) {
+                 projectData.setAssignedTo(selectedItem.toString());
+             }
+        }
         
         // Set customer
         int customerIndex = spinnerCustomer.getSelectedItemPosition();

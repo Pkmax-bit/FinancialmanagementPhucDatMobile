@@ -28,10 +28,14 @@ public class ApiClient {
      */
     public static Retrofit getRetrofit(Context context, String baseUrl) {
         if (retrofit == null || !retrofit.baseUrl().toString().equals(baseUrl)) {
+            com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
+                    .setDateFormat("yyyy-MM-dd")
+                    .create();
+            
             retrofit = new Retrofit.Builder()
                     .baseUrl(baseUrl)
                     .client(getOkHttpClient(context))
-                    .addConverterFactory(GsonConverterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create(gson))
                     .build();
         }
         return retrofit;

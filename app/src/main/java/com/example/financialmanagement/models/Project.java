@@ -9,19 +9,28 @@ import java.util.Date;
  */
 public class Project implements Serializable {
     private String id;
+    @com.google.gson.annotations.SerializedName("project_code")
     private String projectCode;
     private String name;
     private String description;
+    @com.google.gson.annotations.SerializedName("customer_id")
     private String customerId;
+    @com.google.gson.annotations.SerializedName("customer_name")
     private String customerName;
     private String status;
     private String priority;
     private Double budget;
+    @com.google.gson.annotations.SerializedName("actual_cost")
     private Double actualCost;
+    @com.google.gson.annotations.SerializedName("start_date")
     private Date startDate;
+    @com.google.gson.annotations.SerializedName("end_date")
     private Date endDate;
+    @com.google.gson.annotations.SerializedName("created_at")
     private Date createdAt;
+    @com.google.gson.annotations.SerializedName("updated_at")
     private Date updatedAt;
+    @com.google.gson.annotations.SerializedName("manager_name")
     private String assignedTo;
     private String notes;
     private Integer progress; // Progress percentage (0-100)
