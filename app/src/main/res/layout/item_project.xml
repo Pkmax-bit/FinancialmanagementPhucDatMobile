@@ -1,18 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="8dp"
-    android:layout_marginEnd="8dp"
-    android:layout_marginTop="4dp"
-    android:layout_marginBottom="4dp"
+    android:layout_marginBottom="16dp"
     app:cardCornerRadius="12dp"
-    app:cardElevation="1dp"
-    app:cardBackgroundColor="@android:color/white"
-    app:strokeWidth="0dp"
-    android:clickable="true"
-    android:focusable="true">
+    app:cardElevation="2dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -20,202 +13,189 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Row 1: Name + Status + Menu -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
 
-            <!-- Project Name -->
-            <TextView
-                android:id="@+id/tv_project_name"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Tên dự án"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#111827"
-                android:maxLines="1"
-                android:ellipsize="end" />
-
-            <!-- Status Badge -->
             <TextView
                 android:id="@+id/tv_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Hoạt động"
-                android:textSize="10sp"
                 android:background="@drawable/bg_status_active"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp" />
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:text="Status"
+                android:textSize="12sp"
+                android:textColor="#10B981" />
 
-            <!-- 3-dot Menu -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
             <ImageButton
                 android:id="@+id/btn_menu"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="4dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_more_vert"
-                android:contentDescription="Menu"
-                app:tint="#9CA3AF" />
-
+                app:tint="@color/gray_600"/>
         </LinearLayout>
 
-        <!-- Row 2: Project Code + Customer -->
+        <TextView
+            android:id="@+id/tv_project_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Project Name"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView
+            android:id="@+id/tv_project_code"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Code: PRJ-001"
+            android:textSize="14sp"
+            android:textColor="@color/gray_600"
+            android:layout_marginBottom="12dp"/>
+            
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E5E7EB"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Customer -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="8dp">
+            android:layout_marginBottom="8dp">
 
-            <TextView
-                android:id="@+id/tv_project_code"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="DA-001"
-                android:textSize="12sp"
-                android:textColor="#6B7280"
-                android:background="@drawable/bg_code_badge"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp" />
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_person"
+                app:tint="@color/gray_600"
+                android:layout_marginEnd="8dp"/>
 
             <TextView
                 android:id="@+id/tv_customer_name"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:text="Khách hàng"
-                android:textSize="13sp"
-                android:textColor="#374151"
-                android:maxLines="1"
-                android:ellipsize="end" />
-
+                android:text="Customer Name"
+                android:textSize="14sp"
+                android:textColor="@color/gray_600"/>
         </LinearLayout>
-
-        <!-- Row 3: Budget + Progress -->
+        
+        <!-- Assigned To -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="12dp">
-
-            <!-- Budget -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Ngân sách"
-                    android:textSize="11sp"
-                    android:textColor="#9CA3AF" />
-
-                <TextView
-                    android:id="@+id/tv_budget"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0 ₫"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:textColor="#2563EB" />
-
-            </LinearLayout>
-
-            <!-- Progress -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="end">
-
-                <TextView
-                    android:id="@+id/tv_progress_percent"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0%"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:textColor="#10B981" />
-
-                <ProgressBar
-                    android:id="@+id/progress_bar"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="100dp"
-                    android:layout_height="6dp"
-                    android:layout_marginTop="4dp"
-                    android:max="100"
-                    android:progress="0"
-                    android:progressDrawable="@drawable/progress_bar_green" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <!-- Row 4: Assigned To -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="8dp">
+            android:layout_marginBottom="8dp">
 
             <ImageView
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:src="@drawable/ic_person"
-                app:tint="#9CA3AF" />
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_assignment"
+                app:tint="@color/gray_600"
+                android:layout_marginEnd="8dp"/>
 
             <TextView
                 android:id="@+id/tv_assigned_to"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:text="Người phụ trách"
-                android:textSize="12sp"
-                android:textColor="#6B7280" />
-
+                android:text="Assigned To"
+                android:textSize="14sp"
+                android:textColor="@color/gray_600"/>
         </LinearLayout>
 
-        <!-- Row 4: Dates -->
+        <!-- Budget -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="12dp">
+            android:layout_marginBottom="8dp">
 
             <ImageView
-                android:layout_width="14dp"
-                android:layout_height="14dp"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_attach_money"
+                app:tint="@color/gray_600"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:id="@+id/tv_budget"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="100,000,000 ₫"
+                android:textSize="14sp"
+                android:textColor="@color/gray_600"/>
+        </LinearLayout>
+        
+        <!-- Dates -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
                 android:src="@drawable/ic_calendar"
-                app:tint="#9CA3AF" />
+                app:tint="@color/gray_600"
+                android:layout_marginEnd="8dp"/>
 
             <TextView
                 android:id="@+id/tv_dates"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
                 android:text="01/01/2024 - 31/12/2024"
-                android:textSize="12sp"
-                android:textColor="#6B7280" />
-
+                android:textSize="14sp"
+                android:textColor="@color/gray_600"/>
         </LinearLayout>
+
+        <!-- Progress -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="4dp">
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Tiến độ"
+                android:textSize="12sp"
+                android:textColor="@color/gray_600"/>
+                
+            <TextView
+                android:id="@+id/tv_progress_percent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="50%"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/blue_700"/>
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:progress="50"
+            android:progressTint="@color/blue_700"
+            android:backgroundTint="#E5E7EB"/>
 
     </LinearLayout>
 
-</com.google.android.material.card.MaterialCardView>
+</androidx.cardview.widget.CardView>

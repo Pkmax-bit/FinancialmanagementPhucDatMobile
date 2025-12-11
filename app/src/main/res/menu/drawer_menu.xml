@@ -14,6 +14,48 @@
             android:title="Dự án" />
         
         <item
+            android:id="@+id/nav_customers"
+            android:icon="@drawable/ic_customers"
+            android:title="Khách hàng" />
+    </group>
+    
+    <!-- Sales Submenu -->
+    <item android:title="Bán hàng">
+        <menu>
+            <item
+                android:id="@+id/nav_quotes"
+                android:icon="@drawable/ic_quotes"
+                android:title="Báo giá" />
+            
+            <item
+                android:id="@+id/nav_invoices"
+                android:icon="@drawable/ic_invoices"
+                android:title="Hóa đơn" />
+        </menu>
+    </item>
+    
+    <!-- Product Management Submenu -->
+    <item android:title="Quản lý sản phẩm">
+        <menu>
+            <item
+                android:id="@+id/nav_products"
+                android:icon="@drawable/ic_products"
+                android:title="Sản phẩm" />
+            
+            <item
+                android:id="@+id/nav_product_categories"
+                android:icon="@drawable/ic_categories"
+                android:title="Loại sản phẩm" />
+
+            <item
+                android:id="@+id/nav_product_rules"
+                android:icon="@drawable/ic_rules"
+                android:title="Quy tắc" />
+        </menu>
+    </item>
+    
+    <group android:checkableBehavior="single">
+        <item
             android:id="@+id/nav_revenue"
             android:icon="@drawable/ic_revenue"
             android:title="Doanh thu" />
@@ -27,21 +69,6 @@
             android:id="@+id/nav_reports"
             android:icon="@drawable/ic_reports"
             android:title="Báo cáo" />
-        
-        <item
-            android:id="@+id/nav_customers"
-            android:icon="@drawable/ic_customers"
-            android:title="Khách hàng" />
-        
-        <item
-            android:id="@+id/nav_quotes"
-            android:icon="@drawable/ic_quotes"
-            android:title="Báo giá" />
-        
-        <item
-            android:id="@+id/nav_invoices"
-            android:icon="@drawable/ic_invoices"
-            android:title="Hóa đơn" />
         
         <item
             android:id="@+id/nav_employees"

@@ -1,9 +1,11 @@
 package com.example.financialmanagement.services;
 
 import android.content.Context;
+import android.util.Log;
 import com.example.financialmanagement.models.Project;
 import com.example.financialmanagement.network.ApiClient;
 import com.example.financialmanagement.network.ApiService;
+import com.example.financialmanagement.utils.ErrorHandler;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
@@ -18,6 +20,7 @@ import retrofit2.Response;
  * Project Service - Xử lý API calls cho dự án
  */
 public class ProjectService {
+    private static final String TAG = "ProjectService";
     private ApiService apiService;
     private Context context;
 
@@ -57,13 +60,17 @@ public class ProjectService {
                 if (response.isSuccessful() && response.body() != null) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi tải dự án: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "getProjects", response);
+                    callback.onError(error);
                 }
             }
 
             @Override
             public void onFailure(Call<List<Project>> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "getProjects", t);
+                callback.onError(error);
             }
         });
     }
@@ -79,13 +86,17 @@ public class ProjectService {
                 if (response.isSuccessful() && response.body() != null) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi tải chi tiết dự án: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "getProject", response);
+                    callback.onError(error);
                 }
             }
 
             @Override
             public void onFailure(Call<Project> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "getProject", t);
+                callback.onError(error);
             }
         });
     }
@@ -122,13 +133,17 @@ public class ProjectService {
                 if (response.isSuccessful() && response.body() != null) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi tạo dự án: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "createProject", response);
+                    callback.onError(error);
                 }
             }
 
             @Override
             public void onFailure(Call<Project> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "createProject", t);
+                callback.onError(error);
             }
         });
     }
@@ -144,13 +159,17 @@ public class ProjectService {
                 if (response.isSuccessful() && response.body() != null) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi cập nhật dự án: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "updateProject", response);
+                    callback.onError(error);
                 }
             }
 
             @Override
             public void onFailure(Call<Project> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "updateProject", t);
+                callback.onError(error);
             }
         });
     }
@@ -166,13 +185,17 @@ public class ProjectService {
                 if (response.isSuccessful()) {
                     callback.onSuccess();
                 } else {
-                    callback.onError("Lỗi xóa dự án: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "deleteProject", response);
+                    callback.onError(error);
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "deleteProject", t);
+                callback.onError(error);
             }
         });
     }

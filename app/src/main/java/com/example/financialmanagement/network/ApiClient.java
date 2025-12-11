@@ -107,4 +107,11 @@ public class ApiClient {
         retrofit = null;
         okHttpClient = null;
     }
+
+    /**
+     * Lấy SalesApi instance
+     */
+    public static com.example.financialmanagement.network.api.SalesApi getSalesApi(Context context) {
+        return getRetrofit(context).create(com.example.financialmanagement.network.api.SalesApi.class);
+    }
 }

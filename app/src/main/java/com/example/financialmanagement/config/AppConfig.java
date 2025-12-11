@@ -14,7 +14,7 @@ public class AppConfig {
     }
     
     // Current environment - thay đổi ở đây để chuyển môi trường
-    private static final Environment CURRENT_ENVIRONMENT = Environment.PRODUCTION;
+    private static final Environment CURRENT_ENVIRONMENT = Environment.LOCAL;
     
     /**
      * Lấy environment hiện tại

@@ -47,6 +47,13 @@ public class InvoicesFragment extends Fragment implements InvoicesAdapter.Invoic
 
     private void initializeViews(View view) {
         rvInvoices = view.findViewById(R.id.rv_invoices);
+        com.google.android.material.floatingactionbutton.FloatingActionButton fabAddInvoice = view.findViewById(R.id.fab_add_invoice);
+        
+        fabAddInvoice.setOnClickListener(v -> {
+            android.content.Intent intent = new android.content.Intent(getContext(), com.example.financialmanagement.activities.AddEditInvoiceActivity.class);
+            startActivity(intent);
+        });
+
         invoiceService = new InvoiceService(getContext());
         authManager = new AuthManager(getContext());
     }
@@ -55,6 +62,12 @@ public class InvoicesFragment extends Fragment implements InvoicesAdapter.Invoic
         invoicesAdapter = new InvoicesAdapter(new ArrayList<>(), this);
         rvInvoices.setLayoutManager(new LinearLayoutManager(getContext()));
         rvInvoices.setAdapter(invoicesAdapter);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadInvoices();
     }
 
     private void loadInvoices() {

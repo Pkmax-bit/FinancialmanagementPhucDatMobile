@@ -124,6 +124,69 @@
             android:theme="@style/Theme.FinancialManagement.NoActionBar"
             android:parentActivityName=".activities.MainActivity" />
 
+        <!-- Product Management Activities -->
+        <activity
+            android:name=".activities.AddEditProductActivity"
+            android:label="Sản phẩm"
+            android:theme="@style/Theme.FinancialManagement"
+            android:parentActivityName=".activities.MainActivity" />
+
+        <activity
+            android:name=".activities.AddEditProductCategoryActivity"
+            android:label="Loại sản phẩm"
+            android:theme="@style/Theme.FinancialManagement"
+            android:parentActivityName=".activities.MainActivity" />
+
+        <activity
+            android:name=".activities.AddEditProductRuleActivity"
+            android:label="Quy tắc sản phẩm"
+            android:theme="@style/Theme.FinancialManagement"
+            android:parentActivityName=".activities.MainActivity" />
+
+        <activity
+            android:name=".activities.AddEditProductRuleActivity"
+            android:label="Quy tắc sản phẩm"
+            android:theme="@style/Theme.FinancialManagement"
+            android:parentActivityName=".activities.MainActivity" />
+
+        <!-- Sales Activities -->
+        <activity
+            android:name=".activities.CustomerPickerActivity"
+            android:label="Chọn Khách Hàng"
+            android:theme="@style/Theme.FinancialManagement.NoActionBar" />
+            
+        <activity
+            android:name=".activities.ProductPickerActivity"
+            android:label="Chọn Sản Phẩm"
+            android:theme="@style/Theme.FinancialManagement.NoActionBar" />
+            
+        <activity
+            android:name=".activities.AddEditQuoteActivity"
+            android:label="Tạo Báo Giá"
+            android:theme="@style/Theme.FinancialManagement.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+            
+        <activity
+            android:name=".activities.AddEditQuoteActivity"
+            android:label="Tạo Báo Giá"
+            android:theme="@style/Theme.FinancialManagement.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+            
+        <activity
+            android:name=".activities.AddEditInvoiceActivity"
+            android:label="Tạo Hóa Đơn"
+            android:theme="@style/Theme.FinancialManagement.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".activities.EmployeePickerActivity"
+            android:label="Chọn Nhân Viên"
+            android:theme="@style/Theme.FinancialManagement.NoActionBar" />
+
+        <activity
+            android:name=".activities.ProjectPickerActivity"
+            android:label="Chọn Dự Án"
+            android:theme="@style/Theme.FinancialManagement.NoActionBar" />
+            
     </application>
 
 </manifest>

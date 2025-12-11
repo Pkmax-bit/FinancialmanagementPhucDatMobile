@@ -1,9 +1,11 @@
 package com.example.financialmanagement.services;
 
 import android.content.Context;
+import android.util.Log;
 import com.example.financialmanagement.models.Invoice;
 import com.example.financialmanagement.network.ApiClient;
 import com.example.financialmanagement.network.NetworkConfig;
+import com.example.financialmanagement.utils.ErrorHandler;
 import java.util.List;
 import java.util.Map;
 import retrofit2.Call;
@@ -17,6 +19,7 @@ import retrofit2.http.*;
  */
 public class InvoiceService {
     
+    private static final String TAG = "InvoiceService";
     private InvoiceApi invoiceApi;
     
     public interface InvoiceCallback {
@@ -64,13 +67,17 @@ public class InvoiceService {
                 if (response.isSuccessful()) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi tải hóa đơn: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "getAllInvoices", response);
+                    callback.onError(error);
                 }
             }
             
             @Override
             public void onFailure(Call<List<Invoice>> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "getAllInvoices", t);
+                callback.onError(error);
             }
         });
     }
@@ -83,13 +90,17 @@ public class InvoiceService {
                 if (response.isSuccessful()) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi tải hóa đơn: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "getInvoiceById", response);
+                    callback.onError(error);
                 }
             }
             
             @Override
             public void onFailure(Call<Invoice> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "getInvoiceById", t);
+                callback.onError(error);
             }
         });
     }
@@ -102,13 +113,17 @@ public class InvoiceService {
                 if (response.isSuccessful()) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi tạo hóa đơn: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "createInvoice", response);
+                    callback.onError(error);
                 }
             }
             
             @Override
             public void onFailure(Call<Invoice> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "createInvoice", t);
+                callback.onError(error);
             }
         });
     }
@@ -121,13 +136,17 @@ public class InvoiceService {
                 if (response.isSuccessful()) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi cập nhật hóa đơn: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "updateInvoice", response);
+                    callback.onError(error);
                 }
             }
             
             @Override
             public void onFailure(Call<Invoice> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "updateInvoice", t);
+                callback.onError(error);
             }
         });
     }
@@ -140,13 +159,17 @@ public class InvoiceService {
                 if (response.isSuccessful()) {
                     callback.onSuccess();
                 } else {
-                    callback.onError("Lỗi xóa hóa đơn: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "deleteInvoice", response);
+                    callback.onError(error);
                 }
             }
             
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "deleteInvoice", t);
+                callback.onError(error);
             }
         });
     }
@@ -159,13 +182,17 @@ public class InvoiceService {
                 if (response.isSuccessful()) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi đánh dấu đã thanh toán: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "markAsPaid", response);
+                    callback.onError(error);
                 }
             }
             
             @Override
             public void onFailure(Call<Invoice> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "markAsPaid", t);
+                callback.onError(error);
             }
         });
     }
@@ -178,13 +205,17 @@ public class InvoiceService {
                 if (response.isSuccessful()) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi gửi hóa đơn: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "sendToCustomer", response);
+                    callback.onError(error);
                 }
             }
             
             @Override
             public void onFailure(Call<Invoice> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "sendToCustomer", t);
+                callback.onError(error);
             }
         });
     }
@@ -197,13 +228,17 @@ public class InvoiceService {
                 if (response.isSuccessful()) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi thêm thanh toán: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "addPayment", response);
+                    callback.onError(error);
                 }
             }
             
             @Override
             public void onFailure(Call<Invoice> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "addPayment", t);
+                callback.onError(error);
             }
         });
     }

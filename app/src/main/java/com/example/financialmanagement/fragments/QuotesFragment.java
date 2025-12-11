@@ -47,6 +47,13 @@ public class QuotesFragment extends Fragment implements QuotesAdapter.QuoteClick
 
     private void initializeViews(View view) {
         rvQuotes = view.findViewById(R.id.rv_quotes);
+        com.google.android.material.floatingactionbutton.FloatingActionButton fabAddQuote = view.findViewById(R.id.fab_add_quote);
+        
+        fabAddQuote.setOnClickListener(v -> {
+            android.content.Intent intent = new android.content.Intent(getContext(), com.example.financialmanagement.activities.AddEditQuoteActivity.class);
+            startActivity(intent);
+        });
+
         quoteService = new QuoteService(getContext());
         authManager = new AuthManager(getContext());
     }
@@ -55,6 +62,12 @@ public class QuotesFragment extends Fragment implements QuotesAdapter.QuoteClick
         quotesAdapter = new QuotesAdapter(new ArrayList<>(), this);
         rvQuotes.setLayoutManager(new LinearLayoutManager(getContext()));
         rvQuotes.setAdapter(quotesAdapter);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadQuotes();
     }
 
     private void loadQuotes() {

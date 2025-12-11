@@ -16,7 +16,7 @@ public class Product {
     @SerializedName("quantity")
     private Double quantity;
     
-    @SerializedName("unit_price")
+    @SerializedName("price")
     private Double unitPrice;
     
     @SerializedName("total_price")
@@ -49,7 +49,13 @@ public class Product {
     @SerializedName("category")
     private String category;
     
-    @SerializedName("sku")
+    @SerializedName("category_id")
+    private String categoryId;
+
+    @SerializedName("type")
+    private String type;
+    
+    @SerializedName("code")
     private String sku;
     
     @SerializedName("weight")
@@ -202,6 +208,22 @@ public class Product {
     
     public void setCategory(String category) {
         this.category = category;
+    }
+    
+    public String getCategoryId() {
+        return categoryId;
+    }
+    
+    public void setCategoryId(String categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
     
     public String getSku() {

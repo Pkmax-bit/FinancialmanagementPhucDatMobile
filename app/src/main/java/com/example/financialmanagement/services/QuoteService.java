@@ -1,9 +1,11 @@
 package com.example.financialmanagement.services;
 
 import android.content.Context;
+import android.util.Log;
 import com.example.financialmanagement.models.Quote;
 import com.example.financialmanagement.network.ApiClient;
 import com.example.financialmanagement.network.NetworkConfig;
+import com.example.financialmanagement.utils.ErrorHandler;
 import java.util.List;
 import java.util.Map;
 import retrofit2.Call;
@@ -17,6 +19,7 @@ import retrofit2.http.*;
  */
 public class QuoteService {
     
+    private static final String TAG = "QuoteService";
     private QuoteApi quoteApi;
     
     public interface QuoteCallback {
@@ -64,13 +67,17 @@ public class QuoteService {
                 if (response.isSuccessful()) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi tải báo giá: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "getAllQuotes", response);
+                    callback.onError(error);
                 }
             }
             
             @Override
             public void onFailure(Call<List<Quote>> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "getAllQuotes", t);
+                callback.onError(error);
             }
         });
     }
@@ -83,13 +90,17 @@ public class QuoteService {
                 if (response.isSuccessful()) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi tải báo giá: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "getQuoteById", response);
+                    callback.onError(error);
                 }
             }
             
             @Override
             public void onFailure(Call<Quote> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "getQuoteById", t);
+                callback.onError(error);
             }
         });
     }
@@ -102,13 +113,17 @@ public class QuoteService {
                 if (response.isSuccessful()) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi tạo báo giá: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "createQuote", response);
+                    callback.onError(error);
                 }
             }
             
             @Override
             public void onFailure(Call<Quote> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "createQuote", t);
+                callback.onError(error);
             }
         });
     }
@@ -121,13 +136,17 @@ public class QuoteService {
                 if (response.isSuccessful()) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi cập nhật báo giá: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "updateQuote", response);
+                    callback.onError(error);
                 }
             }
             
             @Override
             public void onFailure(Call<Quote> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "updateQuote", t);
+                callback.onError(error);
             }
         });
     }
@@ -140,13 +159,17 @@ public class QuoteService {
                 if (response.isSuccessful()) {
                     callback.onSuccess();
                 } else {
-                    callback.onError("Lỗi xóa báo giá: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "deleteQuote", response);
+                    callback.onError(error);
                 }
             }
             
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "deleteQuote", t);
+                callback.onError(error);
             }
         });
     }
@@ -159,13 +182,17 @@ public class QuoteService {
                 if (response.isSuccessful()) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi duyệt báo giá: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "approveQuote", response);
+                    callback.onError(error);
                 }
             }
             
             @Override
             public void onFailure(Call<Quote> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "approveQuote", t);
+                callback.onError(error);
             }
         });
     }
@@ -178,13 +205,17 @@ public class QuoteService {
                 if (response.isSuccessful()) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi chuyển đổi báo giá: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "convertToInvoice", response);
+                    callback.onError(error);
                 }
             }
             
             @Override
             public void onFailure(Call<Quote> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "convertToInvoice", t);
+                callback.onError(error);
             }
         });
     }
@@ -197,13 +228,17 @@ public class QuoteService {
                 if (response.isSuccessful()) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError("Lỗi gửi báo giá: " + response.code());
+                    String error = ErrorHandler.parseError(response);
+                    ErrorHandler.logError(TAG, "sendToCustomer", response);
+                    callback.onError(error);
                 }
             }
             
             @Override
             public void onFailure(Call<Quote> call, Throwable t) {
-                callback.onError("Lỗi kết nối: " + t.getMessage());
+                String error = ErrorHandler.parseError(t);
+                ErrorHandler.logError(TAG, "sendToCustomer", t);
+                callback.onError(error);
             }
         });
     }

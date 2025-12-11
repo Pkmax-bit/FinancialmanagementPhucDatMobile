@@ -24,10 +24,11 @@ public class NetworkConfig {
         return useLocal ? LOCAL_URL : NETWORK_URL;
     }
     
-    // Timeout configurations
-    public static final int CONNECT_TIMEOUT_SECONDS = 30;
-    public static final int READ_TIMEOUT_SECONDS = 30;
-    public static final int WRITE_TIMEOUT_SECONDS = 30;
+    // Timeout configurations - Increased for production environment
+    // Production server may be slower than local development
+    public static final int CONNECT_TIMEOUT_SECONDS = 60;
+    public static final int READ_TIMEOUT_SECONDS = 60;
+    public static final int WRITE_TIMEOUT_SECONDS = 90;
     
     // API Endpoints
     public static class Endpoints {
@@ -95,6 +96,18 @@ public class NetworkConfig {
         // Tasks
         public static final String TASKS = "tasks";
         public static final String TASK_DETAIL = "tasks/{id}";
+        
+        // Products - Using web API endpoints directly
+        public static final String PRODUCTS = "sales/products";
+        public static final String PRODUCT_DETAIL = "sales/products/{id}";
+        
+        // Product Categories - Using web API endpoints directly
+        public static final String PRODUCT_CATEGORIES = "sales/product-categories";
+        public static final String PRODUCT_CATEGORY_DETAIL = "sales/product-categories/{id}";
+        
+        // Product Rules
+        public static final String MATERIAL_ADJUSTMENT_RULES = "material-adjustment-rules";
+        public static final String MATERIAL_ADJUSTMENT_RULE_DETAIL = "material-adjustment-rules/{id}";
     }
     
     // HTTP Status Codes

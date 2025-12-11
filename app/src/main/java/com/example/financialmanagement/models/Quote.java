@@ -55,7 +55,13 @@ public class Quote {
     private Project project;
     private Customer customer;
     private List<QuoteItem> items;
+    @SerializedName("employee_in_charge_id")
+    private String employeeInChargeId;
+
     private List<Product> products;
+
+    public String getEmployeeInChargeId() { return employeeInChargeId; }
+    public void setEmployeeInChargeId(String employeeInChargeId) { this.employeeInChargeId = employeeInChargeId; }
 
     // Constructors
     public Quote() {}
