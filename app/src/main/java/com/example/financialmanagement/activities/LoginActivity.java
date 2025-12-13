@@ -42,8 +42,14 @@ public class LoginActivity extends AppCompatActivity implements AuthCallback {
         
         authManager = new AuthManager(this);
         
-        // Kiểm tra nếu đã đăng nhập
-        if (authManager.isLoggedIn()) {
+        // Kiểm tra nếu được redirect từ auth error
+        Intent intent = getIntent();
+        if (intent != null && intent.getBooleanExtra("auth_expired", false)) {
+            showError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        }
+        
+        // Kiểm tra nếu đã đăng nhập (nếu không phải từ auth error)
+        if (authManager.isLoggedIn() && (intent == null || !intent.getBooleanExtra("auth_expired", false))) {
             navigateToMain();
         }
     }

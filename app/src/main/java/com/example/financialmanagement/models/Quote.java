@@ -19,6 +19,7 @@ public class Quote {
     private String status; // draft, sent, approved, rejected, converted
     private String title;
     private String description;
+    private String notes; // Backend uses "notes" field
     private Double subtotal;
     @SerializedName("tax_rate")
     private Double taxRate;
@@ -51,10 +52,17 @@ public class Quote {
     @SerializedName("approved_at")
     private Date approvedAt;
     
-    // Related objects
+    // Related objects - Backend may return with different field names
+    // Try both singular and plural forms
     private Project project;
+    @SerializedName("projects")
+    private Project projects; // Fallback for plural form
     private Customer customer;
+    @SerializedName("customers")
+    private Customer customers; // Fallback for plural form
     private List<QuoteItem> items;
+    @SerializedName("quote_items")
+    private List<QuoteItem> quoteItems; // Fallback for quote_items
     @SerializedName("employee_in_charge_id")
     private String employeeInChargeId;
 
@@ -94,6 +102,12 @@ public class Quote {
     
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+    
+    public String getNotes() { 
+        // Backend uses "notes" but we also support "description"
+        return notes != null ? notes : description; 
+    }
+    public void setNotes(String notes) { this.notes = notes; }
     
     public Double getSubtotal() { return subtotal; }
     public void setSubtotal(Double subtotal) { this.subtotal = subtotal; }
@@ -146,14 +160,47 @@ public class Quote {
     public Date getApprovedAt() { return approvedAt; }
     public void setApprovedAt(Date approvedAt) { this.approvedAt = approvedAt; }
     
-    public Project getProject() { return project; }
-    public void setProject(Project project) { this.project = project; }
+    public Project getProject() { 
+        // Try singular first, then plural
+        if (project != null) return project;
+        if (projects != null) {
+            project = projects; // Cache it
+            return project;
+        }
+        return null;
+    }
+    public void setProject(Project project) { 
+        this.project = project;
+        this.projects = project; // Keep both in sync
+    }
     
-    public Customer getCustomer() { return customer; }
-    public void setCustomer(Customer customer) { this.customer = customer; }
+    public Customer getCustomer() { 
+        // Try singular first, then plural
+        if (customer != null) return customer;
+        if (customers != null) {
+            customer = customers; // Cache it
+            return customer;
+        }
+        return null;
+    }
+    public void setCustomer(Customer customer) { 
+        this.customer = customer;
+        this.customers = customer; // Keep both in sync
+    }
     
-    public List<QuoteItem> getItems() { return items; }
-    public void setItems(List<QuoteItem> items) { this.items = items; }
+    public List<QuoteItem> getItems() { 
+        // Try items first, then quote_items
+        if (items != null && !items.isEmpty()) return items;
+        if (quoteItems != null && !quoteItems.isEmpty()) {
+            items = quoteItems; // Cache it
+            return items;
+        }
+        return items; // Return null or empty list
+    }
+    public void setItems(List<QuoteItem> items) { 
+        this.items = items;
+        this.quoteItems = items; // Keep both in sync
+    }
 
     @Override
     public String toString() {

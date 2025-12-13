@@ -48,15 +48,15 @@ public class AuthInterceptor implements Interceptor {
                 ApiDebugger.logAuth("AuthInterceptor - Authentication failed: " + response.code(), false);
                 ApiDebugger.logAuth("AuthInterceptor - Response body: " + response.body(), false);
                 
-                // Token might be expired or invalid, clear it
-                authManager.logout();
-                
                 // Log the specific error for debugging
                 if (response.code() == 403) {
                     ApiDebugger.logAuth("AuthInterceptor - 403 Forbidden: User may not have permission to access this resource", false);
                 } else if (response.code() == 401) {
                     ApiDebugger.logAuth("AuthInterceptor - 401 Unauthorized: Token is invalid or expired", false);
                 }
+                
+                // Handle authentication error: logout and redirect to login
+                com.example.financialmanagement.utils.AuthErrorHandler.handleAuthError(context);
             }
             
             return response;

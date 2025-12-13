@@ -22,6 +22,7 @@ import com.example.financialmanagement.adapters.CreateQuoteItemAdapter;
 import com.example.financialmanagement.models.Quote;
 import com.example.financialmanagement.network.ApiClient;
 import com.example.financialmanagement.network.api.SalesApi;
+import com.example.financialmanagement.services.QuoteService;
 import com.example.financialmanagement.utils.CurrencyFormatter;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -63,15 +64,31 @@ public class AddEditQuoteActivity extends AppCompatActivity implements CreateQuo
     
     // Tax Rate default
     private double taxRate = 10.0;
+    
+    // Edit mode
+    private boolean isEditMode = false;
+    private String quoteIdToEdit = null;
+    private QuoteService quoteService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_edit_quote);
 
+        // Check if editing
+        quoteIdToEdit = getIntent().getStringExtra("quote_id");
+        isEditMode = quoteIdToEdit != null && !quoteIdToEdit.isEmpty();
+        
         initViews();
         setupListeners();
-        setupDefaults();
+        
+        if (isEditMode) {
+            // Load quote data for editing
+            loadQuoteForEdit();
+        } else {
+            // Setup defaults for new quote
+            setupDefaults();
+        }
     }
 
     private void initViews() {
@@ -98,6 +115,16 @@ public class AddEditQuoteActivity extends AppCompatActivity implements CreateQuo
         rvItems.setLayoutManager(new LinearLayoutManager(this));
         adapter = new CreateQuoteItemAdapter(quoteItems, this);
         rvItems.setAdapter(adapter);
+        
+        // Initialize service
+        quoteService = new QuoteService(this);
+        
+        // Update toolbar title
+        if (isEditMode) {
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setTitle("Sửa báo giá");
+            }
+        }
     }
 
     private void setupListeners() {
@@ -341,6 +368,114 @@ public class AddEditQuoteActivity extends AppCompatActivity implements CreateQuo
         tvTotalAmount.setText(CurrencyFormatter.format(total));
     }
 
+    private void loadQuoteForEdit() {
+        Toast.makeText(this, "Đang tải thông tin báo giá...", Toast.LENGTH_SHORT).show();
+        
+        quoteService.getQuoteById(quoteIdToEdit, new QuoteService.QuoteCallback() {
+            @Override
+            public void onSuccess(List<Quote> quotes) {
+                // Not used
+            }
+
+            @Override
+            public void onSuccess(Quote quote) {
+                runOnUiThread(() -> {
+                    currentQuote = quote;
+                    fillFormWithQuoteData(quote);
+                });
+            }
+
+            @Override
+            public void onSuccess() {
+                // Not used
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(AddEditQuoteActivity.this, "Lỗi tải báo giá: " + error, Toast.LENGTH_LONG).show();
+                    finish();
+                });
+            }
+        });
+    }
+    
+    private void fillFormWithQuoteData(Quote quote) {
+        // Set quote ID
+        currentQuote.setId(quote.getId());
+        
+        // Customer
+        if (quote.getCustomerId() != null) {
+            currentQuote.setCustomerId(quote.getCustomerId());
+            if (quote.getCustomer() != null && quote.getCustomer().getName() != null) {
+                btnSelectCustomer.setText(quote.getCustomer().getName());
+            } else {
+                btnSelectCustomer.setText("Khách hàng");
+            }
+            btnSelectProject.setEnabled(true);
+        }
+        
+        // Project
+        if (quote.getProjectId() != null) {
+            currentQuote.setProjectId(quote.getProjectId());
+            if (quote.getProject() != null && quote.getProject().getName() != null) {
+                btnSelectProject.setText(quote.getProject().getName());
+            } else {
+                btnSelectProject.setText("Dự án");
+            }
+        }
+        
+        // Employee
+        if (quote.getEmployeeInChargeId() != null) {
+            currentQuote.setEmployeeInChargeId(quote.getEmployeeInChargeId());
+            btnSelectEmployee.setText("Nhân viên");
+        }
+        
+        // Dates
+        if (quote.getIssueDate() != null) {
+            etQuoteDate.setText(dateFormat.format(quote.getIssueDate()));
+            currentQuote.setIssueDate(quote.getIssueDate());
+            currentQuote.setQuoteDate(quote.getIssueDate());
+        } else if (quote.getQuoteDate() != null) {
+            etQuoteDate.setText(dateFormat.format(quote.getQuoteDate()));
+            currentQuote.setIssueDate(quote.getQuoteDate());
+            currentQuote.setQuoteDate(quote.getQuoteDate());
+        }
+        
+        if (quote.getValidUntil() != null) {
+            etExpiryDate.setText(dateFormat.format(quote.getValidUntil()));
+            currentQuote.setValidUntil(quote.getValidUntil());
+            currentQuote.setExpiryDate(quote.getValidUntil());
+        } else if (quote.getExpiryDate() != null) {
+            etExpiryDate.setText(dateFormat.format(quote.getExpiryDate()));
+            currentQuote.setValidUntil(quote.getExpiryDate());
+            currentQuote.setExpiryDate(quote.getExpiryDate());
+        }
+        
+        // Tax Rate
+        if (quote.getTaxRate() != null) {
+            taxRate = quote.getTaxRate();
+            etTaxRate.setText(String.format(Locale.getDefault(), "%.1f", taxRate));
+        }
+        
+        // Notes/Description
+        if (quote.getDescription() != null) {
+            etNotes.setText(quote.getDescription());
+        }
+        
+        // Items
+        if (quote.getItems() != null && !quote.getItems().isEmpty()) {
+            quoteItems.clear();
+            quoteItems.addAll(quote.getItems());
+            adapter.notifyDataSetChanged();
+        }
+        
+        // Calculate totals
+        calculateTotals();
+        
+        Toast.makeText(this, "Đã tải thông tin báo giá", Toast.LENGTH_SHORT).show();
+    }
+
     private void saveQuote(String status) {
         // Validation
         if (currentQuote.getCustomerId() == null) {
@@ -358,10 +493,20 @@ public class AddEditQuoteActivity extends AppCompatActivity implements CreateQuo
         currentQuote.setDescription(etNotes.getText().toString());
         currentQuote.setStatus(status);
         
+        if (isEditMode) {
+            // Update existing quote
+            updateQuote();
+        } else {
+            // Create new quote
+            createQuote(status);
+        }
+    }
+    
+    private void createQuote(String status) {
         // Quote number is generated by backend if not unique check logic, 
         // but here we send one.
         String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(new Date());
-        currentQuote.setQuoteNumber("QUO-M-" + timeStamp); 
+        currentQuote.setQuoteNumber("QUO-M-" + timeStamp);
         
         // Call API
         SalesApi salesApi = ApiClient.getSalesApi(this);
@@ -391,6 +536,44 @@ public class AddEditQuoteActivity extends AppCompatActivity implements CreateQuo
                 btnSave.setEnabled(true);
                 findViewById(R.id.btn_save_draft).setEnabled(true);
                 Toast.makeText(AddEditQuoteActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+    
+    private void updateQuote() {
+        Toast.makeText(this, "Đang cập nhật báo giá...", Toast.LENGTH_SHORT).show();
+        btnSave.setEnabled(false);
+        findViewById(R.id.btn_save_draft).setEnabled(false);
+        
+        quoteService.updateQuote(quoteIdToEdit, currentQuote, new QuoteService.QuoteCallback() {
+            @Override
+            public void onSuccess(List<Quote> quotes) {
+                // Not used
+            }
+
+            @Override
+            public void onSuccess(Quote quote) {
+                runOnUiThread(() -> {
+                    btnSave.setEnabled(true);
+                    findViewById(R.id.btn_save_draft).setEnabled(true);
+                    Toast.makeText(AddEditQuoteActivity.this, "Cập nhật báo giá thành công!", Toast.LENGTH_LONG).show();
+                    setResult(RESULT_OK);
+                    finish();
+                });
+            }
+
+            @Override
+            public void onSuccess() {
+                // Not used
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    btnSave.setEnabled(true);
+                    findViewById(R.id.btn_save_draft).setEnabled(true);
+                    Toast.makeText(AddEditQuoteActivity.this, "Lỗi cập nhật: " + error, Toast.LENGTH_LONG).show();
+                });
             }
         });
     }

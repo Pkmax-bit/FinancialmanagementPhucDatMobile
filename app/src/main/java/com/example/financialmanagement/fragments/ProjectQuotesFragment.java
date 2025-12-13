@@ -63,31 +63,57 @@ public class ProjectQuotesFragment extends Fragment {
             @Override
             public void onQuoteClick(Quote quote) {
                 // Handle quote click - could open quote detail
+                onQuoteViewDetails(quote);
             }
             
             @Override
             public void onQuoteSendToCustomer(Quote quote) {
                 // Handle send to customer
+                android.widget.Toast.makeText(getContext(), "Tính năng gửi báo giá đang được phát triển", android.widget.Toast.LENGTH_SHORT).show();
             }
             
             @Override
             public void onQuoteConvertToInvoice(Quote quote) {
                 // Handle convert to invoice
+                android.widget.Toast.makeText(getContext(), "Chuyển đổi báo giá thành hóa đơn: " + quote.getQuoteNumber(), android.widget.Toast.LENGTH_SHORT).show();
             }
             
             @Override
             public void onQuoteApprove(Quote quote) {
                 // Handle approve quote
+                android.widget.Toast.makeText(getContext(), "Duyệt báo giá: " + quote.getQuoteNumber(), android.widget.Toast.LENGTH_SHORT).show();
             }
             
             @Override
             public void onQuoteDelete(Quote quote) {
                 // Handle delete quote
+                android.widget.Toast.makeText(getContext(), "Xóa báo giá: " + quote.getQuoteNumber(), android.widget.Toast.LENGTH_SHORT).show();
             }
             
             @Override
             public void onQuoteEdit(Quote quote) {
                 // Handle edit quote
+                android.content.Intent intent = new android.content.Intent(getContext(), com.example.financialmanagement.activities.AddEditQuoteActivity.class);
+                intent.putExtra("quote_id", quote.getId());
+                startActivity(intent);
+            }
+
+            @Override
+            public void onQuoteViewDetails(Quote quote) {
+                // Handle view details
+                android.widget.Toast.makeText(getContext(), "Xem chi tiết báo giá: " + quote.getQuoteNumber(), android.widget.Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onQuoteReview(Quote quote) {
+                // Handle review - same as approve
+                onQuoteApprove(quote);
+            }
+
+            @Override
+            public void onQuoteExportPDF(Quote quote) {
+                // Handle export PDF
+                android.widget.Toast.makeText(getContext(), "Tính năng xuất PDF đang được phát triển", android.widget.Toast.LENGTH_SHORT).show();
             }
         });
         

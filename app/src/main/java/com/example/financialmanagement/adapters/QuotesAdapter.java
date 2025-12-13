@@ -1,8 +1,11 @@
 package com.example.financialmanagement.adapters;
 
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,6 +30,9 @@ public class QuotesAdapter extends RecyclerView.Adapter<QuotesAdapter.QuoteViewH
         void onQuoteApprove(Quote quote);
         void onQuoteConvertToInvoice(Quote quote);
         void onQuoteSendToCustomer(Quote quote);
+        void onQuoteViewDetails(Quote quote);
+        void onQuoteReview(Quote quote);
+        void onQuoteExportPDF(Quote quote);
     }
 
     public QuotesAdapter(List<Quote> quotes, QuoteClickListener clickListener) {
@@ -66,6 +72,7 @@ public class QuotesAdapter extends RecyclerView.Adapter<QuotesAdapter.QuoteViewH
         private TextView tvQuoteCustomer;
         private TextView tvQuoteProject;
         private TextView tvQuoteValidUntil;
+        private ImageButton btnQuoteMenu;
 
         public QuoteViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -76,6 +83,7 @@ public class QuotesAdapter extends RecyclerView.Adapter<QuotesAdapter.QuoteViewH
             tvQuoteCustomer = itemView.findViewById(R.id.tv_quote_customer);
             tvQuoteProject = itemView.findViewById(R.id.tv_quote_project);
             tvQuoteValidUntil = itemView.findViewById(R.id.tv_quote_valid_until);
+            btnQuoteMenu = itemView.findViewById(R.id.btn_quote_menu);
         }
 
         public void bind(Quote quote, QuoteClickListener clickListener) {
@@ -98,10 +106,17 @@ public class QuotesAdapter extends RecyclerView.Adapter<QuotesAdapter.QuoteViewH
                 tvQuoteCustomer.setText("Chưa có khách hàng");
             }
             
-            if (quote.getProject() != null) {
+            // Display project name
+            if (quote.getProject() != null && quote.getProject().getName() != null) {
                 tvQuoteProject.setText(quote.getProject().getName());
             } else {
+                // Fallback: try to get project name from project_id if available
+                // This is a temporary workaround until backend returns project object
                 tvQuoteProject.setText("Chưa có dự án");
+                // Log for debugging
+                android.util.Log.d("QuotesAdapter", "Quote " + quote.getQuoteNumber() + 
+                    " - Project: " + (quote.getProject() != null ? "exists but no name" : "null") +
+                    ", Project ID: " + quote.getProjectId());
             }
             
             // Valid until
@@ -117,6 +132,47 @@ public class QuotesAdapter extends RecyclerView.Adapter<QuotesAdapter.QuoteViewH
                     clickListener.onQuoteClick(quote);
                 }
             });
+
+            // Setup menu button
+            if (btnQuoteMenu != null) {
+                btnQuoteMenu.setOnClickListener(v -> {
+                    showPopupMenu(v, quote, clickListener);
+                });
+            }
+        }
+
+        private void showPopupMenu(View view, Quote quote, QuoteClickListener clickListener) {
+            PopupMenu popupMenu = new PopupMenu(view.getContext(), view);
+            popupMenu.getMenuInflater().inflate(R.menu.menu_quote_item, popupMenu.getMenu());
+
+            // Set menu item click listener
+            popupMenu.setOnMenuItemClickListener(item -> {
+                if (clickListener == null) return false;
+
+                int itemId = item.getItemId();
+                if (itemId == R.id.action_view_details) {
+                    clickListener.onQuoteViewDetails(quote);
+                    return true;
+                } else if (itemId == R.id.action_edit) {
+                    clickListener.onQuoteEdit(quote);
+                    return true;
+                } else if (itemId == R.id.action_review) {
+                    clickListener.onQuoteReview(quote);
+                    return true;
+                } else if (itemId == R.id.action_export_pdf) {
+                    clickListener.onQuoteExportPDF(quote);
+                    return true;
+                } else if (itemId == R.id.action_approve_to_invoice) {
+                    clickListener.onQuoteConvertToInvoice(quote);
+                    return true;
+                } else if (itemId == R.id.action_delete) {
+                    clickListener.onQuoteDelete(quote);
+                    return true;
+                }
+                return false;
+            });
+
+            popupMenu.show();
         }
 
         private String getQuoteStatusText(String status) {

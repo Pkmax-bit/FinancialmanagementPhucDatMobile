@@ -88,10 +88,42 @@ public class QuoteService {
             @Override
             public void onResponse(Call<Quote> call, Response<Quote> response) {
                 if (response.isSuccessful()) {
-                    callback.onSuccess(response.body());
+                    Quote quote = response.body();
+                    if (quote != null) {
+                        callback.onSuccess(quote);
+                    } else {
+                        // Try to parse error from response body
+                        String errorMsg = "Không thể parse dữ liệu báo giá";
+                        try {
+                            if (response.errorBody() != null) {
+                                String errorBody = response.errorBody().string();
+                                Log.e(TAG, "Error body: " + errorBody);
+                                if (errorBody.contains("validation error")) {
+                                    errorMsg = "Lỗi validation: Dữ liệu báo giá không hợp lệ. Vui lòng kiểm tra lại backend.";
+                                }
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error reading error body", e);
+                        }
+                        callback.onError(errorMsg);
+                    }
                 } else {
                     String error = ErrorHandler.parseError(response);
                     ErrorHandler.logError(TAG, "getQuoteById", response);
+                    
+                    // Try to get more details from error body
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorBody = response.errorBody().string();
+                            Log.e(TAG, "Error response body: " + errorBody);
+                            if (errorBody.contains("validation error")) {
+                                error = "Lỗi validation từ server: " + errorBody;
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error reading error body", e);
+                    }
+                    
                     callback.onError(error);
                 }
             }
@@ -100,6 +132,7 @@ public class QuoteService {
             public void onFailure(Call<Quote> call, Throwable t) {
                 String error = ErrorHandler.parseError(t);
                 ErrorHandler.logError(TAG, "getQuoteById", t);
+                Log.e(TAG, "Network error: " + t.getMessage(), t);
                 callback.onError(error);
             }
         });

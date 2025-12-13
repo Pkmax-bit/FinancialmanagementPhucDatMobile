@@ -77,7 +77,6 @@ dependencies {
     implementation("androidx.cardview:cardview:1.0.0")
     
     // UI Enhancement Libraries
-    implementation("com.github.bumptech.glide:glide:4.15.1")
     implementation("de.hdodenhof:circleimageview:3.1.0")
     implementation("com.airbnb.android:lottie:6.1.0")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
@@ -90,7 +89,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     
-    // Image Loading
+    // Image Loading (Glide)
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
     
@@ -99,12 +98,6 @@ dependencies {
     implementation("androidx.camera:camera-camera2:1.2.3")
     implementation("androidx.camera:camera-lifecycle:1.2.3")
     implementation("androidx.camera:camera-view:1.2.3")
-    
-    // Charts
-    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
-    
-    // Circle Image View
-    implementation("de.hdodenhof:circleimageview:3.1.0")
     
     // Room Database
     implementation("androidx.room:room-runtime:2.5.0")

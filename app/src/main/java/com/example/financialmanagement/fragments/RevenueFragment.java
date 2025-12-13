@@ -121,35 +121,60 @@ public class RevenueFragment extends Fragment {
                 @Override
                 public void onQuoteClick(Quote quote) {
                     // Navigate to quote detail
-                    Intent intent = new Intent(getContext(), RevenueDetailActivity.class);
-                    intent.putExtra(RevenueDetailActivity.EXTRA_TYPE, RevenueDetailActivity.TYPE_QUOTE);
-                    intent.putExtra(RevenueDetailActivity.EXTRA_ID, quote.getId());
-                    startActivity(intent);
+                    onQuoteViewDetails(quote);
                 }
                 
                 @Override
                 public void onQuoteEdit(Quote quote) {
                     // Handle quote edit
+                    Intent intent = new Intent(getContext(), com.example.financialmanagement.activities.AddEditQuoteActivity.class);
+                    intent.putExtra("quote_id", quote.getId());
+                    startActivity(intent);
                 }
                 
                 @Override
                 public void onQuoteDelete(Quote quote) {
                     // Handle quote delete
+                    Toast.makeText(getContext(), "Xóa báo giá: " + quote.getQuoteNumber(), Toast.LENGTH_SHORT).show();
                 }
                 
                 @Override
                 public void onQuoteApprove(Quote quote) {
                     // Handle quote approve
+                    Toast.makeText(getContext(), "Duyệt báo giá: " + quote.getQuoteNumber(), Toast.LENGTH_SHORT).show();
                 }
                 
                 @Override
                 public void onQuoteConvertToInvoice(Quote quote) {
                     // Handle quote convert to invoice
+                    Toast.makeText(getContext(), "Chuyển đổi báo giá thành hóa đơn: " + quote.getQuoteNumber(), Toast.LENGTH_SHORT).show();
                 }
                 
                 @Override
                 public void onQuoteSendToCustomer(Quote quote) {
                     // Handle quote send to customer
+                    Toast.makeText(getContext(), "Gửi báo giá cho khách hàng: " + quote.getQuoteNumber(), Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onQuoteViewDetails(Quote quote) {
+                    // Navigate to quote detail
+                    Intent intent = new Intent(getContext(), RevenueDetailActivity.class);
+                    intent.putExtra(RevenueDetailActivity.EXTRA_TYPE, RevenueDetailActivity.TYPE_QUOTE);
+                    intent.putExtra(RevenueDetailActivity.EXTRA_ID, quote.getId());
+                    startActivity(intent);
+                }
+
+                @Override
+                public void onQuoteReview(Quote quote) {
+                    // Handle quote review - same as approve
+                    onQuoteApprove(quote);
+                }
+
+                @Override
+                public void onQuoteExportPDF(Quote quote) {
+                    // Handle quote export PDF
+                    Toast.makeText(getContext(), "Tính năng xuất PDF đang được phát triển", Toast.LENGTH_SHORT).show();
                 }
             });
             rvQuotes.setLayoutManager(new LinearLayoutManager(getContext()));

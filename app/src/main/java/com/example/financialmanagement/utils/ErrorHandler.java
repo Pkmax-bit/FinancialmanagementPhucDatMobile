@@ -179,13 +179,20 @@ public class ErrorHandler {
         }
         
         // Validation errors
+        if (lowerDetail.contains("validation error") || lowerDetail.contains("validation_error")) {
+            // Extract field name if available
+            if (lowerDetail.contains("for quote") || lowerDetail.contains("for Quote")) {
+                return "Lỗi validation: Dữ liệu báo giá không hợp lệ. Vui lòng kiểm tra lại thông tin.";
+            }
+            return "Lỗi validation: Dữ liệu không hợp lệ";
+        }
         if (lowerDetail.contains("already exists")) {
             return "Dữ liệu đã tồn tại";
         }
         if (lowerDetail.contains("not found")) {
             return "Không tìm thấy dữ liệu";
         }
-        if (lowerDetail.contains("required")) {
+        if (lowerDetail.contains("required") || lowerDetail.contains("field required")) {
             return "Thiếu thông tin bắt buộc";
         }
         if (lowerDetail.contains("invalid")) {

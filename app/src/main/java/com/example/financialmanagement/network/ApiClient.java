@@ -28,8 +28,43 @@ public class ApiClient {
      */
     public static Retrofit getRetrofit(Context context, String baseUrl) {
         if (retrofit == null || !retrofit.baseUrl().toString().equals(baseUrl)) {
+            // Custom date deserializer to handle multiple date formats from backend
+            com.google.gson.JsonDeserializer<java.util.Date> dateDeserializer = (json, typeOfT, deserializationContext) -> {
+                try {
+                    String dateStr = json.getAsString();
+                    if (dateStr == null || dateStr.isEmpty()) {
+                        return null;
+                    }
+                    
+                    // Try multiple date formats
+                    java.text.SimpleDateFormat[] formats = {
+                        new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX", java.util.Locale.US),
+                        new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", java.util.Locale.US),
+                        new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US),
+                        new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US),
+                        new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US)
+                    };
+                    
+                    for (java.text.SimpleDateFormat format : formats) {
+                        try {
+                            return format.parse(dateStr);
+                        } catch (java.text.ParseException e) {
+                            // Try next format
+                        }
+                    }
+                    
+                    // If all formats fail, return null
+                    android.util.Log.w("ApiClient", "Failed to parse date: " + dateStr);
+                    return null;
+                } catch (Exception e) {
+                    android.util.Log.e("ApiClient", "Error parsing date: " + e.getMessage());
+                    return null;
+                }
+            };
+            
             com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
-                    .setDateFormat("yyyy-MM-dd")
+                    .registerTypeAdapter(java.util.Date.class, dateDeserializer)
+                    .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX")
                     .create();
             
             retrofit = new Retrofit.Builder()

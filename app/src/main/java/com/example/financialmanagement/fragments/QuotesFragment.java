@@ -174,42 +174,184 @@ public class QuotesFragment extends Fragment implements QuotesAdapter.QuoteClick
     @Override
     public void onQuoteClick(Quote quote) {
         // Navigate to quote detail
-        // TODO: Implement navigation to quote detail activity
-        Toast.makeText(getContext(), "Xem chi tiết báo giá: " + quote.getQuoteNumber(), Toast.LENGTH_SHORT).show();
+        onQuoteViewDetails(quote);
     }
 
     @Override
     public void onQuoteEdit(Quote quote) {
         // Navigate to edit quote
-        // TODO: Implement navigation to edit quote activity
-        Toast.makeText(getContext(), "Chỉnh sửa báo giá: " + quote.getQuoteNumber(), Toast.LENGTH_SHORT).show();
+        android.content.Intent intent = new android.content.Intent(getContext(), com.example.financialmanagement.activities.AddEditQuoteActivity.class);
+        intent.putExtra("quote_id", quote.getId());
+        startActivity(intent);
     }
 
     @Override
     public void onQuoteDelete(Quote quote) {
-        // Delete quote
-        // TODO: Implement delete quote functionality
-        Toast.makeText(getContext(), "Xóa báo giá: " + quote.getQuoteNumber(), Toast.LENGTH_SHORT).show();
+        // Show confirmation dialog
+        new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                .setTitle("Xóa báo giá")
+                .setMessage("Bạn có chắc chắn muốn xóa báo giá " + (quote.getQuoteNumber() != null ? quote.getQuoteNumber() : "") + "?\n\nHành động này không thể hoàn tác.")
+                .setPositiveButton("Xóa", (dialog, which) -> {
+                    deleteQuote(quote);
+                })
+                .setNegativeButton("Hủy", null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
     }
 
     @Override
     public void onQuoteApprove(Quote quote) {
         // Approve quote
-        // TODO: Implement quote approval functionality
-        Toast.makeText(getContext(), "Duyệt báo giá: " + quote.getQuoteNumber(), Toast.LENGTH_SHORT).show();
+        approveQuote(quote);
     }
 
     @Override
     public void onQuoteConvertToInvoice(Quote quote) {
         // Convert quote to invoice
-        // TODO: Implement convert quote to invoice functionality
-        Toast.makeText(getContext(), "Chuyển đổi báo giá thành hóa đơn: " + quote.getQuoteNumber(), Toast.LENGTH_SHORT).show();
+        new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                .setTitle("Chuyển đổi báo giá thành hóa đơn")
+                .setMessage("Bạn có chắc chắn muốn chuyển báo giá " + quote.getQuoteNumber() + " thành hóa đơn?")
+                .setPositiveButton("Chuyển đổi", (dialog, which) -> {
+                    convertQuoteToInvoice(quote);
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
     }
 
     @Override
     public void onQuoteSendToCustomer(Quote quote) {
         // Send quote to customer
-        // TODO: Implement send quote to customer functionality
-        Toast.makeText(getContext(), "Gửi báo giá cho khách hàng: " + quote.getQuoteNumber(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Tính năng gửi báo giá đang được phát triển", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onQuoteViewDetails(Quote quote) {
+        // Navigate to quote detail
+        android.content.Intent intent = new android.content.Intent(getContext(), com.example.financialmanagement.activities.QuoteDetailActivity.class);
+        intent.putExtra(com.example.financialmanagement.activities.QuoteDetailActivity.EXTRA_QUOTE_ID, quote.getId());
+        startActivity(intent);
+    }
+
+    @Override
+    public void onQuoteReview(Quote quote) {
+        // Review quote - same as approve
+        approveQuote(quote);
+    }
+
+    @Override
+    public void onQuoteExportPDF(Quote quote) {
+        // Export quote to PDF
+        Toast.makeText(getContext(), "Tính năng xuất PDF đang được phát triển", Toast.LENGTH_SHORT).show();
+    }
+
+    private void deleteQuote(Quote quote) {
+        if (quote.getId() == null || quote.getId().isEmpty()) {
+            Toast.makeText(getContext(), "Không thể xóa báo giá: ID không hợp lệ", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Show loading
+        Toast.makeText(getContext(), "Đang xóa báo giá...", Toast.LENGTH_SHORT).show();
+        
+        quoteService.deleteQuote(quote.getId(), new QuoteService.QuoteCallback() {
+            @Override
+            public void onSuccess(List<Quote> quotes) {
+                // Not used
+            }
+
+            @Override
+            public void onSuccess(Quote quote) {
+                // Not used
+            }
+
+            @Override
+            public void onSuccess() {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Đã xóa báo giá thành công", Toast.LENGTH_SHORT).show();
+                        loadQuotes();
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        String errorMessage = "Lỗi xóa báo giá";
+                        if (error != null && !error.isEmpty()) {
+                            errorMessage += ": " + error;
+                        }
+                        Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
+                    });
+                }
+            }
+        });
+    }
+
+    private void approveQuote(Quote quote) {
+        quoteService.approveQuote(quote.getId(), new QuoteService.QuoteCallback() {
+            @Override
+            public void onSuccess(List<Quote> quotes) {
+                // Not used
+            }
+
+            @Override
+            public void onSuccess(Quote quote) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Đã duyệt báo giá thành công", Toast.LENGTH_SHORT).show();
+                        loadQuotes();
+                    });
+                }
+            }
+
+            @Override
+            public void onSuccess() {
+                // Not used
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Lỗi duyệt báo giá: " + error, Toast.LENGTH_LONG).show();
+                    });
+                }
+            }
+        });
+    }
+
+    private void convertQuoteToInvoice(Quote quote) {
+        quoteService.convertToInvoice(quote.getId(), new QuoteService.QuoteCallback() {
+            @Override
+            public void onSuccess(List<Quote> quotes) {
+                // Not used
+            }
+
+            @Override
+            public void onSuccess(Quote quote) {
+                // Not used
+            }
+
+            @Override
+            public void onSuccess() {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Đã chuyển đổi báo giá thành hóa đơn thành công", Toast.LENGTH_SHORT).show();
+                        loadQuotes();
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "Lỗi chuyển đổi báo giá: " + error, Toast.LENGTH_LONG).show();
+                    });
+                }
+            }
+        });
     }
 }
