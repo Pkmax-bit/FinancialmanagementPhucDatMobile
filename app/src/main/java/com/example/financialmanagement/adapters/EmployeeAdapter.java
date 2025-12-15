@@ -30,6 +30,7 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
         return new EmployeeViewHolder(view);
     }
 
+<<<<<<< HEAD
     public interface OnEmployeeClickListener {
         void onEmployeeClick(Employee employee);
     }
@@ -40,6 +41,8 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
         this.listener = listener;
     }
 
+=======
+>>>>>>> origin/main
     @Override
     public void onBindViewHolder(@NonNull EmployeeViewHolder holder, int position) {
         Employee employee = employees.get(position);
@@ -48,6 +51,7 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
         holder.tvPosition.setText(employee.getPosition() != null ? employee.getPosition().getTitle() : "N/A");
 
         holder.itemView.setOnClickListener(v -> {
+<<<<<<< HEAD
             if (listener != null) {
                 listener.onEmployeeClick(employee);
             } else {
@@ -55,6 +59,11 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
                 intent.putExtra("employee_id", employee.getId());
                 context.startActivity(intent);
             }
+=======
+            Intent intent = new Intent(context, EmployeeDetailActivity.class);
+            intent.putExtra("employee_id", employee.getId());
+            context.startActivity(intent);
+>>>>>>> origin/main
         });
     }
 

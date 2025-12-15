@@ -113,7 +113,10 @@
     
     <!-- Common Colors -->
     <color name="gray">#808080</color>
+<<<<<<< HEAD
     <color name="blue_700">#1976D2</color>
     <color name="red_500">#F44336</color>
     <color name="gray_600">#757575</color>
+=======
+>>>>>>> origin/main
 </resources>

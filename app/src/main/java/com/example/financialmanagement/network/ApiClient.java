@@ -28,6 +28,7 @@ public class ApiClient {
      */
     public static Retrofit getRetrofit(Context context, String baseUrl) {
         if (retrofit == null || !retrofit.baseUrl().toString().equals(baseUrl)) {
+<<<<<<< HEAD
             // Custom date deserializer to handle multiple date formats from backend
             com.google.gson.JsonDeserializer<java.util.Date> dateDeserializer = (json, typeOfT, deserializationContext) -> {
                 try {
@@ -65,6 +66,10 @@ public class ApiClient {
             com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
                     .registerTypeAdapter(java.util.Date.class, dateDeserializer)
                     .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX")
+=======
+            com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
+                    .setDateFormat("yyyy-MM-dd")
+>>>>>>> origin/main
                     .create();
             
             retrofit = new Retrofit.Builder()
