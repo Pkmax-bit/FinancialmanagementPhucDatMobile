@@ -20,6 +20,8 @@ import com.example.financialmanagement.activities.ProjectDetailActivity;
 import com.example.financialmanagement.adapters.RecentProjectsAdapter;
 import com.example.financialmanagement.models.Project;
 import com.example.financialmanagement.services.ProjectService;
+import com.example.financialmanagement.services.InvoiceService;
+import com.example.financialmanagement.models.Invoice;
 import com.example.financialmanagement.utils.CurrencyFormatter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -53,6 +55,7 @@ public class DashboardFragment extends Fragment {
     private SwipeRefreshLayout swipeRefresh;
     private ProgressBar progressBar;
     private ProjectService projectService;
+    private InvoiceService invoiceService;
 
     @Nullable
     @Override
@@ -95,6 +98,7 @@ public class DashboardFragment extends Fragment {
         // Initialize service
         if (getContext() != null) {
             projectService = new ProjectService(getContext());
+            invoiceService = new InvoiceService(getContext());
         }
         
         // Set current month
@@ -136,7 +140,7 @@ public class DashboardFragment extends Fragment {
         loadUserInfo();
         
         // Load all projects to calculate statistics
-        loadProjectStats();
+        loadFinancialStats();
     }
 
     private void loadUserInfo() {
@@ -150,7 +154,46 @@ public class DashboardFragment extends Fragment {
         }
     }
 
-    private void loadProjectStats() {
+    private void loadFinancialStats() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("limit", 1000);
+        
+        invoiceService.getAllInvoices(params, new InvoiceService.InvoiceCallback() {
+            @Override
+            public void onSuccess(List<Invoice> invoices) {
+                double totalRevenue = 0;
+                if (invoices != null) {
+                    for (Invoice invoice : invoices) {
+                        if (!"cancelled".equalsIgnoreCase(invoice.getStatus()) && invoice.getTotalAmount() != null) {
+                            totalRevenue += invoice.getTotalAmount();
+                        }
+                    }
+                }
+                loadProjectStats(totalRevenue);
+            }
+            
+            @Override
+            public void onSuccess(Invoice invoice) {}
+            
+            @Override
+            public void onSuccess() {}
+            
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        showLoading(false);
+                        swipeRefresh.setRefreshing(false);
+                        setDefaultValues();
+                        // Still try to show other cached data if possible or just error
+                        Toast.makeText(getContext(), "Lỗi tải hóa đơn: " + error, Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+        });
+    }
+
+    private void loadProjectStats(double totalRevenue) {
         Map<String, Object> params = new HashMap<>();
         params.put("limit", 1000);
         
@@ -159,7 +202,7 @@ public class DashboardFragment extends Fragment {
             public void onSuccess(List<Project> projects) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        calculateAndDisplayStats(projects);
+                        calculateAndDisplayStats(projects, totalRevenue);
                         displayRecentProjects(projects);
                         showLoading(false);
                         swipeRefresh.setRefreshing(false);
@@ -187,8 +230,7 @@ public class DashboardFragment extends Fragment {
         });
     }
     
-    private void calculateAndDisplayStats(List<Project> projects) {
-        double totalRevenue = 0;
+    private void calculateAndDisplayStats(List<Project> projects, double totalRevenue) {
         double totalExpenses = 0;
         int totalCount = 0;
         int activeCount = 0;
@@ -197,10 +239,7 @@ public class DashboardFragment extends Fragment {
         for (Project project : projects) {
             totalCount++;
             
-            // Revenue from budget
-            if (project.getBudget() != null) {
-                totalRevenue += project.getBudget();
-            }
+            // Revenue is now passed as argument
             
             // Expenses from actual cost
             if (project.getActualCost() != null) {

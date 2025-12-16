@@ -96,7 +96,6 @@ public class NetworkConfig {
         // Tasks
         public static final String TASKS = "tasks";
         public static final String TASK_DETAIL = "tasks/{id}";
-<<<<<<< HEAD
         
         // Products - Using web API endpoints directly
         public static final String PRODUCTS = "sales/products";
@@ -109,8 +108,6 @@ public class NetworkConfig {
         // Product Rules
         public static final String MATERIAL_ADJUSTMENT_RULES = "material-adjustment-rules";
         public static final String MATERIAL_ADJUSTMENT_RULE_DETAIL = "material-adjustment-rules/{id}";
-=======
->>>>>>> origin/main
     }
     
     // HTTP Status Codes

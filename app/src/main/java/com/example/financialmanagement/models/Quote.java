@@ -63,6 +63,10 @@ public class Quote {
     private List<QuoteItem> items;
     @SerializedName("quote_items")
     private List<QuoteItem> quoteItems; // Fallback for quote_items
+    @SerializedName("item_quotes")
+    private List<QuoteItem> itemQuotes; // Another fallback
+    @SerializedName("product_components")
+    private List<QuoteItem> productComponents; // Backend uses product_components
     @SerializedName("employee_in_charge_id")
     private String employeeInChargeId;
 
@@ -189,10 +193,18 @@ public class Quote {
     }
     
     public List<QuoteItem> getItems() { 
-        // Try items first, then quote_items
+        // Try items first, then quote_items, then product_components
         if (items != null && !items.isEmpty()) return items;
         if (quoteItems != null && !quoteItems.isEmpty()) {
             items = quoteItems; // Cache it
+            return items;
+        }
+        if (itemQuotes != null && !itemQuotes.isEmpty()) {
+            items = itemQuotes; // Cache it
+            return items;
+        }
+        if (productComponents != null && !productComponents.isEmpty()) {
+            items = productComponents; // Cache it
             return items;
         }
         return items; // Return null or empty list
@@ -200,6 +212,8 @@ public class Quote {
     public void setItems(List<QuoteItem> items) { 
         this.items = items;
         this.quoteItems = items; // Keep both in sync
+        this.itemQuotes = items; // Keep both in sync
+        this.productComponents = items; // Keep both in sync
     }
 
     @Override
@@ -221,11 +235,27 @@ public class Quote {
         private String description;
         @SerializedName("name_product")
         private String nameProduct;
+        @SerializedName("product_name")
+        private String productName; // Từ API service (enriched)
+        @SerializedName("product_description")
+        private String productDescription; // Từ API service
+        @SerializedName("category_name")
+        private String categoryName; // Từ API service
+        @SerializedName("product_image_url")
+        private String productImageUrl; // Từ API service
+        @SerializedName("product_image_urls")
+        private List<String> productImageUrls; // Từ API service
+        @SerializedName("product_unit")
+        private String productUnit; // Từ API service
+        @SerializedName("product_price")
+        private Double productPrice; // Từ API service
         private Double quantity;
         @SerializedName("unit_price")
         private Double unitPrice;
         @SerializedName("total_price")
         private Double totalPrice;
+        @SerializedName("line_total")
+        private Double lineTotal; // Từ database (có thể dùng thay cho total_price)
         private String unit;
         private Double area;
         private Double volume;
@@ -255,8 +285,41 @@ public class Quote {
         public String getDescription() { return description; }
         public void setDescription(String description) { this.description = description; }
         
-        public String getNameProduct() { return nameProduct; }
+        public String getNameProduct() { 
+            // Ưu tiên product_name từ API service, fallback về name_product hoặc description
+            if (productName != null && !productName.isEmpty()) {
+                return productName;
+            }
+            if (nameProduct != null && !nameProduct.isEmpty()) {
+                return nameProduct;
+            }
+            return description;
+        }
         public void setNameProduct(String nameProduct) { this.nameProduct = nameProduct; }
+        
+        public String getProductName() { return productName; }
+        public void setProductName(String productName) { this.productName = productName; }
+        
+        public String getProductDescription() { return productDescription; }
+        public void setProductDescription(String productDescription) { this.productDescription = productDescription; }
+        
+        public String getCategoryName() { return categoryName; }
+        public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
+        
+        public String getProductImageUrl() { return productImageUrl; }
+        public void setProductImageUrl(String productImageUrl) { this.productImageUrl = productImageUrl; }
+        
+        public List<String> getProductImageUrls() { return productImageUrls; }
+        public void setProductImageUrls(List<String> productImageUrls) { this.productImageUrls = productImageUrls; }
+        
+        public String getProductUnit() { 
+            // Ưu tiên product_unit từ API, fallback về unit
+            return productUnit != null && !productUnit.isEmpty() ? productUnit : unit;
+        }
+        public void setProductUnit(String productUnit) { this.productUnit = productUnit; }
+        
+        public Double getProductPrice() { return productPrice; }
+        public void setProductPrice(Double productPrice) { this.productPrice = productPrice; }
         
         public Double getQuantity() { return quantity; }
         public void setQuantity(Double quantity) { this.quantity = quantity; }
@@ -264,8 +327,14 @@ public class Quote {
         public Double getUnitPrice() { return unitPrice; }
         public void setUnitPrice(Double unitPrice) { this.unitPrice = unitPrice; }
         
-        public Double getTotalPrice() { return totalPrice; }
+        public Double getTotalPrice() { 
+            // Ưu tiên line_total từ database, fallback về total_price
+            return lineTotal != null ? lineTotal : totalPrice;
+        }
         public void setTotalPrice(Double totalPrice) { this.totalPrice = totalPrice; }
+        
+        public Double getLineTotal() { return lineTotal; }
+        public void setLineTotal(Double lineTotal) { this.lineTotal = lineTotal; }
         
         public String getUnit() { return unit; }
         public void setUnit(String unit) { this.unit = unit; }

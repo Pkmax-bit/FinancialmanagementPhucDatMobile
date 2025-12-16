@@ -39,13 +39,17 @@ public class EmployeesFragment extends Fragment {
         employeeService.getEmployees(new EmployeeService.EmployeeCallback<List<Employee>>() {
             @Override
             public void onSuccess(List<Employee> result) {
-                EmployeeAdapter adapter = new EmployeeAdapter(getContext(), result);
-                recyclerView.setAdapter(adapter);
+                if (getActivity() != null) {
+                    EmployeeAdapter adapter = new EmployeeAdapter(requireActivity(), result);
+                    recyclerView.setAdapter(adapter);
+                }
             }
 
             @Override
             public void onError(String error) {
-                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }

@@ -314,6 +314,17 @@
                         android:layout_height="wrap_content"
                         android:nestedScrollingEnabled="false" />
 
+                    <TextView
+                        android:id="@+id/tv_no_items"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Báo giá này chưa có sản phẩm nào"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_secondary"
+                        android:gravity="center"
+                        android:padding="16dp"
+                        android:visibility="gone" />
+
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>

@@ -118,6 +118,33 @@ public class QuoteDetailActivity extends AppCompatActivity {
             @Override
             public void onSuccess(Quote quote) {
                 QuoteDetailActivity.this.quote = quote;
+                // Log detailed quote data for debugging
+                android.util.Log.d("QuoteDetailActivity", "=== Quote Data Received ===");
+                android.util.Log.d("QuoteDetailActivity", "Quote ID: " + quote.getId());
+                android.util.Log.d("QuoteDetailActivity", "Quote Number: " + quote.getQuoteNumber());
+                android.util.Log.d("QuoteDetailActivity", "Status: " + quote.getStatus());
+                android.util.Log.d("QuoteDetailActivity", "Total: " + quote.getTotalAmount());
+                if (quote.getCustomer() != null) {
+                    android.util.Log.d("QuoteDetailActivity", "Customer: " + quote.getCustomer().getName() + " (ID: " + quote.getCustomer().getId() + ")");
+                } else {
+                    android.util.Log.w("QuoteDetailActivity", "Customer is NULL");
+                }
+                if (quote.getProject() != null) {
+                    android.util.Log.d("QuoteDetailActivity", "Project: " + quote.getProject().getName() + " (ID: " + quote.getProject().getId() + ")");
+                } else {
+                    android.util.Log.w("QuoteDetailActivity", "Project is NULL");
+                }
+                List<Quote.QuoteItem> items = quote.getItems();
+                android.util.Log.d("QuoteDetailActivity", "Items count: " + (items != null ? items.size() : 0));
+                if (items != null && !items.isEmpty()) {
+                    // Use available fields from Quote.QuoteItem (nameProduct or description)
+                    String name = items.get(0).getNameProduct() != null
+                            ? items.get(0).getNameProduct()
+                            : items.get(0).getDescription();
+                    android.util.Log.d("QuoteDetailActivity",
+                            "First item: " + name + " - Qty: " + items.get(0).getQuantity());
+                }
+                android.util.Log.d("QuoteDetailActivity", "==========================");
                 runOnUiThread(() -> displayQuoteDetails());
             }
 
@@ -129,8 +156,32 @@ public class QuoteDetailActivity extends AppCompatActivity {
             @Override
             public void onError(String error) {
                 runOnUiThread(() -> {
-                    Toast.makeText(QuoteDetailActivity.this, "Lỗi tải báo giá: " + error, Toast.LENGTH_LONG).show();
-                    finish();
+                    // Check if it's a validation error - don't close immediately
+                    if (error != null && error.contains("validation")) {
+                        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(QuoteDetailActivity.this);
+                        builder.setTitle("Lỗi Validation")
+                                .setMessage("Backend không chấp nhận status 'approved'. Đây là lỗi từ server. Bạn có muốn thử lại không?")
+                                .setPositiveButton("Thử lại", (dialog, which) -> {
+                                    loadQuoteDetail();
+                                })
+                                .setNegativeButton("Đóng", (dialog, which) -> {
+                                    finish();
+                                })
+                                .setCancelable(false)
+                                .show();
+                    } else {
+                        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(QuoteDetailActivity.this);
+                        builder.setTitle("Lỗi")
+                                .setMessage("Không thể tải chi tiết báo giá:\n" + error)
+                                .setPositiveButton("Thử lại", (dialog, which) -> {
+                                    loadQuoteDetail();
+                                })
+                                .setNegativeButton("Đóng", (dialog, which) -> {
+                                    finish();
+                                })
+                                .setCancelable(false)
+                                .show();
+                    }
                 });
             }
         });
@@ -291,18 +342,48 @@ public class QuoteDetailActivity extends AppCompatActivity {
 
     private void displayQuoteItems() {
         if (quote == null || quoteItemAdapter == null) {
+            android.util.Log.w("QuoteDetailActivity", "Quote or adapter is null");
             return;
         }
 
         List<Quote.QuoteItem> items = quote.getItems();
+        int itemCount = items != null ? items.size() : 0;
+        android.util.Log.d("QuoteDetailActivity", "=== Quote Items Debug ===");
+        android.util.Log.d("QuoteDetailActivity", "Quote ID: " + quote.getId());
+        android.util.Log.d("QuoteDetailActivity", "Quote Number: " + quote.getQuoteNumber());
+        android.util.Log.d("QuoteDetailActivity", "Items count: " + itemCount);
+        android.util.Log.d("QuoteDetailActivity", "Items list is null: " + (items == null));
+        if (items != null) {
+            android.util.Log.d("QuoteDetailActivity", "Items list is empty: " + items.isEmpty());
+        }
+        android.util.Log.d("QuoteDetailActivity", "=========================");
+        
         if (items != null && !items.isEmpty()) {
+            android.util.Log.d("QuoteDetailActivity", "Displaying " + itemCount + " items");
             quoteItemAdapter.updateItems(items);
             if (rvQuoteItems != null) {
                 rvQuoteItems.setVisibility(android.view.View.VISIBLE);
             }
+            
+            // Hide "no items" message if exists
+            android.view.View tvNoItems = findViewById(R.id.tv_no_items);
+            if (tvNoItems != null) {
+                tvNoItems.setVisibility(android.view.View.GONE);
+            }
         } else {
+            android.util.Log.w("QuoteDetailActivity", "Quote has NO items - showing empty state");
+            // Show RecyclerView with empty state or hide it
             if (rvQuoteItems != null) {
                 rvQuoteItems.setVisibility(android.view.View.GONE);
+            }
+            
+            // Show "no items" message if exists
+            android.view.View tvNoItems = findViewById(R.id.tv_no_items);
+            if (tvNoItems != null) {
+                tvNoItems.setVisibility(android.view.View.VISIBLE);
+                android.util.Log.d("QuoteDetailActivity", "Showing 'no items' message");
+            } else {
+                android.util.Log.w("QuoteDetailActivity", "tv_no_items view not found in layout");
             }
         }
     }

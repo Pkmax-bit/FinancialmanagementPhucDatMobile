@@ -85,24 +85,41 @@ public class QuoteItemDetailAdapter extends RecyclerView.Adapter<QuoteItemDetail
                 tvItemNumber.setText(String.valueOf(position));
             }
 
-            // Product name or description
-            String productName = item.getNameProduct();
-            if (productName == null || productName.isEmpty()) {
-                productName = item.getDescription();
-            }
+            // Product name - ưu tiên product_name từ API, fallback về name_product hoặc description
+            String productName = item.getNameProduct(); // Method này đã xử lý fallback
             if (tvProductName != null) {
                 tvProductName.setText(productName != null && !productName.isEmpty() ? productName : "Sản phẩm");
             }
 
-            // Description (if different from product name)
+            // Description - hiển thị product_description hoặc description
             if (tvDescription != null) {
-                String description = item.getDescription();
+                String description = item.getProductDescription(); // Ưu tiên product_description từ API
+                if (description == null || description.isEmpty()) {
+                    description = item.getDescription(); // Fallback về description
+                }
+                // Chỉ hiển thị nếu description khác với product name
                 if (description != null && !description.isEmpty() && 
                     !description.equals(productName)) {
                     tvDescription.setText(description);
                     tvDescription.setVisibility(View.VISIBLE);
                 } else {
                     tvDescription.setVisibility(View.GONE);
+                }
+            }
+            
+// Category name - hiển thị nếu có (từ API service)
+            // Note: Có thể thêm TextView cho category nếu layout có
+            if (item.getCategoryName() != null && !item.getCategoryName().isEmpty()) {
+                // Currently no dedicated TextView for category in layout.
+                // We can append it to product name or description as a temporary solution
+                // OR better, assuming there is a dedicated field or we repurpose one.
+                // For now, let's append to description if it exists
+                String currentDesc = tvDescription.getText().toString();
+                if (tvDescription.getVisibility() == View.VISIBLE) {
+                    tvDescription.setText(currentDesc + " (" + item.getCategoryName() + ")");
+                } else {
+                    tvDescription.setText("Loại: " + item.getCategoryName());
+                    tvDescription.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -116,9 +133,9 @@ public class QuoteItemDetailAdapter extends RecyclerView.Adapter<QuoteItemDetail
                 }
             }
 
-            // Unit
+            // Unit - ưu tiên product_unit từ API, fallback về unit
             if (tvUnit != null) {
-                String unit = item.getUnit();
+                String unit = item.getProductUnit(); // Method này đã xử lý fallback
                 if (unit != null && !unit.isEmpty()) {
                     tvUnit.setText(unit);
                     tvUnit.setVisibility(View.VISIBLE);

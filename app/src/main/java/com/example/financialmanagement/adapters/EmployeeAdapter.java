@@ -15,12 +15,21 @@ import java.util.List;
 
 public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.EmployeeViewHolder> {
 
+    public interface OnEmployeeClickListener {
+        void onEmployeeClick(Employee employee);
+    }
+
     private Context context;
     private List<Employee> employees;
+    private OnEmployeeClickListener listener;
 
     public EmployeeAdapter(Context context, List<Employee> employees) {
         this.context = context;
         this.employees = employees;
+    }
+
+    public void setOnEmployeeClickListener(OnEmployeeClickListener listener) {
+        this.listener = listener;
     }
 
     @NonNull
@@ -30,19 +39,6 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
         return new EmployeeViewHolder(view);
     }
 
-<<<<<<< HEAD
-    public interface OnEmployeeClickListener {
-        void onEmployeeClick(Employee employee);
-    }
-
-    private OnEmployeeClickListener listener;
-
-    public void setOnEmployeeClickListener(OnEmployeeClickListener listener) {
-        this.listener = listener;
-    }
-
-=======
->>>>>>> origin/main
     @Override
     public void onBindViewHolder(@NonNull EmployeeViewHolder holder, int position) {
         Employee employee = employees.get(position);
@@ -51,19 +47,47 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
         holder.tvPosition.setText(employee.getPosition() != null ? employee.getPosition().getTitle() : "N/A");
 
         holder.itemView.setOnClickListener(v -> {
-<<<<<<< HEAD
             if (listener != null) {
                 listener.onEmployeeClick(employee);
             } else {
-                Intent intent = new Intent(context, EmployeeDetailActivity.class);
-                intent.putExtra("employee_id", employee.getId());
-                context.startActivity(intent);
+                if (employee != null && employee.getId() != null) {
+                    // Try to get Activity from view context
+                    android.app.Activity activity = null;
+                    Context viewContext = v.getContext();
+                    
+                    // Check if view context is Activity
+                    if (viewContext instanceof android.app.Activity) {
+                        activity = (android.app.Activity) viewContext;
+                    } 
+                    // Check if stored context is Activity
+                    else if (context instanceof android.app.Activity) {
+                        activity = (android.app.Activity) context;
+                    }
+                    // Try to get Activity from FragmentActivity
+                    else if (viewContext instanceof androidx.fragment.app.FragmentActivity) {
+                        activity = (androidx.fragment.app.FragmentActivity) viewContext;
+                    }
+                    
+                    if (activity != null) {
+                        Intent intent = new Intent(activity, EmployeeDetailActivity.class);
+                        intent.putExtra("employee_id", employee.getId());
+                        activity.startActivity(intent);
+                    } else {
+                        // Last resort: use context with FLAG_ACTIVITY_NEW_TASK
+                        Intent intent = new Intent(context, EmployeeDetailActivity.class);
+                        intent.putExtra("employee_id", employee.getId());
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        try {
+                            context.startActivity(intent);
+                        } catch (Exception e) {
+                            android.util.Log.e("EmployeeAdapter", "Error starting EmployeeDetailActivity: " + e.getMessage(), e);
+                            android.widget.Toast.makeText(context, "Không thể mở chi tiết nhân viên", android.widget.Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                } else {
+                    android.widget.Toast.makeText(context, "Thông tin nhân viên không hợp lệ", android.widget.Toast.LENGTH_SHORT).show();
+                }
             }
-=======
-            Intent intent = new Intent(context, EmployeeDetailActivity.class);
-            intent.putExtra("employee_id", employee.getId());
-            context.startActivity(intent);
->>>>>>> origin/main
         });
     }
 
