@@ -59,6 +59,7 @@ public class QuoteItemDetailAdapter extends RecyclerView.Adapter<QuoteItemDetail
         private TextView tvUnitPrice;
         private TextView tvTotalPrice;
         private TextView tvUnit;
+        private View llDimensions;
         private TextView tvDimensions;
         private TextView tvArea;
         private TextView tvVolume;
@@ -72,6 +73,7 @@ public class QuoteItemDetailAdapter extends RecyclerView.Adapter<QuoteItemDetail
             tvUnitPrice = itemView.findViewById(R.id.tv_unit_price);
             tvTotalPrice = itemView.findViewById(R.id.tv_total_price);
             tvUnit = itemView.findViewById(R.id.tv_unit);
+            llDimensions = itemView.findViewById(R.id.ll_dimensions);
             tvDimensions = itemView.findViewById(R.id.tv_dimensions);
             tvArea = itemView.findViewById(R.id.tv_area);
             tvVolume = itemView.findViewById(R.id.tv_volume);
@@ -85,19 +87,18 @@ public class QuoteItemDetailAdapter extends RecyclerView.Adapter<QuoteItemDetail
                 tvItemNumber.setText(String.valueOf(position));
             }
 
-            // Product name - ưu tiên product_name từ API, fallback về name_product hoặc description
-            String productName = item.getNameProduct(); // Method này đã xử lý fallback
+            // Product name
+            String productName = item.getNameProduct();
             if (tvProductName != null) {
                 tvProductName.setText(productName != null && !productName.isEmpty() ? productName : "Sản phẩm");
             }
 
-            // Description - hiển thị product_description hoặc description
+            // Description
             if (tvDescription != null) {
-                String description = item.getProductDescription(); // Ưu tiên product_description từ API
+                String description = item.getProductDescription();
                 if (description == null || description.isEmpty()) {
-                    description = item.getDescription(); // Fallback về description
+                    description = item.getDescription();
                 }
-                // Chỉ hiển thị nếu description khác với product name
                 if (description != null && !description.isEmpty() && 
                     !description.equals(productName)) {
                     tvDescription.setText(description);
@@ -107,13 +108,8 @@ public class QuoteItemDetailAdapter extends RecyclerView.Adapter<QuoteItemDetail
                 }
             }
             
-// Category name - hiển thị nếu có (từ API service)
-            // Note: Có thể thêm TextView cho category nếu layout có
+            // Category info (optional)
             if (item.getCategoryName() != null && !item.getCategoryName().isEmpty()) {
-                // Currently no dedicated TextView for category in layout.
-                // We can append it to product name or description as a temporary solution
-                // OR better, assuming there is a dedicated field or we repurpose one.
-                // For now, let's append to description if it exists
                 String currentDesc = tvDescription.getText().toString();
                 if (tvDescription.getVisibility() == View.VISIBLE) {
                     tvDescription.setText(currentDesc + " (" + item.getCategoryName() + ")");
@@ -133,9 +129,9 @@ public class QuoteItemDetailAdapter extends RecyclerView.Adapter<QuoteItemDetail
                 }
             }
 
-            // Unit - ưu tiên product_unit từ API, fallback về unit
+            // Unit
             if (tvUnit != null) {
-                String unit = item.getProductUnit(); // Method này đã xử lý fallback
+                String unit = item.getProductUnit();
                 if (unit != null && !unit.isEmpty()) {
                     tvUnit.setText(unit);
                     tvUnit.setVisibility(View.VISIBLE);
@@ -158,7 +154,6 @@ public class QuoteItemDetailAdapter extends RecyclerView.Adapter<QuoteItemDetail
             if (tvTotalPrice != null) {
                 Double totalPrice = item.getTotalPrice();
                 if (totalPrice == null) {
-                    // Calculate from quantity and unit price
                     Double qty = item.getQuantity();
                     Double price = item.getUnitPrice();
                     if (qty != null && price != null) {
@@ -172,27 +167,40 @@ public class QuoteItemDetailAdapter extends RecyclerView.Adapter<QuoteItemDetail
                 }
             }
 
-            // Dimensions (height x length x depth)
+            // Dimensions (height x length x depth) logic
+            boolean hasDimensionsInfo = false;
+            
+            // Dimensions
             if (tvDimensions != null) {
                 Double height = item.getHeight();
-                Double length = item.getLength();
+                Double length = item.getLength(); // Treat as Width/Ngang
                 Double depth = item.getDepth();
                 
                 if (height != null || length != null || depth != null) {
                     StringBuilder dims = new StringBuilder();
-                    if (length != null) dims.append(formatNumber(length));
-                    if (height != null) {
-                        if (dims.length() > 0) dims.append(" x ");
-                        dims.append(formatNumber(height));
+                    
+                    // Convert to mm (assuming stored as meters) -> NOW assuming stored as mm based on user feedback
+                    // Length = Ngang (Width)
+                    if (length != null && length > 0) {
+                        dims.append("Ngang: ").append(formatNumber(length)).append(" mm");
                     }
-                    if (depth != null) {
+                    
+                    // Height = Cao
+                    if (height != null && height > 0) {
                         if (dims.length() > 0) dims.append(" x ");
-                        dims.append(formatNumber(depth));
+                        dims.append("Cao: ").append(formatNumber(height)).append(" mm");
                     }
+                    
+                    // Depth = Sâu/Dày
+                    if (depth != null && depth > 0) {
+                        if (dims.length() > 0) dims.append(" x ");
+                        dims.append("Sâu: ").append(formatNumber(depth)).append(" mm");
+                    }
+                    
                     if (dims.length() > 0) {
-                        dims.append(" m");
                         tvDimensions.setText(dims.toString());
                         tvDimensions.setVisibility(View.VISIBLE);
+                        hasDimensionsInfo = true;
                     } else {
                         tvDimensions.setVisibility(View.GONE);
                     }
@@ -205,8 +213,9 @@ public class QuoteItemDetailAdapter extends RecyclerView.Adapter<QuoteItemDetail
             if (tvArea != null) {
                 Double area = item.getArea();
                 if (area != null && area > 0) {
-                    tvArea.setText(formatNumber(area) + " m²");
+                    tvArea.setText("Diện tích: " + formatNumber(area) + " m²");
                     tvArea.setVisibility(View.VISIBLE);
+                    hasDimensionsInfo = true;
                 } else {
                     tvArea.setVisibility(View.GONE);
                 }
@@ -216,11 +225,17 @@ public class QuoteItemDetailAdapter extends RecyclerView.Adapter<QuoteItemDetail
             if (tvVolume != null) {
                 Double volume = item.getVolume();
                 if (volume != null && volume > 0) {
-                    tvVolume.setText(formatNumber(volume) + " m³");
+                    tvVolume.setText("Thể tích: " + formatNumber(volume) + " m³");
                     tvVolume.setVisibility(View.VISIBLE);
+                    hasDimensionsInfo = true;
                 } else {
                     tvVolume.setVisibility(View.GONE);
                 }
+            }
+            
+            // Show/Hide container based on content
+            if (llDimensions != null) {
+                llDimensions.setVisibility(hasDimensionsInfo ? View.VISIBLE : View.GONE);
             }
         }
 

@@ -35,7 +35,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="100dp">
 
             <!-- Header Card -->
             <androidx.cardview.widget.CardView
@@ -448,6 +451,30 @@
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
+
+    <!-- Footer Actions -->
+    <LinearLayout
+        android:id="@+id/layout_footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@color/surface_color"
+        android:elevation="16dp"
+        android:layout_gravity="bottom"
+        android:visibility="gone">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_approve"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Duyệt báo giá"
+            android:textSize="16sp"
+            android:padding="12dp"
+            app:cornerRadius="8dp"
+            app:backgroundTint="@color/success_color" />
+
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

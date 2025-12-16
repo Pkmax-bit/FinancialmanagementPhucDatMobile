@@ -48,6 +48,8 @@ public class QuoteDetailActivity extends AppCompatActivity {
     private TextView tvTotalAmountSummary;
     private RecyclerView rvQuoteItems;
     private QuoteItemDetailAdapter quoteItemAdapter;
+    private android.view.View layoutFooter;
+    private android.widget.Button btnApprove;
 
     // Services
     private QuoteService quoteService;
@@ -68,6 +70,7 @@ public class QuoteDetailActivity extends AppCompatActivity {
         initializeViews();
         setupToolbar();
         initializeServices();
+        setupActions();
         loadQuoteDetail();
     }
 
@@ -87,6 +90,8 @@ public class QuoteDetailActivity extends AppCompatActivity {
         tvDescription = findViewById(R.id.tv_description);
         tvTotalAmountSummary = findViewById(R.id.tv_total_amount_summary);
         rvQuoteItems = findViewById(R.id.rv_quote_items);
+        layoutFooter = findViewById(R.id.layout_footer);
+        btnApprove = findViewById(R.id.btn_approve);
         
         // Setup RecyclerView for quote items
         if (rvQuoteItems != null) {
@@ -338,6 +343,74 @@ public class QuoteDetailActivity extends AppCompatActivity {
 
         // Display quote items
         displayQuoteItems();
+        
+        // Show/Hide approve button
+        updateFooterVisibility();
+    }
+
+    private void updateFooterVisibility() {
+        if (quote != null && layoutFooter != null && btnApprove != null) {
+            String status = quote.getStatus();
+            boolean canApprove = !"approved".equalsIgnoreCase(status) && 
+                                !"accepted".equalsIgnoreCase(status) && 
+                                !"cancelled".equalsIgnoreCase(status) && 
+                                !"rejected".equalsIgnoreCase(status);
+            
+            if (canApprove) {
+                layoutFooter.setVisibility(android.view.View.VISIBLE);
+            } else {
+                layoutFooter.setVisibility(android.view.View.GONE);
+            }
+        }
+    }
+
+    private void setupActions() {
+        if (btnApprove != null) {
+            btnApprove.setOnClickListener(v -> showApproveConfirmation());
+        }
+    }
+
+    private void showApproveConfirmation() {
+        new android.app.AlertDialog.Builder(this)
+            .setTitle("Xác nhận duyệt")
+            .setMessage("Bạn có chắc chắn muốn duyệt báo giá này không?")
+            .setPositiveButton("Duyệt", (dialog, which) -> handleApproveQuote())
+            .setNegativeButton("Hủy", null)
+            .show();
+    }
+
+    private void handleApproveQuote() {
+        if (quote == null) return;
+        
+        Toast.makeText(this, "Đang xử lý...", Toast.LENGTH_SHORT).show();
+        
+        quoteService.approveQuote(quote.getId(), new QuoteService.QuoteCallback() {
+            @Override
+            public void onSuccess(Quote updatedQuote) {
+                runOnUiThread(() -> {
+                    Toast.makeText(QuoteDetailActivity.this, "Đã duyệt báo giá và tạo hóa đơn thành công", Toast.LENGTH_SHORT).show();
+                    if (updatedQuote != null) {
+                        quote = updatedQuote;
+                    } else {
+                        quote.setStatus("approved");
+                    }
+                    displayQuoteDetails();
+                });
+            }
+
+            @Override
+            public void onSuccess(java.util.List<Quote> quotes) {}
+
+            @Override
+            public void onSuccess() {}
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(QuoteDetailActivity.this, "Lỗi: " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
     }
 
     private void displayQuoteItems() {
