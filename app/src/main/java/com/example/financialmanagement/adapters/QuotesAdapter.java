@@ -114,10 +114,10 @@ public class QuotesAdapter extends RecyclerView.Adapter<QuotesAdapter.QuoteViewH
             
             // Project name - display prominently
             if (tvQuoteProject != null) {
-                if (quote.getProject() != null && quote.getProject().getName() != null) {
-                    tvQuoteProject.setText(quote.getProject().getName());
-                } else {
-                    tvQuoteProject.setText("Chưa có dự án");
+            if (quote.getProject() != null && quote.getProject().getName() != null) {
+                tvQuoteProject.setText(quote.getProject().getName());
+            } else {
+                tvQuoteProject.setText("Chưa có dự án");
                 }
             }
             
@@ -126,10 +126,10 @@ public class QuotesAdapter extends RecyclerView.Adapter<QuotesAdapter.QuoteViewH
                 java.util.Date validUntil = quote.getValidUntil();
                 if (validUntil == null) {
                     validUntil = quote.getExpiryDate();
-                }
+            }
                 if (validUntil != null && dateFormat != null) {
                     tvQuoteValidUntil.setText(dateFormat.format(validUntil));
-                } else {
+            } else {
                     tvQuoteValidUntil.setText("N/A");
                 }
             }
