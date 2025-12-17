@@ -65,7 +65,19 @@ public class InvoiceService {
             @Override
             public void onResponse(Call<List<Invoice>> call, Response<List<Invoice>> response) {
                 if (response.isSuccessful()) {
-                    callback.onSuccess(response.body());
+                    List<Invoice> invoices = response.body();
+                    Log.d(TAG, "getAllInvoices success - Total invoices: " + (invoices != null ? invoices.size() : 0));
+                    if (invoices != null && !invoices.isEmpty()) {
+                        // Log first few invoices for debugging
+                        for (int i = 0; i < Math.min(3, invoices.size()); i++) {
+                            Invoice inv = invoices.get(i);
+                            String customerName = inv.getCustomer() != null ? inv.getCustomer().getName() : "N/A";
+                            String projectName = inv.getProject() != null ? inv.getProject().getName() : "N/A";
+                            Log.d(TAG, String.format("Invoice %d: ID=%s, Number=%s, Customer=%s, Project=%s", 
+                                i+1, inv.getId(), inv.getInvoiceNumber(), customerName, projectName));
+                        }
+                    }
+                    callback.onSuccess(invoices);
                 } else {
                     String error = ErrorHandler.parseError(response);
                     ErrorHandler.logError(TAG, "getAllInvoices", response);
@@ -88,7 +100,15 @@ public class InvoiceService {
             @Override
             public void onResponse(Call<Invoice> call, Response<Invoice> response) {
                 if (response.isSuccessful()) {
-                    callback.onSuccess(response.body());
+                    Invoice invoice = response.body();
+                    if (invoice != null) {
+                        String customerName = invoice.getCustomer() != null ? invoice.getCustomer().getName() : "N/A";
+                        String projectName = invoice.getProject() != null ? invoice.getProject().getName() : "N/A";
+                        Log.d(TAG, String.format("getInvoiceById success: ID=%s, Number=%s, Customer=%s, Project=%s, Items=%d", 
+                            invoice.getId(), invoice.getInvoiceNumber(), customerName, projectName,
+                            invoice.getItems() != null ? invoice.getItems().size() : 0));
+                    }
+                    callback.onSuccess(invoice);
                 } else {
                     String error = ErrorHandler.parseError(response);
                     ErrorHandler.logError(TAG, "getInvoiceById", response);

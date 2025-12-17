@@ -16,6 +16,9 @@ import com.example.financialmanagement.models.Invoice;
 import com.example.financialmanagement.services.InvoiceService;
 import com.example.financialmanagement.auth.AuthManager;
 import com.example.financialmanagement.utils.ApiDebugger;
+import android.content.Intent;
+import com.example.financialmanagement.activities.InvoiceDetailActivity;
+import com.example.financialmanagement.activities.AddEditInvoiceActivity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -173,22 +176,55 @@ public class InvoicesFragment extends Fragment implements InvoicesAdapter.Invoic
     @Override
     public void onInvoiceClick(Invoice invoice) {
         // Navigate to invoice detail
-        // TODO: Implement navigation to invoice detail activity
-        Toast.makeText(getContext(), "Xem chi tiết hóa đơn: " + invoice.getInvoiceNumber(), Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(getContext(), InvoiceDetailActivity.class);
+        intent.putExtra(InvoiceDetailActivity.EXTRA_INVOICE_ID, invoice.getId());
+        startActivity(intent);
     }
 
     @Override
     public void onInvoiceEdit(Invoice invoice) {
         // Navigate to edit invoice
-        // TODO: Implement navigation to edit invoice activity
-        Toast.makeText(getContext(), "Chỉnh sửa hóa đơn: " + invoice.getInvoiceNumber(), Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(getContext(), AddEditInvoiceActivity.class);
+        intent.putExtra("invoice_id", invoice.getId());
+        startActivity(intent);
     }
 
     @Override
     public void onInvoiceDelete(Invoice invoice) {
-        // Delete invoice
-        // TODO: Implement delete invoice functionality
-        Toast.makeText(getContext(), "Xóa hóa đơn: " + invoice.getInvoiceNumber(), Toast.LENGTH_SHORT).show();
+        // Delete invoice with confirmation
+        new android.app.AlertDialog.Builder(getContext())
+            .setTitle("Xác nhận xóa")
+            .setMessage("Bạn có chắc chắn muốn xóa hóa đơn " + invoice.getInvoiceNumber() + "?")
+            .setPositiveButton("Xóa", (dialog, which) -> {
+                invoiceService.deleteInvoice(invoice.getId(), new InvoiceService.InvoiceCallback() {
+                    @Override
+                    public void onSuccess(List<Invoice> invoices) {}
+                    
+                    @Override
+                    public void onSuccess(Invoice inv) {}
+                    
+                    @Override
+                    public void onSuccess() {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Toast.makeText(getContext(), "Đã xóa hóa đơn", Toast.LENGTH_SHORT).show();
+                                loadInvoices();
+                            });
+                        }
+                    }
+                    
+                    @Override
+                    public void onError(String error) {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Toast.makeText(getContext(), "Lỗi: " + error, Toast.LENGTH_SHORT).show();
+                            });
+                        }
+                    }
+                });
+            })
+            .setNegativeButton("Hủy", null)
+            .show();
     }
 
     @Override

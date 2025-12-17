@@ -34,46 +34,214 @@
 
     </LinearLayout>
 
-    <!-- Search and Filter Section -->
-    <LinearLayout
+    <!-- Search Section -->
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="16dp">
+        android:layout_marginBottom="12dp"
+        app:startIconDrawable="@drawable/ic_search"
+        app:boxBackgroundMode="outline">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="0dp"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_search_quotes"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="8dp"
-            app:startIconDrawable="@drawable/ic_search"
-            app:boxBackgroundMode="outline">
+            android:hint="Tìm kiếm theo số báo giá..."
+            android:inputType="text" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_search_quotes"
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Filter Section -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_filters"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="@color/surface_color">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <!-- Filter Header -->
+            <LinearLayout
+                android:id="@+id/layout_filter_header"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Tìm kiếm báo giá..."
-                android:inputType="text" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-        </com.google.android.material.textfield.TextInputLayout>
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_filter"
+                    android:layout_marginEnd="8dp" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_filter_quotes"
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Bộ lọc"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary" />
+
+                <TextView
+                    android:id="@+id/tv_clear_filters"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Xóa lọc"
+                    android:textSize="12sp"
+                    android:textColor="@color/primary_color"
+                    android:padding="4dp"
+                    android:visibility="gone" />
+
+                <ImageView
+                    android:id="@+id/iv_filter_expand"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_expand_more"
+                    android:layout_marginStart="8dp" />
+
+            </LinearLayout>
+
+            <!-- Filter Content (expandable) -->
+            <LinearLayout
+                android:id="@+id/layout_filter_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginTop="12dp">
+
+                <!-- Project Filter -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Dự án"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="4dp" />
+
+                <Spinner
+                    android:id="@+id/spinner_project"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_spinner"
+                    android:padding="8dp"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Customer Filter -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Khách hàng"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="4dp" />
+
+                <Spinner
+                    android:id="@+id/spinner_customer"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_spinner"
+                    android:padding="8dp"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Status Filter -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Trạng thái"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="4dp" />
+
+                <Spinner
+                    android:id="@+id/spinner_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_spinner"
+                    android:padding="8dp"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Date Range Filter -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Thời gian"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="4dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_date_from"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Từ ngày"
+                        android:textSize="12sp"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_date_to"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Đến ngày"
+                        android:textSize="12sp"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+                </LinearLayout>
+
+                <!-- Apply Filter Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_apply_filter"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Áp dụng bộ lọc"
+                    android:layout_marginTop="12dp"
+                    app:cornerRadius="8dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Active Filters Chips -->
+    <HorizontalScrollView
+        android:id="@+id/scroll_active_filters"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_filters"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Lọc"
-            android:icon="@drawable/ic_filter"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            app:singleLine="true" />
 
-    </LinearLayout>
+    </HorizontalScrollView>
 
     <!-- Statistics Cards -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="16dp">
+        android:layout_marginBottom="12dp">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -81,7 +249,7 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:background="@drawable/bg_card"
-            android:padding="16dp"
+            android:padding="12dp"
             android:layout_marginEnd="8dp">
 
             <TextView
@@ -89,7 +257,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="0"
-                android:textSize="24sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="?attr/colorPrimary" />
 
@@ -97,7 +265,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Tổng báo giá"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textColor="?attr/colorOnSurface"
                 android:alpha="0.7" />
 
@@ -109,7 +277,7 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:background="@drawable/bg_card"
-            android:padding="16dp"
+            android:padding="12dp"
             android:layout_marginStart="8dp">
 
             <TextView
@@ -117,15 +285,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="0"
-                android:textSize="24sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="?attr/colorPrimary" />
+                android:textColor="@color/color_success" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Đã duyệt"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textColor="?attr/colorOnSurface"
                 android:alpha="0.7" />
 
@@ -179,4 +347,3 @@
     </LinearLayout>
 
 </LinearLayout>
-

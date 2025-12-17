@@ -9,35 +9,35 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.financialmanagement.R;
-import com.example.financialmanagement.models.Quote;
+import com.example.financialmanagement.models.Invoice;
 import com.example.financialmanagement.utils.CurrencyFormatter;
 
 import java.text.DecimalFormat;
 import java.util.List;
 
 /**
- * Adapter for displaying quote items in QuoteDetailActivity
+ * Adapter for displaying invoice items in InvoiceDetailActivity
  */
-public class QuoteItemDetailAdapter extends RecyclerView.Adapter<QuoteItemDetailAdapter.QuoteItemViewHolder> {
+public class InvoiceItemDetailAdapter extends RecyclerView.Adapter<InvoiceItemDetailAdapter.InvoiceItemViewHolder> {
 
-    private List<Quote.QuoteItem> items;
+    private List<Invoice.InvoiceItem> items;
     private DecimalFormat decimalFormat = new DecimalFormat("#,###.##");
 
-    public QuoteItemDetailAdapter(List<Quote.QuoteItem> items) {
+    public InvoiceItemDetailAdapter(List<Invoice.InvoiceItem> items) {
         this.items = items != null ? items : new java.util.ArrayList<>();
     }
 
     @NonNull
     @Override
-    public QuoteItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public InvoiceItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_quote_detail_product, parent, false);
-        return new QuoteItemViewHolder(view);
+                .inflate(R.layout.item_invoice_detail_product, parent, false);
+        return new InvoiceItemViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull QuoteItemViewHolder holder, int position) {
-        Quote.QuoteItem item = items.get(position);
+    public void onBindViewHolder(@NonNull InvoiceItemViewHolder holder, int position) {
+        Invoice.InvoiceItem item = items.get(position);
         holder.bind(item, position + 1);
     }
 
@@ -46,12 +46,12 @@ public class QuoteItemDetailAdapter extends RecyclerView.Adapter<QuoteItemDetail
         return items != null ? items.size() : 0;
     }
 
-    public void updateItems(List<Quote.QuoteItem> newItems) {
+    public void updateItems(List<Invoice.InvoiceItem> newItems) {
         this.items = newItems != null ? newItems : new java.util.ArrayList<>();
         notifyDataSetChanged();
     }
 
-    static class QuoteItemViewHolder extends RecyclerView.ViewHolder {
+    static class InvoiceItemViewHolder extends RecyclerView.ViewHolder {
         private TextView tvItemNumber;
         private TextView tvProductName;
         private TextView tvDescription;
@@ -63,7 +63,7 @@ public class QuoteItemDetailAdapter extends RecyclerView.Adapter<QuoteItemDetail
         private TextView tvArea;
         private TextView tvVolume;
 
-        public QuoteItemViewHolder(@NonNull View itemView) {
+        public InvoiceItemViewHolder(@NonNull View itemView) {
             super(itemView);
             tvItemNumber = itemView.findViewById(R.id.tv_item_number);
             tvProductName = itemView.findViewById(R.id.tv_product_name);
@@ -77,7 +77,7 @@ public class QuoteItemDetailAdapter extends RecyclerView.Adapter<QuoteItemDetail
             tvVolume = itemView.findViewById(R.id.tv_volume);
         }
 
-        public void bind(Quote.QuoteItem item, int position) {
+        public void bind(Invoice.InvoiceItem item, int position) {
             if (item == null) return;
 
             // Item number

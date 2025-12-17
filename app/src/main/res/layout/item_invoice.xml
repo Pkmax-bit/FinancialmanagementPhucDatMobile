@@ -55,17 +55,35 @@
 
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tv_invoice_status"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Đã gửi"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:background="@drawable/bg_status_pending"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
-                android:textColor="@android:color/white" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tv_invoice_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Đã gửi"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/bg_status_pending"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp"
+                    android:textColor="@android:color/white"
+                    android:layout_marginEnd="8dp" />
+
+                <ImageButton
+                    android:id="@+id/btn_invoice_menu"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_more_vert"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Menu thao tác"
+                    android:padding="8dp" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
@@ -112,17 +130,17 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Còn lại"
+                    android:text="Hạn thanh toán"
                     android:textSize="12sp"
                     android:textColor="?attr/colorOnSurface"
                     android:alpha="0.7"
                     android:layout_marginBottom="2dp" />
 
                 <TextView
-                    android:id="@+id/tv_invoice_balance"
+                    android:id="@+id/tv_invoice_due_date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="50,000,000 ₫"
+                    android:text="31/12/2024"
                     android:textSize="14sp"
                     android:textStyle="bold"
                     android:textColor="@color/color_warning" />
@@ -158,18 +176,15 @@
                 android:maxLines="1"
                 android:ellipsize="end" />
 
-            <TextView
-                android:id="@+id/tv_invoice_due_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="31/12/2024"
-                android:textSize="12sp"
-                android:textColor="?attr/colorOnSurface"
-                android:alpha="0.6" />
-
         </LinearLayout>
+
+        <!-- Hidden balance field for compatibility -->
+        <TextView
+            android:id="@+id/tv_invoice_balance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
 
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
-

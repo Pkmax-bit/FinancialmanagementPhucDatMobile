@@ -13,8 +13,10 @@ public class AppConfig {
         PRODUCTION  // https://financial-management-backend-3m78.onrender.com
     }
     
-    // Current environment - hiện tại chỉ dùng PRODUCTION
-    // App Android sẽ luôn gọi backend production, không dùng local/network
+    // Current environment - thay đổi ở đây để chuyển môi trường
+    // Đổi sang PRODUCTION để dùng backend host
+    //private static final Environment CURRENT_ENVIRONMENT = Environment.PRODUCTION;
+    //private static final Environment CURRENT_ENVIRONMENT = Environment.LOCAL;
     private static final Environment CURRENT_ENVIRONMENT = Environment.PRODUCTION;
     /**
      * Lấy environment hiện tại
@@ -48,9 +50,9 @@ public class AppConfig {
             case NETWORK:
                 return "http://127.0.0.1:8000/api/";
             case PRODUCTION:
-                return "https://financial-management-backend-3m78.onrender.com/api/";
+                return "https://financial-management-backend-3l62.onrender.com/api/";
             default:
-                return "https://financial-management-backend-3m78.onrender.com/api/";
+                return "https://financial-management-backend-3l62.onrender.com/api/";
         }
     }
     

@@ -184,6 +184,12 @@
             android:label="Tạo Hóa Đơn"
             android:theme="@style/Theme.FinancialManagement.NoActionBar"
             android:windowSoftInputMode="adjustResize" />
+            
+        <activity
+            android:name=".activities.InvoiceDetailActivity"
+            android:label="Chi tiết hóa đơn"
+            android:theme="@style/Theme.FinancialManagement.NoActionBar"
+            android:parentActivityName=".activities.MainActivity" />
         <activity
             android:name=".activities.EmployeePickerActivity"
             android:label="Chọn Nhân Viên"

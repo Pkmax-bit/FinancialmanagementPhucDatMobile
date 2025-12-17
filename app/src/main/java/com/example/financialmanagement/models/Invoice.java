@@ -66,11 +66,17 @@ public class Invoice {
     @SerializedName("created_by")
     private String createdBy;
     
-    // Related objects
+    // Related objects - API returns "projects" and "customers" (plural) from joins
     private Project project;
+    @SerializedName("projects")
+    private Project projects; // Fallback for plural form from API
     private Customer customer;
+    @SerializedName("customers")
+    private Customer customers; // Fallback for plural form from API
     private Quote quote;
     private List<InvoiceItem> items;
+    @SerializedName("invoice_items")
+    private List<InvoiceItem> invoiceItems; // From API join
     private List<Payment> payments;
 
     // Constructors
@@ -174,17 +180,48 @@ public class Invoice {
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
     
-    public Project getProject() { return project; }
-    public void setProject(Project project) { this.project = project; }
+    public Project getProject() { 
+        // Try singular first, then plural (API returns "projects")
+        if (project != null) return project;
+        if (projects != null) {
+            project = projects;
+            return project;
+        }
+        return null;
+    }
+    public void setProject(Project project) { 
+        this.project = project;
+        this.projects = project;
+    }
     
-    public Customer getCustomer() { return customer; }
-    public void setCustomer(Customer customer) { this.customer = customer; }
+    public Customer getCustomer() { 
+        // Try singular first, then plural (API returns "customers")
+        if (customer != null) return customer;
+        if (customers != null) {
+            customer = customers;
+            return customer;
+        }
+        return null;
+    }
+    public void setCustomer(Customer customer) { 
+        this.customer = customer;
+        this.customers = customer;
+    }
     
     public Quote getQuote() { return quote; }
     public void setQuote(Quote quote) { this.quote = quote; }
     
-    public List<InvoiceItem> getItems() { return items; }
-    public void setItems(List<InvoiceItem> items) { this.items = items; }
+    public List<InvoiceItem> getItems() { 
+        // Check invoice_items first (from API join), then items
+        if (invoiceItems != null && !invoiceItems.isEmpty()) {
+            return invoiceItems;
+        }
+        return items; 
+    }
+    public void setItems(List<InvoiceItem> items) { 
+        this.items = items; 
+        this.invoiceItems = items;
+    }
     
     public List<Payment> getPayments() { return payments; }
     public void setPayments(List<Payment> payments) { this.payments = payments; }

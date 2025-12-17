@@ -12,7 +12,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.financialmanagement.R;
 import com.example.financialmanagement.models.Quote;
 import com.example.financialmanagement.utils.CurrencyFormatter;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Quotes Adapter - Adapter cho danh sách báo giá
@@ -22,6 +24,7 @@ public class QuotesAdapter extends RecyclerView.Adapter<QuotesAdapter.QuoteViewH
 
     private List<Quote> quotes;
     private QuoteClickListener clickListener;
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
     public interface QuoteClickListener {
         void onQuoteClick(Quote quote);
@@ -51,7 +54,7 @@ public class QuotesAdapter extends RecyclerView.Adapter<QuotesAdapter.QuoteViewH
     @Override
     public void onBindViewHolder(@NonNull QuoteViewHolder holder, int position) {
         Quote quote = quotes.get(position);
-        holder.bind(quote, clickListener);
+        holder.bind(quote, clickListener, dateFormat);
     }
 
     @Override
@@ -86,44 +89,49 @@ public class QuotesAdapter extends RecyclerView.Adapter<QuotesAdapter.QuoteViewH
             btnQuoteMenu = itemView.findViewById(R.id.btn_quote_menu);
         }
 
-        public void bind(Quote quote, QuoteClickListener clickListener) {
+        public void bind(Quote quote, QuoteClickListener clickListener, SimpleDateFormat dateFormat) {
             // Basic information
-            tvQuoteNumber.setText(quote.getQuoteNumber());
-            // tvQuoteTitle removed - no longer needed
-            tvQuoteStatus.setText(getQuoteStatusText(quote.getStatus()));
+            tvQuoteNumber.setText(quote.getQuoteNumber() != null ? quote.getQuoteNumber() : "N/A");
+            
+            // Status with background
+            String status = quote.getStatus();
+            tvQuoteStatus.setText(getQuoteStatusText(status));
+            tvQuoteStatus.setBackgroundResource(getStatusBackground(status));
             
             // Financial information
             if (quote.getTotalAmount() != null) {
                 tvQuoteTotal.setText(CurrencyFormatter.format(quote.getTotalAmount()));
             } else {
-                tvQuoteTotal.setText("Chưa có tổng tiền");
+                tvQuoteTotal.setText("0 ₫");
             }
             
-            // Related information
-            if (quote.getCustomer() != null) {
+            // Customer name
+            if (quote.getCustomer() != null && quote.getCustomer().getName() != null) {
                 tvQuoteCustomer.setText(quote.getCustomer().getName());
             } else {
                 tvQuoteCustomer.setText("Chưa có khách hàng");
             }
             
-            // Display project name
-            if (quote.getProject() != null && quote.getProject().getName() != null) {
-                tvQuoteProject.setText(quote.getProject().getName());
-            } else {
-                // Fallback: try to get project name from project_id if available
-                // This is a temporary workaround until backend returns project object
-                tvQuoteProject.setText("Chưa có dự án");
-                // Log for debugging
-                android.util.Log.d("QuotesAdapter", "Quote " + quote.getQuoteNumber() + 
-                    " - Project: " + (quote.getProject() != null ? "exists but no name" : "null") +
-                    ", Project ID: " + quote.getProjectId());
+            // Project name - display prominently
+            if (tvQuoteProject != null) {
+                if (quote.getProject() != null && quote.getProject().getName() != null) {
+                    tvQuoteProject.setText(quote.getProject().getName());
+                } else {
+                    tvQuoteProject.setText("Chưa có dự án");
+                }
             }
             
-            // Valid until
-            if (quote.getValidUntil() != null) {
-                tvQuoteValidUntil.setText("Có hiệu lực đến: " + quote.getValidUntil().toString());
-            } else {
-                tvQuoteValidUntil.setText("Chưa thiết lập thời hạn");
+            // Valid until - format date properly
+            if (tvQuoteValidUntil != null) {
+                java.util.Date validUntil = quote.getValidUntil();
+                if (validUntil == null) {
+                    validUntil = quote.getExpiryDate();
+                }
+                if (validUntil != null && dateFormat != null) {
+                    tvQuoteValidUntil.setText(dateFormat.format(validUntil));
+                } else {
+                    tvQuoteValidUntil.setText("N/A");
+                }
             }
             
             // Click listeners
@@ -176,7 +184,7 @@ public class QuotesAdapter extends RecyclerView.Adapter<QuotesAdapter.QuoteViewH
         }
 
         private String getQuoteStatusText(String status) {
-            if (status == null) return "Draft";
+            if (status == null) return "Nháp";
             switch (status.toLowerCase()) {
                 case "draft":
                     return "Nháp";
@@ -190,6 +198,24 @@ public class QuotesAdapter extends RecyclerView.Adapter<QuotesAdapter.QuoteViewH
                     return "Đã chuyển đổi";
                 default:
                     return status;
+            }
+        }
+
+        private int getStatusBackground(String status) {
+            if (status == null) return R.drawable.bg_status_draft;
+            switch (status.toLowerCase()) {
+                case "draft":
+                    return R.drawable.bg_status_draft;
+                case "sent":
+                    return R.drawable.bg_status_active;
+                case "approved":
+                    return R.drawable.bg_status_success;
+                case "rejected":
+                    return R.drawable.bg_status_error;
+                case "converted":
+                    return R.drawable.bg_status_active;
+                default:
+                    return R.drawable.bg_status_draft;
             }
         }
     }
