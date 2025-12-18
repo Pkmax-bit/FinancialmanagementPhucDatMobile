@@ -258,6 +258,15 @@ public class QRScannerActivity extends AppCompatActivity {
                 if (response.isSuccess()) {
                     // Then complete with Android user's token
                     String androidToken = authManager.getAccessToken();
+                    if (androidToken == null || androidToken.isEmpty()) {
+                        runOnUiThread(() -> {
+                            Toast.makeText(QRScannerActivity.this, 
+                                "Vui lòng đăng nhập trên Android trước khi quét QR", 
+                                Toast.LENGTH_LONG).show();
+                            qrProcessed = false;
+                        });
+                        return;
+                    }
                     qrLoginService.completeQRLogin(sessionId, secretToken, androidToken, new QRLoginService.QRCompleteCallback() {
                         @Override
                         public void onSuccess(QRLoginService.QRVerifyResponse response) {

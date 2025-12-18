@@ -9,10 +9,12 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.http.Body;
+import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * QR Login Service - Xử lý đăng nhập bằng QR code
@@ -176,11 +178,13 @@ public class QRLoginService {
         request.addProperty("secret_token", secretToken);
         
         String authHeader = null;
+        Map<String, String> headers = new HashMap<>();
         if (authToken != null && !authToken.isEmpty()) {
             authHeader = "Bearer " + authToken;
+            headers.put("Authorization", authHeader);
         }
         
-        ApiDebugger.logRequest("POST", "QR Complete", authHeader != null ? "With Auth" : "No Auth", request.toString());
+        ApiDebugger.logRequest("POST", "QR Complete", headers.isEmpty() ? null : headers, request.toString());
         
         Call<QRVerifyResponse> call = qrLoginApi.completeQRLogin(authHeader, request);
         call.enqueue(new Callback<QRVerifyResponse>() {
