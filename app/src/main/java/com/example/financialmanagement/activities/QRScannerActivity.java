@@ -256,8 +256,9 @@ public class QRScannerActivity extends AppCompatActivity {
             @Override
             public void onSuccess(QRLoginService.QRVerifyResponse response) {
                 if (response.isSuccess()) {
-                    // Then complete
-                    qrLoginService.completeQRLogin(sessionId, secretToken, new QRLoginService.QRCompleteCallback() {
+                    // Then complete with Android user's token
+                    String androidToken = authManager.getAccessToken();
+                    qrLoginService.completeQRLogin(sessionId, secretToken, androidToken, new QRLoginService.QRCompleteCallback() {
                         @Override
                         public void onSuccess(QRLoginService.QRVerifyResponse response) {
                             runOnUiThread(() -> {

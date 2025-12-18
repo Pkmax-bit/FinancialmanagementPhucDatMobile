@@ -164,13 +164,25 @@ public class QRLoginService {
      * Complete QR login and get access token
      */
     public void completeQRLogin(String sessionId, String secretToken, QRCompleteCallback callback) {
+        completeQRLogin(sessionId, secretToken, null, callback);
+    }
+    
+    /**
+     * Complete QR login with optional authentication token (for web login flow)
+     */
+    public void completeQRLogin(String sessionId, String secretToken, String authToken, QRCompleteCallback callback) {
         JsonObject request = new JsonObject();
         request.addProperty("session_id", sessionId);
         request.addProperty("secret_token", secretToken);
         
-        ApiDebugger.logRequest("POST", "QR Complete", null, request.toString());
+        String authHeader = null;
+        if (authToken != null && !authToken.isEmpty()) {
+            authHeader = "Bearer " + authToken;
+        }
         
-        Call<QRVerifyResponse> call = qrLoginApi.completeQRLogin(request);
+        ApiDebugger.logRequest("POST", "QR Complete", authHeader != null ? "With Auth" : "No Auth", request.toString());
+        
+        Call<QRVerifyResponse> call = qrLoginApi.completeQRLogin(authHeader, request);
         call.enqueue(new Callback<QRVerifyResponse>() {
             @Override
             public void onResponse(Call<QRVerifyResponse> call, Response<QRVerifyResponse> response) {
@@ -210,7 +222,7 @@ public class QRLoginService {
         Call<QRVerifyResponse> verifyQRCode(@Body JsonObject request);
         
         @POST("auth/qr/complete")
-        Call<QRVerifyResponse> completeQRLogin(@Body JsonObject request);
+        Call<QRVerifyResponse> completeQRLogin(@Header("Authorization") String authorization, @Body JsonObject request);
         
         @POST("auth/qr/mobile/generate")
         Call<QRGenerateResponse> generateQRCode();
