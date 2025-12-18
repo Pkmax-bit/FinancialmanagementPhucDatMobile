@@ -206,6 +206,78 @@ public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX
     }
     
     /**
+     * Save token from QR login (public method)
+     * Parses JWT token to extract user info and saves it
+     */
+    public void saveToken(String accessToken, String tokenType) {
+        if (accessToken == null || accessToken.isEmpty()) {
+            Log.e(TAG, "Cannot save null or empty token");
+            return;
+        }
+        
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(KEY_ACCESS_TOKEN, accessToken);
+        
+        // Parse JWT token to extract user information
+        try {
+            String[] parts = accessToken.split("\\.");
+            if (parts.length == 3) {
+                String payload = parts[1];
+                
+                // Add padding if needed
+                while (payload.length() % 4 != 0) {
+                    payload += "=";
+                }
+                
+                // Decode base64
+                byte[] decodedBytes = android.util.Base64.decode(payload, android.util.Base64.DEFAULT);
+                String decodedPayload = new String(decodedBytes);
+                
+                // Parse JSON payload
+                JSONObject payloadJson = new JSONObject(decodedPayload);
+                
+                // Extract user information
+                String userId = payloadJson.optString("sub", null);
+                String userEmail = payloadJson.optString("email", null);
+                
+                // Extract user metadata
+                JSONObject userMetadata = payloadJson.optJSONObject("user_metadata");
+                String userName = null;
+                String userRole = null;
+                if (userMetadata != null) {
+                    userName = userMetadata.optString("full_name", null);
+                    userRole = userMetadata.optString("role", null);
+                }
+                
+                // If not in user_metadata, try app_metadata
+                if (userRole == null) {
+                    JSONObject appMetadata = payloadJson.optJSONObject("app_metadata");
+                    if (appMetadata != null) {
+                        userRole = appMetadata.optString("role", null);
+                    }
+                }
+                
+                // Save user info
+                if (userId != null) editor.putString(KEY_USER_ID, userId);
+                if (userEmail != null) editor.putString(KEY_USER_EMAIL, userEmail);
+                if (userName != null) editor.putString(KEY_USER_NAME, userName);
+                if (userRole != null) editor.putString(KEY_USER_ROLE, userRole);
+                
+                Log.d(TAG, "Token saved from QR login:");
+                Log.d(TAG, "User ID: " + userId);
+                Log.d(TAG, "User Email: " + userEmail);
+                Log.d(TAG, "User Name: " + userName);
+                Log.d(TAG, "User Role: " + userRole);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error parsing JWT token for QR login", e);
+            // Still save the token even if parsing fails
+        }
+        
+        editor.apply();
+    }
+    
+    /**
      * Xóa dữ liệu xác thực
      */
     private void clearAuthData() {

@@ -174,14 +174,20 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.Projec
             }
         }
         
+        // Cache SimpleDateFormat to avoid creating new instance each time
+        private static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        
         private String formatDates(Project project) {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
             StringBuilder sb = new StringBuilder();
             if (project.getStartDate() != null) {
-                sb.append(sdf.format(project.getStartDate()));
+                synchronized (dateFormat) {
+                    sb.append(dateFormat.format(project.getStartDate()));
+                }
             }
             if (project.getEndDate() != null) {
-                sb.append(" - ").append(sdf.format(project.getEndDate()));
+                synchronized (dateFormat) {
+                    sb.append(" - ").append(dateFormat.format(project.getEndDate()));
+                }
             }
             return sb.length() > 0 ? sb.toString() : "Chưa có thời gian";
         }

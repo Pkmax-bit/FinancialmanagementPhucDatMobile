@@ -13,9 +13,16 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import com.example.financialmanagement.R;
 import com.example.financialmanagement.auth.AuthManager;
 import com.example.financialmanagement.auth.AuthCallback;
+import com.example.financialmanagement.services.QRLoginService;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import org.json.JSONObject;
 
 /**
  * Login Activity - Màn hình đăng nhập
@@ -31,6 +38,8 @@ public class LoginActivity extends AppCompatActivity implements AuthCallback {
     private boolean isPasswordVisible = false;
     private LinearLayout errorContainer;
     private TextView tvError;
+    private QRLoginService qrLoginService;
+    private ActivityResultLauncher<Intent> qrScannerLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +50,13 @@ public class LoginActivity extends AppCompatActivity implements AuthCallback {
         setupClickListeners();
         
         authManager = new AuthManager(this);
+        qrLoginService = new QRLoginService(this);
+        
+        // Setup QR scanner launcher
+        qrScannerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            this::handleQRScannerResult
+        );
         
         // Kiểm tra nếu được redirect từ auth error
         Intent intent = getIntent();
@@ -89,6 +105,12 @@ public class LoginActivity extends AppCompatActivity implements AuthCallback {
             etPassword.setText("123456");
             hideError();
         });
+        
+        // QR Login button
+        View btnQRLogin = findViewById(R.id.btn_qr_login);
+        if (btnQRLogin != null) {
+            btnQRLogin.setOnClickListener(v -> handleQRLogin());
+        }
     }
     
     private void togglePasswordVisibility() {
@@ -162,5 +184,107 @@ public class LoginActivity extends AppCompatActivity implements AuthCallback {
     private void handleRegister() {
         Intent intent = new Intent(this, RegisterActivity.class);
         startActivity(intent);
+    }
+    
+    private void handleQRLogin() {
+        Intent intent = new Intent(this, QRScannerActivity.class);
+        qrScannerLauncher.launch(intent);
+    }
+    
+    private void handleQRScannerResult(ActivityResult result) {
+        if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+            String qrData = result.getData().getStringExtra("qr_data");
+            if (qrData != null) {
+                processQRCode(qrData);
+            } else {
+                showError("Không thể đọc dữ liệu QR code");
+            }
+        }
+    }
+    
+    private void processQRCode(String qrData) {
+        try {
+            // Parse QR data (should be JSON)
+            JSONObject qrJson = new JSONObject(qrData);
+            String sessionId = qrJson.getString("session_id");
+            String secretToken = qrJson.optString("secret_token", null);
+            
+            if (sessionId == null || sessionId.isEmpty()) {
+                showError("QR code không hợp lệ");
+                return;
+            }
+            
+            hideError();
+            showLoading(true);
+            
+            // First verify, then complete
+            qrLoginService.verifyQRCode(sessionId, new QRLoginService.QRVerifyCallback() {
+                @Override
+                public void onSuccess(QRLoginService.QRVerifyResponse response) {
+                    if (response.isSuccess()) {
+                        // Now complete the login
+                        if (secretToken != null && !secretToken.isEmpty()) {
+                            completeQRLogin(sessionId, secretToken);
+                        } else {
+                            runOnUiThread(() -> {
+                                showLoading(false);
+                                showError("QR code thiếu thông tin secret_token");
+                            });
+                        }
+                    } else {
+                        runOnUiThread(() -> {
+                            showLoading(false);
+                            showError(response.getMessage());
+                        });
+                    }
+                }
+                
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        showLoading(false);
+                        showError(error);
+                    });
+                }
+            });
+            
+        } catch (Exception e) {
+            showLoading(false);
+            showError("Lỗi xử lý QR code: " + e.getMessage());
+        }
+    }
+    
+    private void completeQRLogin(String sessionId, String secretToken) {
+        qrLoginService.completeQRLogin(sessionId, secretToken, new QRLoginService.QRCompleteCallback() {
+            @Override
+            public void onSuccess(QRLoginService.QRVerifyResponse response) {
+                if (response.isSuccess() && response.getAccessToken() != null) {
+                    // Save token and login
+                    authManager.saveToken(
+                        response.getAccessToken(),
+                        response.getTokenType() != null ? response.getTokenType() : "bearer"
+                    );
+                    
+                    runOnUiThread(() -> {
+                        showLoading(false);
+                        Toast.makeText(LoginActivity.this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
+                        navigateToMain();
+                    });
+                } else {
+                    runOnUiThread(() -> {
+                        showLoading(false);
+                        showError(response.getMessage() != null ? response.getMessage() : "Đăng nhập thất bại");
+                    });
+                }
+            }
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    showLoading(false);
+                    showError(error);
+                });
+            }
+        });
     }
 }

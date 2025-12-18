@@ -153,9 +153,21 @@
                     android:id="@+id/btn_clear_cache"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
                     android:text="Xóa bộ nhớ đệm"
                     android:textSize="14sp"
                     app:icon="@drawable/ic_clear_cache"
+                    app:iconSize="20dp"
+                    style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                <!-- Scan QR for Web Login Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_scan_qr_web"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Quét QR để đăng nhập Web"
+                    android:textSize="14sp"
+                    app:icon="@drawable/ic_qr_code"
                     app:iconSize="20dp"
                     style="@style/Widget.Material3.Button.OutlinedButton" />
 

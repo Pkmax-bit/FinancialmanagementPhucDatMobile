@@ -2,9 +2,14 @@ package com.example.financialmanagement.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,12 +53,19 @@ public class ProductsFragment extends Fragment {
     private SwipeRefreshLayout swipeRefreshLayout;
     private ProgressBar progressBar;
     private TextView tvEmpty;
+    private TextView tvProductCount;
+    private EditText etSearch;
     private FloatingActionButton fabAdd;
     
     private List<ProductCategory> categories = new ArrayList<>();
     private Map<String, String> categoryMap = new HashMap<>(); // id -> name
     private Map<String, List<Product>> groupedProducts = new TreeMap<>(); // sorted by category name
     private Set<String> expandedCategories = new HashSet<>(); // Track expanded category names
+    
+    // Handler for debouncing search
+    private Handler searchHandler = new Handler(Looper.getMainLooper());
+    private Runnable searchRunnable;
+    private String searchQuery = "";
     
     private static final int REQUEST_ADD_EDIT_PRODUCT = 1001;
 
@@ -79,6 +91,8 @@ public class ProductsFragment extends Fragment {
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_products);
         progressBar = view.findViewById(R.id.pb_loading_products);
         tvEmpty = view.findViewById(R.id.tv_empty_products);
+        tvProductCount = view.findViewById(R.id.tv_product_count);
+        etSearch = view.findViewById(R.id.et_search_products);
         fabAdd = view.findViewById(R.id.fab_add_product);
         
         if (getContext() != null) {
@@ -88,9 +102,36 @@ public class ProductsFragment extends Fragment {
         
         swipeRefreshLayout.setOnRefreshListener(this::loadCategoriesAndProducts);
         
+        setupSearch();
+        
         fabAdd.setOnClickListener(v -> {
             Intent intent = new Intent(getContext(), AddEditProductActivity.class);
             startActivityForResult(intent, REQUEST_ADD_EDIT_PRODUCT);
+        });
+    }
+    
+    private void setupSearch() {
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Cancel previous search runnable
+                if (searchRunnable != null) {
+                    searchHandler.removeCallbacks(searchRunnable);
+                }
+                
+                // Debounce search - wait 300ms after user stops typing
+                searchRunnable = () -> {
+                    searchQuery = s.toString().toLowerCase().trim();
+                    filterAndDisplayProducts();
+                };
+                searchHandler.postDelayed(searchRunnable, 300);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
         });
     }
 
@@ -211,36 +252,88 @@ public class ProductsFragment extends Fragment {
             groupedProducts.get(catName).add(p);
         }
         
-        updateAdapterData();
+        filterAndDisplayProducts();
+    }
+    
+    private void filterAndDisplayProducts() {
+        // Run filtering on background thread for large datasets
+        new Thread(() -> {
+            Map<String, List<Product>> filteredGrouped = new TreeMap<>();
+            int totalCount = 0;
+            
+            for (Map.Entry<String, List<Product>> entry : groupedProducts.entrySet()) {
+                String catName = entry.getKey();
+                List<Product> filteredProducts = new ArrayList<>();
+                
+                for (Product p : entry.getValue()) {
+                    // Filter by search query
+                    boolean matchesSearch = searchQuery.isEmpty() ||
+                        (p.getName() != null && p.getName().toLowerCase().contains(searchQuery)) ||
+                        (p.getSku() != null && p.getSku().toLowerCase().contains(searchQuery)) ||
+                        (catName != null && catName.toLowerCase().contains(searchQuery));
+                    
+                    if (matchesSearch) {
+                        filteredProducts.add(p);
+                        totalCount++;
+                    }
+                }
+                
+                if (!filteredProducts.isEmpty()) {
+                    filteredGrouped.put(catName, filteredProducts);
+                }
+            }
+            
+            // Build display items
+            List<GroupedProductAdapter.DisplayItem> displayItems = new ArrayList<>();
+            List<String> sortedCategories = new ArrayList<>(filteredGrouped.keySet());
+            Collections.sort(sortedCategories);
+            
+            for (String catName : sortedCategories) {
+                List<Product> products = filteredGrouped.get(catName);
+                boolean isExpanded = expandedCategories.contains(catName);
+                
+                // Add Header
+                displayItems.add(new GroupedProductAdapter.DisplayItem.Header(
+                    catName, 
+                    products.size(), 
+                    isExpanded
+                ));
+                
+                // Add Items if expanded
+                if (isExpanded) {
+                    for (Product p : products) {
+                        displayItems.add(new GroupedProductAdapter.DisplayItem.Item(p));
+                    }
+                }
+            }
+            
+            // Update UI on main thread
+            if (getActivity() != null) {
+                // Create final variables for lambda
+                final int finalTotalCount = totalCount;
+                final List<GroupedProductAdapter.DisplayItem> finalDisplayItems = displayItems;
+                final String finalSearchQuery = searchQuery;
+                
+                getActivity().runOnUiThread(() -> {
+                    adapter.updateItems(finalDisplayItems);
+                    if (tvProductCount != null) {
+                        tvProductCount.setText(finalTotalCount + " sản phẩm");
+                    }
+                    if (finalDisplayItems.isEmpty()) {
+                        rvProducts.setVisibility(View.GONE);
+                        tvEmpty.setVisibility(View.VISIBLE);
+                        tvEmpty.setText(finalSearchQuery.isEmpty() ? "Chưa có sản phẩm nào" : "Không tìm thấy sản phẩm");
+                    } else {
+                        rvProducts.setVisibility(View.VISIBLE);
+                        tvEmpty.setVisibility(View.GONE);
+                    }
+                });
+            }
+        }).start();
     }
     
     private void updateAdapterData() {
-        List<GroupedProductAdapter.DisplayItem> displayItems = new ArrayList<>();
-        
-        // Sort categories by name
-        List<String> sortedCategories = new ArrayList<>(groupedProducts.keySet());
-        Collections.sort(sortedCategories);
-        
-        for (String catName : sortedCategories) {
-            List<Product> products = groupedProducts.get(catName);
-            boolean isExpanded = expandedCategories.contains(catName);
-            
-            // Add Header
-            displayItems.add(new GroupedProductAdapter.DisplayItem.Header(
-                catName, 
-                products.size(), 
-                isExpanded
-            ));
-            
-            // Add Items if expanded
-            if (isExpanded) {
-                for (Product p : products) {
-                    displayItems.add(new GroupedProductAdapter.DisplayItem.Item(p));
-                }
-            }
-        }
-        
-        adapter.updateItems(displayItems);
+        filterAndDisplayProducts();
     }
 
     private void handleError(String message) {

@@ -94,27 +94,33 @@ public class GroupedProductAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         }
 
         void bind(DisplayItem.Header header) {
-            tvName.setText(header.categoryName);
+            tvName.setText(header.categoryName != null ? header.categoryName : "Khác");
             tvCount.setText("(" + header.count + ")");
-            ivExpand.setRotation(header.isExpanded ? 180 : 0);
+            
+            // Animate expand/collapse icon
+            ivExpand.animate()
+                .rotation(header.isExpanded ? 180f : 0f)
+                .setDuration(200)
+                .start();
         }
     }
 
     class ProductViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvSku, tvPrice, tvQuantity;
+        TextView tvName, tvSku, tvPrice, tvQuantity, tvCategory;
         TextView tvStatus;
 
         ProductViewHolder(View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tv_product_name);
             tvSku = itemView.findViewById(R.id.tv_product_sku);
+            tvCategory = itemView.findViewById(R.id.tv_product_category);
             tvPrice = itemView.findViewById(R.id.tv_product_price);
             tvQuantity = itemView.findViewById(R.id.tv_product_quantity);
             tvStatus = itemView.findViewById(R.id.tv_product_status_chip);
             
             itemView.setOnClickListener(v -> {
                 int pos = getAdapterPosition();
-                if (pos != RecyclerView.NO_POSITION) {
+                if (pos != RecyclerView.NO_POSITION && pos < displayItems.size()) {
                     DisplayItem item = displayItems.get(pos);
                     if (item instanceof DisplayItem.Item) {
                         listener.onProductClick(((DisplayItem.Item) item).product);
@@ -125,25 +131,59 @@ public class GroupedProductAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
         void bind(DisplayItem.Item item) {
             Product product = item.product;
-            tvName.setText(product.getName());
-            tvSku.setText("SKU: " + (product.getSku() != null ? product.getSku() : "N/A"));
             
-            if (product.getUnitPrice() != null) {
+            // Product name
+            tvName.setText(product.getName() != null ? product.getName() : "N/A");
+            
+            // SKU
+            String sku = product.getSku() != null && !product.getSku().isEmpty() 
+                ? product.getSku() : "N/A";
+            tvSku.setText("SKU: " + sku);
+            
+            // Category
+            if (tvCategory != null) {
+                String category = product.getCategory() != null && !product.getCategory().isEmpty()
+                    ? product.getCategory() : "Chưa phân loại";
+                tvCategory.setText(category);
+            }
+            
+            // Price
+            if (product.getUnitPrice() != null && product.getUnitPrice() > 0) {
                 tvPrice.setText(CurrencyFormatter.format(product.getUnitPrice()));
             } else {
-                tvPrice.setText("0 đ");
+                tvPrice.setText("0 ₫");
             }
 
+            // Quantity (only for inventory type)
             if ("inventory".equals(product.getType()) && product.getQuantity() != null) {
                 tvQuantity.setVisibility(View.VISIBLE);
-                tvQuantity.setText("QTY: " + product.getQuantity());
+                tvQuantity.setText("SL: " + product.getQuantity());
             } else {
                 tvQuantity.setVisibility(View.GONE);
             }
             
+            // Status badge
             if (tvStatus != null) {
-                // Determine status logic here if needed, for now hiding or showing basic
-                // Example: tvStatus.setVisibility(View.VISIBLE);
+                String type = product.getType();
+                if (type != null && !type.isEmpty()) {
+                    tvStatus.setVisibility(View.VISIBLE);
+                    switch (type.toLowerCase()) {
+                        case "inventory":
+                            tvStatus.setText("Kho");
+                            tvStatus.setBackgroundResource(R.drawable.bg_status_active);
+                            break;
+                        case "service":
+                            tvStatus.setText("Dịch vụ");
+                            tvStatus.setBackgroundResource(R.drawable.bg_status_planning);
+                            break;
+                        default:
+                            tvStatus.setText(type);
+                            tvStatus.setBackgroundResource(R.drawable.bg_status_inactive);
+                            break;
+                    }
+                } else {
+                    tvStatus.setVisibility(View.GONE);
+                }
             }
         }
     }

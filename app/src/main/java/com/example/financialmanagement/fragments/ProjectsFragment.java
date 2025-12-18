@@ -3,6 +3,8 @@ package com.example.financialmanagement.fragments;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -53,6 +55,10 @@ public class ProjectsFragment extends Fragment implements ProjectsAdapter.Projec
     
     private String currentFilter = "all";
     private String searchQuery = "";
+    
+    // Handler for debouncing search
+    private Handler searchHandler = new Handler(Looper.getMainLooper());
+    private Runnable searchRunnable;
 
     @Nullable
     @Override
@@ -107,8 +113,17 @@ public class ProjectsFragment extends Fragment implements ProjectsAdapter.Projec
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                searchQuery = s.toString().toLowerCase().trim();
-                filterAndDisplayProjects();
+                // Cancel previous search runnable
+                if (searchRunnable != null) {
+                    searchHandler.removeCallbacks(searchRunnable);
+                }
+                
+                // Debounce search - wait 300ms after user stops typing
+                searchRunnable = () -> {
+                    searchQuery = s.toString().toLowerCase().trim();
+                    filterAndDisplayProjects();
+                };
+                searchHandler.postDelayed(searchRunnable, 300);
             }
 
             @Override
@@ -183,25 +198,35 @@ public class ProjectsFragment extends Fragment implements ProjectsAdapter.Projec
     }
     
     private void filterAndDisplayProjects() {
-        List<Project> filtered = new ArrayList<>();
-        
-        for (Project p : allProjects) {
-            boolean matchesFilter = currentFilter.equals("all") || 
-                (p.getStatus() != null && p.getStatus().equalsIgnoreCase(currentFilter));
+        // Run filtering on background thread for large datasets
+        new Thread(() -> {
+            List<Project> filtered = new ArrayList<>();
             
-            boolean matchesSearch = searchQuery.isEmpty() ||
-                (p.getName() != null && p.getName().toLowerCase().contains(searchQuery)) ||
-                (p.getProjectCode() != null && p.getProjectCode().toLowerCase().contains(searchQuery)) ||
-                (p.getCustomerName() != null && p.getCustomerName().toLowerCase().contains(searchQuery));
-            
-            if (matchesFilter && matchesSearch) {
-                filtered.add(p);
+            for (Project p : allProjects) {
+                boolean matchesFilter = currentFilter.equals("all") || 
+                    (p.getStatus() != null && p.getStatus().equalsIgnoreCase(currentFilter));
+                
+                boolean matchesSearch = searchQuery.isEmpty() ||
+                    (p.getName() != null && p.getName().toLowerCase().contains(searchQuery)) ||
+                    (p.getProjectCode() != null && p.getProjectCode().toLowerCase().contains(searchQuery)) ||
+                    (p.getCustomerName() != null && p.getCustomerName().toLowerCase().contains(searchQuery));
+                
+                if (matchesFilter && matchesSearch) {
+                    filtered.add(p);
+                }
             }
-        }
-        
-        projectsAdapter.updateProjects(filtered);
-        tvProjectCount.setText(filtered.size() + " dự án");
-        showEmptyState(filtered.isEmpty());
+            
+            // Update UI on main thread
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    projectsAdapter.updateProjects(filtered);
+                    if (tvProjectCount != null) {
+                        tvProjectCount.setText(filtered.size() + " dự án");
+                    }
+                    showEmptyState(filtered.isEmpty());
+                });
+            }
+        }).start();
     }
     
     private void showEmptyState(boolean show) {

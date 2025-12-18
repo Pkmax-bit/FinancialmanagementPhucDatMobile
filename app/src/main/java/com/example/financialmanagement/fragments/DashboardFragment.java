@@ -19,10 +19,14 @@ import com.example.financialmanagement.R;
 import com.example.financialmanagement.activities.ProjectDetailActivity;
 import com.example.financialmanagement.adapters.RecentProjectsAdapter;
 import com.example.financialmanagement.models.Project;
+import com.example.financialmanagement.models.User;
+import com.example.financialmanagement.models.Employee;
 import com.example.financialmanagement.services.ProjectService;
 import com.example.financialmanagement.services.InvoiceService;
+import com.example.financialmanagement.services.UserService;
 import com.example.financialmanagement.models.Invoice;
 import com.example.financialmanagement.utils.CurrencyFormatter;
+import com.example.financialmanagement.auth.AuthManager;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -56,6 +60,8 @@ public class DashboardFragment extends Fragment {
     private ProgressBar progressBar;
     private ProjectService projectService;
     private InvoiceService invoiceService;
+    private UserService userService;
+    private AuthManager authManager;
 
     @Nullable
     @Override
@@ -99,6 +105,8 @@ public class DashboardFragment extends Fragment {
         if (getContext() != null) {
             projectService = new ProjectService(getContext());
             invoiceService = new InvoiceService(getContext());
+            userService = new UserService(getContext());
+            authManager = new AuthManager(getContext());
         }
         
         // Set current month
@@ -144,14 +152,81 @@ public class DashboardFragment extends Fragment {
     }
 
     private void loadUserInfo() {
-        if (getActivity() != null) {
-            getActivity().runOnUiThread(() -> {
-                tvUserName.setText("Admin");
+        if (getActivity() == null || userService == null) {
+            // Fallback to AuthManager if service not available
+            if (authManager != null && tvUserName != null) {
+                String userName = authManager.getUserName();
+                tvUserName.setText(userName != null ? userName : "Người dùng");
                 if (tvAvatar != null) {
-                    tvAvatar.setText("A");
+                    String firstChar = userName != null && !userName.isEmpty() 
+                        ? String.valueOf(userName.charAt(0)).toUpperCase() 
+                        : "U";
+                    tvAvatar.setText(firstChar);
                 }
-            });
+            }
+            return;
         }
+        
+        userService.getCurrentUser(new UserService.UserCallback() {
+            @Override
+            public void onSuccess(User user) {
+                if (getActivity() != null && tvUserName != null) {
+                    getActivity().runOnUiThread(() -> {
+                        String displayName = null;
+                        
+                        // Priority 1: Get name from employee if available
+                        if (user.getEmployee() != null) {
+                            Employee employee = user.getEmployee();
+                            displayName = employee.getFullName();
+                        }
+                        
+                        // Priority 2: Get name from user fullName
+                        if (displayName == null || displayName.isEmpty()) {
+                            displayName = user.getFullName();
+                        }
+                        
+                        // Priority 3: Fallback to AuthManager
+                        if (displayName == null || displayName.isEmpty() || "Unknown User".equals(displayName)) {
+                            if (authManager != null) {
+                                displayName = authManager.getUserName();
+                            }
+                        }
+                        
+                        // Final fallback
+                        if (displayName == null || displayName.isEmpty()) {
+                            displayName = "Người dùng";
+                        }
+                        
+                        tvUserName.setText(displayName);
+                        
+                        // Set avatar initial
+                        if (tvAvatar != null) {
+                            String firstChar = displayName != null && !displayName.isEmpty() 
+                                ? String.valueOf(displayName.charAt(0)).toUpperCase() 
+                                : "U";
+                            tvAvatar.setText(firstChar);
+                        }
+                    });
+                }
+            }
+            
+            @Override
+            public void onError(String error) {
+                // Fallback to AuthManager on error
+                if (getActivity() != null && authManager != null && tvUserName != null) {
+                    getActivity().runOnUiThread(() -> {
+                        String userName = authManager.getUserName();
+                        tvUserName.setText(userName != null ? userName : "Người dùng");
+                        if (tvAvatar != null) {
+                            String firstChar = userName != null && !userName.isEmpty() 
+                                ? String.valueOf(userName.charAt(0)).toUpperCase() 
+                                : "U";
+                            tvAvatar.setText(firstChar);
+                        }
+                    });
+                }
+            }
+        });
     }
 
     private void loadFinancialStats() {

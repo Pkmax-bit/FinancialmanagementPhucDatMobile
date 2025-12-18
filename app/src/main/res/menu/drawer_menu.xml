@@ -89,6 +89,11 @@
                 android:title="Cài đặt" />
             
             <item
+                android:id="@+id/nav_qr_web_login"
+                android:icon="@drawable/ic_qr_code"
+                android:title="Quét QR để đăng nhập Web" />
+            
+            <item
                 android:id="@+id/nav_profile"
                 android:icon="@drawable/ic_profile"
                 android:title="Hồ sơ cá nhân" />

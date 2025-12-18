@@ -246,6 +246,20 @@
                 android:textColor="#374151"
                 app:cornerRadius="8dp"
                 app:strokeColor="#D1D5DB"
+                app:strokeWidth="1dp"
+                android:layout_marginBottom="12dp" />
+
+            <!-- QR Login Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_qr_login"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="📱 Đăng nhập bằng QR"
+                android:textSize="14sp"
+                android:textColor="#2563EB"
+                app:cornerRadius="8dp"
+                app:strokeColor="#2563EB"
                 app:strokeWidth="1dp" />
 
             <!-- Progress Bar -->

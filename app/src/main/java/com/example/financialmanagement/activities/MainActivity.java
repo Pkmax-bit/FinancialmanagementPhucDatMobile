@@ -23,7 +23,11 @@ import com.example.financialmanagement.fragments.CustomersFragment;
 import com.example.financialmanagement.fragments.QuotesFragment;
 import com.example.financialmanagement.fragments.InvoicesFragment;
 import com.example.financialmanagement.fragments.SettingsFragment;
+import com.example.financialmanagement.fragments.ProductsFragment;
+import com.example.financialmanagement.fragments.ProductCategoriesFragment;
+import com.example.financialmanagement.fragments.ProductRulesFragment;
 import com.example.financialmanagement.auth.AuthManager;
+import com.example.financialmanagement.utils.UpdateManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 
@@ -39,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     private ActionBarDrawerToggle drawerToggle;
     private Toolbar toolbar;
     private AuthManager authManager;
+    private UpdateManager updateManager;
     private boolean isSettingUpNavigation = false;
     private boolean isUpdatingFromDrawer = false;
 
@@ -61,10 +66,16 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
             setupDrawer();
             setupBottomNavigation();
             
+            // Initialize update manager
+            updateManager = new UpdateManager(this);
+            
             // Load Dashboard fragment mặc định
             if (savedInstanceState == null) {
                 loadFragment(new DashboardFragment());
             }
+            
+            // Check for updates on app start (silent check)
+            checkForUpdates();
         } catch (Exception e) {
             e.printStackTrace();
             // Log error and show toast
@@ -182,6 +193,12 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
             showLogoutDialog();
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
+        } else if (itemId == R.id.nav_qr_web_login) {
+            Intent intent = new Intent(this, QRScannerActivity.class);
+            intent.putExtra("for_web_login", true);
+            startActivity(intent);
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
         } else if (itemId == R.id.nav_profile) {
             Toast.makeText(this, "Chức năng hồ sơ cá nhân sẽ được triển khai", Toast.LENGTH_SHORT).show();
             drawerLayout.closeDrawer(GravityCompat.START);
@@ -241,6 +258,12 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
             return new com.example.financialmanagement.fragments.EmployeesFragment();
         } else if (itemId == R.id.nav_tasks) {
             return new com.example.financialmanagement.fragments.TasksFragment();
+        } else if (itemId == R.id.nav_products) {
+            return new ProductsFragment();
+        } else if (itemId == R.id.nav_product_categories) {
+            return new ProductCategoriesFragment();
+        } else if (itemId == R.id.nav_product_rules) {
+            return new ProductRulesFragment();
         }
         return null;
     }
@@ -257,6 +280,9 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         else if (itemId == R.id.nav_settings) return "Cài đặt";
         else if (itemId == R.id.nav_employees) return "Nhân viên";
         else if (itemId == R.id.nav_tasks) return "Công việc";
+        else if (itemId == R.id.nav_products) return "Sản phẩm";
+        else if (itemId == R.id.nav_product_categories) return "Loại sản phẩm";
+        else if (itemId == R.id.nav_product_rules) return "Quy tắc";
         return "Dashboard";
     }
 
@@ -341,6 +367,23 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         } else {
             super.onBackPressed();
         }
+    }
+    
+    /**
+     * Check for app updates
+     */
+    private void checkForUpdates() {
+        if (updateManager != null) {
+            // Check silently on app start (don't show "no update" message)
+            updateManager.checkForUpdate(false);
+        }
+    }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Check for updates when app resumes (optional - can be removed if too frequent)
+        // checkForUpdates();
     }
     
     /**

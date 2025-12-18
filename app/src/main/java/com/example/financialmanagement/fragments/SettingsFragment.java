@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 import com.example.financialmanagement.R;
 import com.example.financialmanagement.auth.AuthManager;
 import com.example.financialmanagement.activities.LoginActivity;
+import com.example.financialmanagement.activities.QRScannerActivity;
 import com.example.financialmanagement.services.UserService;
 import com.example.financialmanagement.models.User;
 import com.example.financialmanagement.models.Employee;
@@ -26,7 +27,7 @@ import com.example.financialmanagement.utils.ApiDebugger;
 public class SettingsFragment extends Fragment {
 
     private TextView tvUserName, tvUserEmail, tvUserId, tvUserRole, tvEmployeeInfo;
-    private Button btnLogout, btnSyncData, btnClearCache;
+    private Button btnLogout, btnSyncData, btnClearCache, btnScanQrWeb;
     private AuthManager authManager;
     private UserService userService;
 
@@ -51,6 +52,7 @@ public class SettingsFragment extends Fragment {
         btnLogout = view.findViewById(R.id.btn_logout);
         btnSyncData = view.findViewById(R.id.btn_sync_data);
         btnClearCache = view.findViewById(R.id.btn_clear_cache);
+        btnScanQrWeb = view.findViewById(R.id.btn_scan_qr_web);
         
         authManager = new AuthManager(getContext());
         userService = new UserService(getContext());
@@ -75,6 +77,13 @@ public class SettingsFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 clearCache();
+            }
+        });
+
+        btnScanQrWeb.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                scanQRForWebLogin();
             }
         });
     }
@@ -222,5 +231,17 @@ public class SettingsFragment extends Fragment {
         
         // For now, just show a message
         Toast.makeText(getContext(), "Đã xóa cache", Toast.LENGTH_SHORT).show();
+    }
+
+    private void scanQRForWebLogin() {
+        // Check if user is logged in
+        if (!authManager.isLoggedIn()) {
+            Toast.makeText(getContext(), "Vui lòng đăng nhập trước", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Open QR Scanner Activity
+        Intent intent = new Intent(getActivity(), QRScannerActivity.class);
+        startActivity(intent);
     }
 }
