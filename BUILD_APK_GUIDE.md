@@ -178,3 +178,4 @@ dir app\build\outputs\apk\debug\app-debug.apk
 ### APK quá lớn (>100MB)
 → Cân nhắc dùng Android App Bundle (.aab) thay vì APK
 
+

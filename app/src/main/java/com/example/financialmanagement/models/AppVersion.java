@@ -68,3 +68,4 @@ public class AppVersion {
     public void setFileSize(Long fileSize) { this.fileSize = fileSize; }
 }
 
+

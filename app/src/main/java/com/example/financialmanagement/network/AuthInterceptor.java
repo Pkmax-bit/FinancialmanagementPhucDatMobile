@@ -35,10 +35,19 @@ public class AuthInterceptor implements Interceptor {
             authManager.isLoggedIn());
         
         if (token != null && !token.isEmpty()) {
-            // Thêm Authorization header
-            Request newRequest = originalRequest.newBuilder()
-                    .addHeader(NetworkConfig.Headers.AUTHORIZATION, "Bearer " + token)
-                    .build();
+            // Kiểm tra xem header đã tồn tại chưa (có thể đã được thêm bởi @Header annotation)
+            String existingAuth = originalRequest.header(NetworkConfig.Headers.AUTHORIZATION);
+            Request.Builder requestBuilder = originalRequest.newBuilder();
+            
+            if (existingAuth == null || existingAuth.isEmpty()) {
+                // Chỉ thêm header nếu chưa có
+                requestBuilder.addHeader(NetworkConfig.Headers.AUTHORIZATION, "Bearer " + token);
+            } else {
+                // Header đã tồn tại, sử dụng header hiện có
+                ApiDebugger.logAuth("AuthInterceptor - Authorization header already exists, using existing header", true);
+            }
+            
+            Request newRequest = requestBuilder.build();
             
             ApiDebugger.logAuth("AuthInterceptor - Added Bearer token", true);
             Response response = chain.proceed(newRequest);
