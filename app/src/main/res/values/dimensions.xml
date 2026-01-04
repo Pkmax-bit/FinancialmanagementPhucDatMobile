@@ -9,27 +9,27 @@
     <dimen name="spacing_2xl">48dp</dimen>
     
     <!-- Padding -->
-    <dimen name="padding_content">16dp</dimen>
+    <dimen name="padding_content">20dp</dimen> <!-- Increased from 16dp for more breathing room -->
     <dimen name="padding_card">16dp</dimen>
     <dimen name="padding_list_item">16dp</dimen>
     
     <!-- Margins -->
-    <dimen name="margin_card">8dp</dimen>
-    <dimen name="margin_section">16dp</dimen>
+    <dimen name="margin_card">12dp</dimen> <!-- Increased from 8dp -->
+    <dimen name="margin_section">24dp</dimen> <!-- Increased from 16dp -->
     
     <!-- Card -->
-    <dimen name="card_corner_radius">8dp</dimen>
-    <dimen name="card_elevation">4dp</dimen>
-    <dimen name="card_elevation_pressed">8dp</dimen>
+    <dimen name="card_corner_radius">16dp</dimen> <!-- Increased from 8dp -->
+    <dimen name="card_elevation">0dp</dimen> <!-- Using custom shadows instead of harsh elevation, or keeping 0 for flat style with border -->
+    <dimen name="card_elevation_pressed">4dp</dimen>
     
     <!-- Button -->
-    <dimen name="button_height">48dp</dimen>
-    <dimen name="button_corner_radius">8dp</dimen>
+    <dimen name="button_height">56dp</dimen> <!-- Taller buttons -->
+    <dimen name="button_corner_radius">16dp</dimen> <!-- Rounded buttons -->
     <dimen name="button_padding_horizontal">24dp</dimen>
     
     <!-- Input Fields -->
     <dimen name="input_height">56dp</dimen>
-    <dimen name="input_corner_radius">4dp</dimen>
+    <dimen name="input_corner_radius">12dp</dimen>
     
     <!-- Icon Sizes -->
     <dimen name="icon_sm">16dp</dimen>

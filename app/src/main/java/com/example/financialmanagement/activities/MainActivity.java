@@ -223,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
             
             // Update bottom navigation if the item exists there
             if (itemId == R.id.nav_dashboard || itemId == R.id.nav_projects || 
-                itemId == R.id.nav_revenue || itemId == R.id.nav_expenses || 
+                itemId == R.id.nav_tasks || itemId == R.id.nav_expenses || 
                 itemId == R.id.nav_reports) {
                 updateBottomNavigation(itemId);
             }
@@ -257,7 +257,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         } else if (itemId == R.id.nav_employees) {
             return new com.example.financialmanagement.fragments.EmployeesFragment();
         } else if (itemId == R.id.nav_tasks) {
-            return new com.example.financialmanagement.fragments.TasksFragment();
+            return new com.example.financialmanagement.fragments.TaskGroupsFragment();
         } else if (itemId == R.id.nav_products) {
             return new ProductsFragment();
         } else if (itemId == R.id.nav_product_categories) {
@@ -279,7 +279,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         else if (itemId == R.id.nav_invoices) return "Hóa đơn";
         else if (itemId == R.id.nav_settings) return "Cài đặt";
         else if (itemId == R.id.nav_employees) return "Nhân viên";
-        else if (itemId == R.id.nav_tasks) return "Công việc";
+        else if (itemId == R.id.nav_tasks) return "Nhiệm vụ";
         else if (itemId == R.id.nav_products) return "Sản phẩm";
         else if (itemId == R.id.nav_product_categories) return "Loại sản phẩm";
         else if (itemId == R.id.nav_product_rules) return "Quy tắc";
@@ -305,7 +305,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         
         // Only update bottom navigation if the item exists in bottom nav
         if (itemId == R.id.nav_dashboard || itemId == R.id.nav_projects || 
-            itemId == R.id.nav_revenue || itemId == R.id.nav_expenses || 
+            itemId == R.id.nav_tasks || itemId == R.id.nav_expenses || 
             itemId == R.id.nav_reports) {
             bottomNavigationView.setSelectedItemId(itemId);
         }

@@ -12,9 +12,9 @@
         android:title="Dự án" />
 
     <item
-        android:id="@+id/nav_revenue"
-        android:icon="@drawable/ic_money"
-        android:title="Doanh thu" />
+        android:id="@+id/nav_tasks"
+        android:icon="@drawable/ic_tasks"
+        android:title="Nhiệm vụ" />
 
     <item
         android:id="@+id/nav_expenses"

@@ -34,6 +34,10 @@ public class Project implements Serializable {
     private String assignedTo;
     private String notes;
     private Integer progress; // Progress percentage (0-100)
+    @com.google.gson.annotations.SerializedName("billing_type")
+    private String billingType;
+    @com.google.gson.annotations.SerializedName("hourly_rate")
+    private Double hourlyRate;
 
     // Constructors
     public Project() {}
@@ -183,6 +187,22 @@ public class Project implements Serializable {
         this.progress = progress;
     }
 
+    public String getBillingType() {
+        return billingType;
+    }
+
+    public void setBillingType(String billingType) {
+        this.billingType = billingType;
+    }
+
+    public Double getHourlyRate() {
+        return hourlyRate;
+    }
+
+    public void setHourlyRate(Double hourlyRate) {
+        this.hourlyRate = hourlyRate;
+    }
+
     // Utility methods
     public boolean isActive() {
         return "active".equals(status);
@@ -220,6 +240,16 @@ public class Project implements Serializable {
             case "medium": return "Trung bình";
             case "low": return "Thấp";
             default: return priority;
+        }
+    }
+
+    public String getBillingTypeDisplayName() {
+        if (billingType == null) return "Không xác định";
+        switch (billingType) {
+            case "fixed": return "Cố định";
+            case "hourly": return "Theo giờ";
+            case "milestone": return "Theo mốc";
+            default: return billingType;
         }
     }
 

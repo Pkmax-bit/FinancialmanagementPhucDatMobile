@@ -63,6 +63,8 @@ public class ProjectDetailActivity extends AppCompatActivity {
     private List<Quote> projectQuotes = new ArrayList<>();
     private List<Invoice> projectInvoices = new ArrayList<>();
     private List<ProjectExpense> projectExpenses = new ArrayList<>();
+    private List<com.example.financialmanagement.models.Task> projectTasks = new ArrayList<>();
+    private List<com.example.financialmanagement.models.TeamMember> projectTeam = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,16 +125,22 @@ public class ProjectDetailActivity extends AppCompatActivity {
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
             switch (position) {
                 case 0:
-                    tab.setText("Báo giá");
+                    tab.setText("Tổng quan");
                     break;
                 case 1:
-                    tab.setText("Hóa đơn");
+                    tab.setText("Báo giá");
                     break;
                 case 2:
-                    tab.setText("Chi phí");
+                    tab.setText("Hóa đơn");
                     break;
                 case 3:
-                    tab.setText("Tổng quan");
+                    tab.setText("Chi phí");
+                    break;
+                case 4:
+                    tab.setText("Nhiệm vụ");
+                    break;
+                case 5:
+                    tab.setText("Đội ngũ");
                     break;
             }
         }).attach();
@@ -152,6 +160,8 @@ public class ProjectDetailActivity extends AppCompatActivity {
             loadProjectQuotes();
             loadProjectInvoices();
             loadProjectExpenses();
+            loadProjectTasks();
+            loadProjectTeam();
         }, 500);
     }
     
@@ -635,6 +645,50 @@ public class ProjectDetailActivity extends AppCompatActivity {
             if (projectExpenses != null) {
                 pagerAdapter.updateExpenses(projectExpenses);
             }
+            if (projectTasks != null) {
+                pagerAdapter.updateTasks(projectTasks);
+            }
+            if (projectTeam != null) {
+                pagerAdapter.updateTeam(projectTeam);
+            }
         }
+    }
+
+    private void loadProjectTasks() {
+        projectService.getProjectTasks(projectId, new ProjectService.TasksCallback() {
+            @Override
+            public void onSuccess(List<com.example.financialmanagement.models.Task> tasks) {
+                runOnUiThread(() -> {
+                    projectTasks = tasks;
+                    if (pagerAdapter != null) {
+                        pagerAdapter.updateTasks(projectTasks);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                // Handled in fragment
+            }
+        });
+    }
+
+    private void loadProjectTeam() {
+        projectService.getProjectTeam(projectId, new ProjectService.TeamCallback() {
+            @Override
+            public void onSuccess(List<com.example.financialmanagement.models.TeamMember> team) {
+                runOnUiThread(() -> {
+                    projectTeam = team;
+                    if (pagerAdapter != null) {
+                        pagerAdapter.updateTeam(projectTeam);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                // Handled in fragment
+            }
+        });
     }
 }

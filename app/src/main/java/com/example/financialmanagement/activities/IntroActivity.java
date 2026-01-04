@@ -25,6 +25,8 @@ public class IntroActivity extends AppCompatActivity {
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Switch back to normal theme after splash
+        setTheme(R.style.Theme_FinancialManagement_NoActionBar);
         super.onCreate(savedInstanceState);
         
         // Check if intro was already shown (COMMENTED FOR TESTING - always show intro)

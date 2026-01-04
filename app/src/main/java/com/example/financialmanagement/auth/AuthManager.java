@@ -16,6 +16,9 @@ import java.util.Map;
 /**
  * Auth Manager - Quản lý xác thực
  * Xử lý login, logout, token management với Supabase
+ *
+ * ⚠️ QUAN TRỌNG: Sử dụng Supabase URL và API key THẬT.
+ * KHÔNG sử dụng mock data cho authentication.
  */
 public class AuthManager {
     

@@ -2,6 +2,8 @@ package com.example.financialmanagement.network;
 
 import com.example.financialmanagement.models.Customer;
 import com.example.financialmanagement.models.Project;
+import com.example.financialmanagement.models.Task;
+import com.example.financialmanagement.models.TeamResponse;
 import java.util.List;
 import java.util.Map;
 import retrofit2.Call;
@@ -11,6 +13,7 @@ import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 import retrofit2.http.QueryMap;
 
 public interface ApiService {
@@ -30,6 +33,12 @@ public interface ApiService {
 
     @DELETE("projects/{id}")
     Call<Void> deleteProject(@Path("id") String id);
+
+    @GET("projects/{id}/team")
+    Call<TeamResponse> getProjectTeam(@Path("id") String projectId);
+
+    @GET("tasks")
+    Call<List<Task>> getProjectTasks(@Query("project_id") String projectId);
 
     // Customers
     @GET("customers")

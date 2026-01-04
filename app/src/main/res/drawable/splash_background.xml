@@ -12,21 +12,21 @@
     
     <!-- Logo Background Circle -->
     <item
-        android:width="120dp"
-        android:height="120dp"
+        android:width="540dp"
+        android:height="540dp"
         android:gravity="center">
         <shape android:shape="oval">
             <solid android:color="@color/white" />
             <stroke
-                android:width="4dp"
+                android:width="12dp"
                 android:color="@color/primary_color" />
         </shape>
     </item>
     
     <!-- Logo Icon -->
     <item
-        android:width="60dp"
-        android:height="60dp"
+        android:width="300dp"
+        android:height="300dp"
         android:gravity="center">
         <bitmap
             android:src="@drawable/ic_launcher_foreground"

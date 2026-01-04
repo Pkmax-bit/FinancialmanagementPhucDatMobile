@@ -29,10 +29,8 @@ public class AuthInterceptor implements Interceptor {
         String token = authManager.getAccessToken();
         
         // Debug logging
-        ApiDebugger.logAuth("AuthInterceptor - Token available: " + (token != null && !token.isEmpty()), 
-            authManager.isLoggedIn());
-        ApiDebugger.logAuth("AuthInterceptor - Request URL: " + originalRequest.url(), 
-            authManager.isLoggedIn());
+        ApiDebugger.logAuth(token, authManager.isLoggedIn());
+        long startTime = System.currentTimeMillis();
         
         if (token != null && !token.isEmpty()) {
             // Kiểm tra xem header đã tồn tại chưa (có thể đã được thêm bởi @Header annotation)

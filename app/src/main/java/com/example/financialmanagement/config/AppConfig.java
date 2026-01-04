@@ -3,6 +3,10 @@ package com.example.financialmanagement.config;
 /**
  * App Configuration - Cấu hình ứng dụng
  * Quản lý các cấu hình môi trường và settings
+ *
+ * ⚠️ QUAN TRỌNG: Ứng dụng này KHÔNG sử dụng mock data.
+ * Tất cả dữ liệu đều được lấy từ API thật của backend.
+ * Chỉ có các file test (*.py) mới sử dụng mock token cho testing.
  */
 public class AppConfig {
     
@@ -50,9 +54,9 @@ public class AppConfig {
             case NETWORK:
                 return "http://127.0.0.1:8000/api/";
             case PRODUCTION:
-                return "https://financial-management-backend-3l62.onrender.com/api/";
+                return "https://financial-management-backend-3m78.onrender.com/api/";
             default:
-                return "https://financial-management-backend-3l62.onrender.com/api/";
+                return "https://financial-management-backend-3m78.onrender.com/api/";
         }
     }
     

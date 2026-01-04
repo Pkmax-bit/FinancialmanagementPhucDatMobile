@@ -10,10 +10,28 @@ public class Task implements Serializable {
     private String status;
     private String priority;
     private String due_date;
+    @com.google.gson.annotations.SerializedName("assigned_to")
     private String assignee_id;
     private String creator_id;
     private String project_id;
     private String created_at;
+
+    @com.google.gson.annotations.SerializedName("assigned_to_name")
+    private String assigneeName;
+
+    @com.google.gson.annotations.SerializedName("progress_percentage")
+    private int progress;
+    @com.google.gson.annotations.SerializedName("group_id")
+    private String groupId;
+    @com.google.gson.annotations.SerializedName("group_name")
+    private String groupName;
+    @com.google.gson.annotations.SerializedName("project_name")
+    private String projectName;
+
+    @com.google.gson.annotations.SerializedName("accountable_person")
+    private String accountablePersonId;
+    @com.google.gson.annotations.SerializedName("accountable_person_name")
+    private String accountablePersonName;
 
     // Related objects
     private Employee assignee;
@@ -50,8 +68,20 @@ public class Task implements Serializable {
 
     public String getCreatedAt() { return created_at; }
     public void setCreatedAt(String created_at) { this.created_at = created_at; }
+    
+    public String getAssigneeName() { return assigneeName; }
+    public void setAssigneeName(String assigneeName) { this.assigneeName = assigneeName; }
 
-    public Employee getAssignee() { return assignee; }
+    public Employee getAssignee() { 
+        if (assignee == null && assigneeName != null) {
+            assignee = new Employee();
+            assignee.setId(assignee_id);
+            // Split name if possible or just set first name
+            assignee.setFirstName(assigneeName);
+            assignee.setLastName("");
+        }
+        return assignee; 
+    }
     public void setAssignee(Employee assignee) { this.assignee = assignee; }
 
     public Employee getCreator() { return creator; }
@@ -59,6 +89,24 @@ public class Task implements Serializable {
 
     public Project getProject() { return project; }
     public void setProject(Project project) { this.project = project; }
+
+    public int getProgress() { return progress; }
+    public void setProgress(int progress) { this.progress = progress; }
+
+    public String getGroupId() { return groupId; }
+    public void setGroupId(String groupId) { this.groupId = groupId; }
+
+    public String getGroupName() { return groupName; }
+    public void setGroupName(String groupName) { this.groupName = groupName; }
+
+    public String getProjectName() { return projectName; }
+    public void setProjectName(String projectName) { this.projectName = projectName; }
+
+    public String getAccountablePersonId() { return accountablePersonId; }
+    public void setAccountablePersonId(String accountablePersonId) { this.accountablePersonId = accountablePersonId; }
+
+    public String getAccountablePersonName() { return accountablePersonName; }
+    public void setAccountablePersonName(String accountablePersonName) { this.accountablePersonName = accountablePersonName; }
     
     public String getStatusDisplayName() {
         switch (status) {

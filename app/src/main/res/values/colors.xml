@@ -1,63 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary Colors - Light Blue Theme -->
-    <color name="primary_color">#4A90E2</color>
-    <color name="primary_dark">#357ABD</color>
-    <color name="primary_light">#B3D9FF</color>
+    <!-- Primary Colors - Premium Blue Theme -->
+    <color name="primary_color">#2563EB</color> <!-- Softer, more modern blue -->
+    <color name="primary_dark">#1D4ED8</color>
+    <color name="primary_light">#DBEAFE</color>
     
     <!-- Secondary Colors -->
-    <color name="secondary_color">#FF9800</color>
-    <color name="secondary_dark">#F57C00</color>
-    <color name="secondary_light">#FFE0B2</color>
+    <color name="secondary_color">#F59E0B</color>
+    <color name="secondary_dark">#D97706</color>
+    <color name="secondary_light">#FEF3C7</color>
     
     <!-- Accent Colors -->
-    <color name="accent_color">#4CAF50</color>
-    <color name="accent_dark">#388E3C</color>
-    <color name="accent_light">#C8E6C9</color>
+    <color name="accent_color">#10B981</color>
+    <color name="accent_dark">#059669</color>
+    <color name="accent_light">#D1FAE5</color>
     
-    <!-- Background Colors - Figma Design -->
-    <color name="background_color">#FFFFFF</color>
+    <!-- Background Colors - Modern & Clean -->
+    <color name="background_color">#F3F4F6</color> <!-- Light gray background for contrast with white cards -->
     <color name="surface_color">#FFFFFF</color>
-    <color name="surface_variant">#F3F3F5</color>
-    <color name="muted">#ECECF0</color>
-    <color name="muted_foreground">#717182</color>
+    <color name="surface_variant">#F9FAFB</color>
+    <color name="muted">#E5E7EB</color>
+    <color name="muted_foreground">#6B7280</color>
     
     <!-- Text Colors -->
-    <color name="text_primary">#212121</color>
-    <color name="text_secondary">#757575</color>
-    <color name="text_hint">#BDBDBD</color>
-    <color name="text_disabled">#E0E0E0</color>
+    <color name="text_primary">#111827</color> <!-- Almost black, softer -->
+    <color name="text_secondary">#6B7280</color> <!-- Cool gray -->
+    <color name="text_hint">#9CA3AF</color>
+    <color name="text_disabled">#D1D5DB</color>
     
     <!-- Status Colors -->
-    <color name="success_color">#4CAF50</color>
-    <color name="warning_color">#FF9800</color>
-    <color name="error_color">#F44336</color>
-    <color name="info_color">#2196F3</color>
+    <color name="success_color">#10B981</color>
+    <color name="warning_color">#F59E0B</color>
+    <color name="error_color">#EF4444</color>
+    <color name="info_color">#3B82F6</color>
     
     <!-- Chart Colors -->
-    <color name="chart_color_1">#2196F3</color>
-    <color name="chart_color_2">#4CAF50</color>
-    <color name="chart_color_3">#FF9800</color>
-    <color name="chart_color_4">#F44336</color>
-    <color name="chart_color_5">#9C27B0</color>
-    <color name="chart_color_6">#00BCD4</color>
+    <color name="chart_color_1">#3B82F6</color>
+    <color name="chart_color_2">#10B981</color>
+    <color name="chart_color_3">#F59E0B</color>
+    <color name="chart_color_4">#EF4444</color>
+    <color name="chart_color_5">#8B5CF6</color>
+    <color name="chart_color_6">#06B6D4</color>
     
     
     <!-- Bottom Navigation Colors -->
-    <color name="bottom_nav_selected">#2196F3</color>
-    <color name="bottom_nav_unselected">#757575</color>
+    <color name="bottom_nav_selected">#2563EB</color>
+    <color name="bottom_nav_unselected">#9CA3AF</color>
     
     <!-- Gradient Colors -->
-    <color name="gradient_start">#2196F3</color>
-    <color name="gradient_end">#21CBF3</color>
+    <color name="gradient_start">#2563EB</color>
+    <color name="gradient_end">#60A5FA</color>
     
     <!-- Card Colors -->
     <color name="card_background">#FFFFFF</color>
-    <color name="card_shadow">#1F000000</color>
+    <color name="card_shadow">#0D000000</color> <!-- Much lighter shadow -->
     
     <!-- Divider Colors -->
-    <color name="divider_color">#E0E0E0</color>
-    <color name="divider_dark">#BDBDBD</color>
+    <color name="divider_color">#E5E7EB</color>
+    <color name="divider_dark">#D1D5DB</color>
     
     <!-- Overlay Colors -->
     <color name="overlay_light">#80FFFFFF</color>
@@ -116,4 +116,28 @@
     <color name="blue_700">#1976D2</color>
     <color name="red_500">#F44336</color>
     <color name="gray_600">#757575</color>
+    <color name="gray_300">#D1D5DB</color>
+
+    <!-- Task Detail Redesign Colors -->
+    <color name="task_status_completed_bg">#E8F5E9</color>
+    <color name="task_status_completed_text">#34C759</color>
+    <color name="task_status_in_progress_bg">#E3F2FD</color>
+    <color name="task_status_in_progress_text">#0075FF</color>
+    <color name="task_status_todo_bg">#F8F9FA</color>
+    <color name="task_status_todo_text">#6C757D</color>
+    <color name="task_status_overdue_bg">#FFEBEE</color>
+    <color name="task_status_overdue_text">#FF3B30</color>
+    <color name="task_status_cancelled_bg">#F8F9FA</color>
+    <color name="task_status_cancelled_text">#ADB5BD</color>
+    
+    <color name="task_priority_high">#FF3B30</color>
+    <color name="task_priority_medium">#FF9500</color>
+    <color name="task_priority_low">#34C759</color>
+    
+    <color name="task_accent">#0075FF</color>
+    <color name="task_background">#F8F9FA</color>
+    <color name="task_card_bg">#FFFFFF</color>
+    <color name="task_divider">#E9ECEF</color>
+    <color name="task_text_muted">#ADB5BD</color>
+    <color name="task_success">#34C759</color>
 </resources>

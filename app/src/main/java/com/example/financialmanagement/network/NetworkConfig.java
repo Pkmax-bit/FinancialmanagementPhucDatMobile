@@ -34,10 +34,22 @@ public class NetworkConfig {
     public static class Endpoints {
         // Authentication
         public static final String LOGIN = "auth/login";
-        public static final String REGISTER = "auth/signup";
+        public static final String REGISTER = "auth/register";
         public static final String LOGOUT = "auth/logout";
-        public static final String REFRESH_TOKEN = "auth/refresh";
+        public static final String REFRESH_TOKEN = "auth/refresh-token";
         public static final String RESET_PASSWORD = "auth/reset-password";
+        
+        // QR Login
+        public static final String QR_GENERATE = "auth/qr/generate";
+        public static final String QR_VERIFY = "auth/qr/verify";
+        public static final String QR_COMPLETE = "auth/qr/complete";
+        public static final String QR_STATUS = "auth/qr/status/{session_id}";
+        
+        // Mobile to Web QR Login
+        public static final String MOBILE_QR_GENERATE = "auth/mobile/generate";
+        public static final String WEB_QR_VERIFY = "auth/web/verify";
+        public static final String WEB_QR_COMPLETE = "auth/web/complete";
+        public static final String MOBILE_QR_STATUS = "auth/mobile/status/{session_id}";
         
         // Projects
         public static final String PROJECTS = "projects";
@@ -56,9 +68,9 @@ public class NetworkConfig {
         public static final String CUSTOMERS_PUBLIC = "customers/public-list";
         
         // Users
-        public static final String USERS = "users";
-        public static final String USER_DETAIL = "users/{id}";
-        public static final String USER_PROFILE = "users/profile";
+        public static final String USERS = "auth/users";
+        public static final String USER_DETAIL = "auth/users/{id}";
+        public static final String USER_PROFILE = "auth/me";
         
         // Employees
         public static final String EMPLOYEES = "employees";

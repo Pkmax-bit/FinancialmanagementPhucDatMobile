@@ -20,16 +20,16 @@
         <!-- Icon Container with white circle background -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/icon_container"
-            android:layout_width="180dp"
-            android:layout_height="180dp"
-            app:cardCornerRadius="90dp"
+            android:layout_width="540dp"
+            android:layout_height="540dp"
+            app:cardCornerRadius="270dp"
             app:cardElevation="16dp"
             app:cardBackgroundColor="#FFFFFF">
 
             <ImageView
                 android:id="@+id/iv_slide_image"
-                android:layout_width="110dp"
-                android:layout_height="110dp"
+                android:layout_width="330dp"
+                android:layout_height="330dp"
                 android:layout_gravity="center"
                 android:contentDescription="Intro image"
                 app:tint="@color/md_primary" />

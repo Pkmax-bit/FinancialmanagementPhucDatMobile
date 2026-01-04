@@ -3,6 +3,9 @@ package com.example.financialmanagement.services;
 import android.content.Context;
 import android.util.Log;
 import com.example.financialmanagement.models.Project;
+import com.example.financialmanagement.models.TeamMember;
+import com.example.financialmanagement.models.TeamResponse;
+import com.example.financialmanagement.models.Task;
 import com.example.financialmanagement.network.ApiClient;
 import com.example.financialmanagement.network.ApiService;
 import com.google.gson.Gson;
@@ -176,5 +179,59 @@ public class ProjectService {
                 callback.onError("Lỗi kết nối: " + t.getMessage());
             }
         });
+    }
+
+    /**
+     * Get project team
+     */
+    public void getProjectTeam(String projectId, TeamCallback callback) {
+        Call<TeamResponse> call = apiService.getProjectTeam(projectId);
+        call.enqueue(new Callback<TeamResponse>() {
+            @Override
+            public void onResponse(Call<TeamResponse> call, Response<TeamResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body().getTeamMembers());
+                } else {
+                    callback.onError("Lỗi tải đội ngũ dự án: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<TeamResponse> call, Throwable t) {
+                callback.onError("Lỗi kết nối: " + t.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Get project tasks
+     */
+    public void getProjectTasks(String projectId, TasksCallback callback) {
+        Call<List<Task>> call = apiService.getProjectTasks(projectId);
+        call.enqueue(new Callback<List<Task>>() {
+            @Override
+            public void onResponse(Call<List<Task>> call, Response<List<Task>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Lỗi tải nhiệm vụ dự án: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Task>> call, Throwable t) {
+                callback.onError("Lỗi kết nối: " + t.getMessage());
+            }
+        });
+    }
+
+    public interface TeamCallback {
+        void onSuccess(List<TeamMember> team);
+        void onError(String error);
+    }
+
+    public interface TasksCallback {
+        void onSuccess(List<Task> tasks);
+        void onError(String error);
     }
 }
