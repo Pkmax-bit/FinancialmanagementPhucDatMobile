@@ -30,6 +30,27 @@ import java.util.ArrayList; // Added import
 import android.widget.ImageView; // Added import
 import com.example.financialmanagement.models.TaskComment; // Added import
 import com.example.financialmanagement.utils.FileIconHelper; // Added import
+import android.app.Dialog; // Added for dialog
+import android.widget.EditText; // Added for dialog
+import android.widget.Button; // Added for dialog
+import android.widget.Spinner; // Added for dialog
+import android.widget.ArrayAdapter; // Added for spinner
+import android.widget.ImageButton; // Added for checklist header
+import com.example.financialmanagement.models.TaskParticipant; // Added for assignee selection
+import com.example.financialmanagement.models.AssigneeWithRole; // Added for multi-assignee
+import com.example.financialmanagement.models.AttachmentItem; // Added for attachments
+import com.example.financialmanagement.adapters.AssigneeRoleAdapter; // Added for assignee adapter
+import com.example.financialmanagement.adapters.AttachmentAdapter; // Added for attachment adapter
+import androidx.recyclerview.widget.RecyclerView; // Added for recycler views
+import androidx.recyclerview.widget.GridLayoutManager; // Added for grid layout
+import android.app.DatePickerDialog; // Added for date picker
+import java.util.Calendar; // Added for date handling
+import android.content.Intent; // Added for file picker
+import android.provider.MediaStore; // Added for image picker
+import android.provider.DocumentsContract; // Added for file picker
+import java.util.ArrayList; // Added for lists
+import com.google.android.material.chip.Chip; // Added for priority chips
+import android.view.ViewGroup; // Added for dialog sizing
 
 public class TaskDetailActivity extends AppCompatActivity {
 
@@ -56,6 +77,7 @@ public class TaskDetailActivity extends AppCompatActivity {
 
     private List<com.example.financialmanagement.models.TaskChecklist> allChecklists; // Changed originalChecklists to allChecklists
     private String currentSubtaskFilter = "all";
+    private List<TaskParticipant> taskParticipants; // Store task participants for assignee selection
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,6 +146,7 @@ public class TaskDetailActivity extends AppCompatActivity {
                 bindTaskData(task);
                 bindOverview(task, task.getProject());
                 // bindAssignments(response.getAssignments());
+                taskParticipants = response.getParticipants(); // Store participants for assignee selection
                 bindTeamData(response.getParticipants());
                 bindSubtasks(response.getChecklists());
                 
@@ -464,18 +487,28 @@ public class TaskDetailActivity extends AppCompatActivity {
     }
 
     private void bindSubtasks(List<com.example.financialmanagement.models.TaskChecklist> checklists) {
-        this.allChecklists = checklists; 
-        
+        this.allChecklists = checklists;
+
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        container.setPadding(0, 8, 0, 8);
+
+        // Add header with + button to create new checklist
+        View headerView = LayoutInflater.from(this).inflate(R.layout.view_subtasks_header, container, false);
+        com.google.android.material.button.MaterialButton btnAddChecklist = headerView.findViewById(R.id.btn_add_checklist);
+        btnAddChecklist.setOnClickListener(v -> showCreateChecklistDialog());
+        container.addView(headerView);
+
         // Initialize filter view if needed
         if (filterHeaderView == null) {
             filterHeaderView = createFilterHeaderView();
         }
-        
+
         // Calculate counts for filters
         int total = 0;
         int todo = 0;
         int completed = 0;
-        
+
         if (allChecklists != null) {
             for (com.example.financialmanagement.models.TaskChecklist checklist : allChecklists) {
                 if (checklist.getItems() != null) {
@@ -487,10 +520,17 @@ public class TaskDetailActivity extends AppCompatActivity {
                 }
             }
         }
-        
+
         // Refresh filter header with counts
         updateFilterHeader(total, todo, completed);
-        applySubtaskFilter();
+        container.addView(filterHeaderView);
+
+        // Add checklists
+        if (allChecklists != null && !allChecklists.isEmpty()) {
+            applySubtaskFilterToContainer(container);
+        }
+
+        sectionSubtasks.setContentView(container);
     }
 
     private View filterHeaderView; // Keep reference to refresh
@@ -533,35 +573,18 @@ public class TaskDetailActivity extends AppCompatActivity {
 
             chip.setOnClickListener(v -> {
                 currentSubtaskFilter = filter;
-                bindSubtasks(allChecklists); // Re-bind to refresh filter UI and list
+                // Re-bind subtasks to refresh filter UI and list
+                bindSubtasks(allChecklists);
             });
 
             filterContainerLayout.addView(chip);
         }
     }
 
-    private void applySubtaskFilter() {
-        if (allChecklists == null || allChecklists.isEmpty()) { 
-            sectionSubtasks.setVisibility(View.GONE);
-            return;
-        }
-
-        LinearLayout container = new LinearLayout(this);
-        container.setOrientation(LinearLayout.VERTICAL);
-        container.setPadding(0, 8, 0, 8); 
-
-        // Add Filter Header
-        if (filterHeaderView == null) {
-            filterHeaderView = createFilterHeaderView();
-        }
-        if (filterHeaderView.getParent() != null) {
-            ((ViewGroup)filterHeaderView.getParent()).removeView(filterHeaderView);
-        }
-        container.addView(filterHeaderView);
-
-        for (com.example.financialmanagement.models.TaskChecklist checklist : allChecklists) { 
+    private void applySubtaskFilterToContainer(LinearLayout container) {
+        for (com.example.financialmanagement.models.TaskChecklist checklist : allChecklists) {
             if (checklist.getItems() == null || checklist.getItems().isEmpty()) continue;
-            
+
             // Collect matching items first
             List<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> matchingItems = new ArrayList<>();
             for (com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem item : checklist.getItems()) {
@@ -569,61 +592,34 @@ public class TaskDetailActivity extends AppCompatActivity {
                  if (currentSubtaskFilter.equals("todo") && item.isCompleted()) continue;
                  matchingItems.add(item);
             }
-            
+
             if (matchingItems.isEmpty()) continue;
 
             // Create Checklist Group Container
             LinearLayout groupContainer = new LinearLayout(this);
             groupContainer.setOrientation(LinearLayout.VERTICAL);
             groupContainer.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 
+                LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT));
-            
+
             // --- HEADER ---
-            android.widget.RelativeLayout headerLayout = new android.widget.RelativeLayout(this);
-            headerLayout.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 
-                LinearLayout.LayoutParams.WRAP_CONTENT));
-            headerLayout.setPadding(16, 24, 16, 24);
-            headerLayout.setBackgroundResource(R.drawable.bg_rounded_gray); // Use a light background
-            // Add margin to header
-            LinearLayout.LayoutParams headerParams = (LinearLayout.LayoutParams) headerLayout.getLayoutParams();
-            headerParams.setMargins(0, 8, 0, 8);
-            headerLayout.setLayoutParams(headerParams);
+            View headerView = LayoutInflater.from(this).inflate(R.layout.view_checklist_header, groupContainer, false);
+            TextView titleView = headerView.findViewById(R.id.text_checklist_title);
+            ImageView arrowIcon = headerView.findViewById(R.id.image_checklist_arrow);
+            ImageButton btnAddItem = headerView.findViewById(R.id.btn_add_checklist_item);
 
-            // Title
-            TextView titleView = new TextView(this);
-            titleView.setId(View.generateViewId());
             titleView.setText(checklist.getTitle() + " (" + matchingItems.size() + ")");
-            titleView.setTextSize(14);
-            titleView.setTypeface(null, android.graphics.Typeface.BOLD);
-            titleView.setTextColor(getResources().getColor(R.color.task_priority_medium));
-            
-            android.widget.RelativeLayout.LayoutParams titleParams = new android.widget.RelativeLayout.LayoutParams(
-                android.widget.RelativeLayout.LayoutParams.WRAP_CONTENT, 
-                android.widget.RelativeLayout.LayoutParams.WRAP_CONTENT);
-            titleParams.addRule(android.widget.RelativeLayout.ALIGN_PARENT_START);
-            titleParams.addRule(android.widget.RelativeLayout.CENTER_VERTICAL);
-            headerLayout.addView(titleView, titleParams);
 
-            // Arrow Icon
-            ImageView arrowIcon = new ImageView(this);
-            arrowIcon.setImageResource(R.drawable.ic_chevron_right); // Default collapsed
-            arrowIcon.setColorFilter(getResources().getColor(R.color.gray_600));
-            
-            android.widget.RelativeLayout.LayoutParams arrowParams = new android.widget.RelativeLayout.LayoutParams(
-                48, 48); // Fixed small size
-            arrowParams.addRule(android.widget.RelativeLayout.ALIGN_PARENT_END);
-            arrowParams.addRule(android.widget.RelativeLayout.CENTER_VERTICAL);
-            headerLayout.addView(arrowIcon, arrowParams);
+            // Set click listener for add item button
+            btnAddItem.setOnClickListener(v -> showCreateChecklistItemDialog(checklist.getId(), checklist.getTitle()));
 
-            groupContainer.addView(headerLayout);
+            groupContainer.addView(headerView);
 
             // --- ITEMS CONTAINER ---
             LinearLayout itemsContainer = new LinearLayout(this);
             itemsContainer.setOrientation(LinearLayout.VERTICAL);
             itemsContainer.setVisibility(View.GONE); // Default HIDDEN
-            
+
             // Populate Items
             for (com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem item : matchingItems) {
                 View view = LayoutInflater.from(this).inflate(R.layout.item_subtask, itemsContainer, false);
@@ -637,12 +633,12 @@ public class TaskDetailActivity extends AppCompatActivity {
                 // Clean Title & Extract Files
                 String rawTitle = item.getTitle();
                 if (rawTitle == null) rawTitle = "";
-                
+
                 List<String> fileUrls = extractFileUrlsFromText(rawTitle);
                 String cleanTitle = rawTitle.replaceAll("\\[FILE_URLS:.*?\\]", "").trim();
 
                 title.setText(cleanTitle);
-                
+
                 List<com.example.financialmanagement.models.ChecklistItemAssignment> assignments = item.getAssignments();
                 LinearLayout assignmentsContainer = view.findViewById(R.id.layout_subtask_assignments);
                 LinearLayout singleAssigneeRow = view.findViewById(R.id.linearLayout_assignee_row);
@@ -662,7 +658,7 @@ public class TaskDetailActivity extends AppCompatActivity {
                         aInitials.setText(empName.substring(0, 1).toUpperCase());
                         aInitials.getBackground().setTint(getAvatarColor(empName));
                         aRole.setText(assignment.getRoleDisplayName());
-                        
+
                         // Style role badge based on type
                         if ("accountable".equals(assignment.getResponsibilityType())) {
                             aRole.getBackground().setTint(getResources().getColor(R.color.task_priority_high));
@@ -688,7 +684,7 @@ public class TaskDetailActivity extends AppCompatActivity {
                         initials.getBackground().setTint(Color.LTGRAY);
                     }
                 }
-                
+
                 if (item.isCompleted()) {
                     status.setText("Hoàn thành");
                     status.getBackground().setTint(getResources().getColor(R.color.task_status_completed_bg));
@@ -707,16 +703,16 @@ public class TaskDetailActivity extends AppCompatActivity {
                     filesLayout.removeAllViews();
                     for (String url : fileUrls) {
                          View fileView = LayoutInflater.from(this).inflate(R.layout.item_file_attachment, filesLayout, false);
-                         
+
                          ImageView imageFileIcon = fileView.findViewById(R.id.image_file_icon);
                          TextView textFileName = fileView.findViewById(R.id.text_file_name);
                          TextView textFileType = fileView.findViewById(R.id.text_file_type);
                          View fileContainer = fileView.findViewById(R.id.file_attachment_container);
-                         
+
                          imageFileIcon.setImageResource(FileIconHelper.getFileIconResource(url));
                          textFileName.setText(FileIconHelper.getFileName(url));
                          textFileType.setText(FileIconHelper.getFileTypeLabel(url));
-                         
+
                          fileContainer.setOnClickListener(v -> {
                             try {
                                 Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -728,21 +724,21 @@ public class TaskDetailActivity extends AppCompatActivity {
                                 Toast.makeText(this, "Không thể mở file", Toast.LENGTH_SHORT).show();
                             }
                         });
-                         
+
                          filesLayout.addView(fileView);
                     }
                 } else {
                     filesLayout.setVisibility(View.GONE);
                 }
-                
+
                 itemsContainer.addView(view);
             }
 
             groupContainer.addView(itemsContainer);
             container.addView(groupContainer);
 
-            // Toggle Click Listener
-            headerLayout.setOnClickListener(v -> {
+            // Toggle Click Listener for header (excluding the add button)
+            headerView.setOnClickListener(v -> {
                 if (itemsContainer.getVisibility() == View.VISIBLE) {
                     itemsContainer.setVisibility(View.GONE);
                     arrowIcon.animate().rotation(0).setDuration(200).start();
@@ -752,7 +748,6 @@ public class TaskDetailActivity extends AppCompatActivity {
                 }
             });
         }
-        sectionSubtasks.setContentView(container);
     }
 
     private View createFilterHeaderView() {
@@ -768,9 +763,438 @@ public class TaskDetailActivity extends AppCompatActivity {
 
     private void openChat() {
         Intent intent = new Intent(this, TaskChatActivity.class);
-        intent.putExtra("taskId", taskId); 
+        intent.putExtra("taskId", taskId);
         intent.putExtra("task_title", textTaskTitle.getText().toString());
         startActivity(intent);
+    }
+
+    private void showCreateChecklistDialog() {
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_create_checklist);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        // Initialize views
+        EditText editTitle = dialog.findViewById(R.id.edit_checklist_title);
+        EditText editDescription = dialog.findViewById(R.id.edit_checklist_description);
+        RecyclerView recyclerAssignees = dialog.findViewById(R.id.recycler_assignees);
+        TextView textNoAssignees = dialog.findViewById(R.id.text_no_assignees);
+        com.google.android.material.button.MaterialButton btnAddAssignee = dialog.findViewById(R.id.btn_add_assignee);
+        RecyclerView recyclerAttachments = dialog.findViewById(R.id.recycler_attachments);
+        com.google.android.material.button.MaterialButton btnAddImage = dialog.findViewById(R.id.btn_add_image);
+        com.google.android.material.button.MaterialButton btnAddFile = dialog.findViewById(R.id.btn_add_file);
+        com.google.android.material.button.MaterialButton btnCancel = dialog.findViewById(R.id.btn_cancel);
+        com.google.android.material.button.MaterialButton btnCreate = dialog.findViewById(R.id.btn_create);
+
+        // Initialize assignee list and adapter
+        ArrayList<AssigneeWithRole> checklistAssignees = new ArrayList<>();
+        final AssigneeRoleAdapter[] assigneeAdapterRef = new AssigneeRoleAdapter[1];
+        assigneeAdapterRef[0] = new AssigneeRoleAdapter(this, checklistAssignees,
+            assignee -> {
+                checklistAssignees.remove(assignee);
+                assigneeAdapterRef[0].notifyDataSetChanged();
+                updateAssigneeVisibility(recyclerAssignees, textNoAssignees, checklistAssignees);
+            });
+        recyclerAssignees.setAdapter(assigneeAdapterRef[0]);
+        updateAssigneeVisibility(recyclerAssignees, textNoAssignees, checklistAssignees);
+
+        // Initialize attachment list and adapter
+        ArrayList<AttachmentItem> checklistAttachments = new ArrayList<>();
+        final AttachmentAdapter[] attachmentAdapterRef = new AttachmentAdapter[1];
+        attachmentAdapterRef[0] = new AttachmentAdapter(this, checklistAttachments,
+            attachment -> {
+                checklistAttachments.remove(attachment);
+                attachmentAdapterRef[0].notifyDataSetChanged();
+            });
+        recyclerAttachments.setLayoutManager(new GridLayoutManager(this, 3));
+        recyclerAttachments.setAdapter(attachmentAdapterRef[0]);
+
+        // Add assignee button
+        btnAddAssignee.setOnClickListener(v -> showAssigneeSelectionDialog(selectedAssignee -> {
+            checklistAssignees.add(selectedAssignee);
+            assigneeAdapterRef[0].notifyDataSetChanged();
+            updateAssigneeVisibility(recyclerAssignees, textNoAssignees, checklistAssignees);
+        }));
+
+        // Add image button
+        btnAddImage.setOnClickListener(v -> openImagePicker(result -> {
+            for (android.net.Uri uri : result) {
+                addAttachmentFromUri(uri, checklistAttachments, attachmentAdapterRef[0]);
+            }
+        }));
+
+        // Add file button
+        btnAddFile.setOnClickListener(v -> openFilePicker(result -> {
+            for (android.net.Uri uri : result) {
+                addAttachmentFromUri(uri, checklistAttachments, attachmentAdapterRef[0]);
+            }
+        }));
+
+        // Cancel button
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        // Create button
+        btnCreate.setOnClickListener(v -> {
+            String title = editTitle.getText().toString().trim();
+            String description = editDescription.getText().toString().trim();
+
+            if (title.isEmpty()) {
+                Toast.makeText(this, "Vui lòng nhập tiêu đề nhóm nhiệm vụ", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Create checklist with data
+            createChecklistWithData(title, description, checklistAssignees, checklistAttachments);
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
+    private void showCreateChecklistItemDialog(String checklistId, String checklistTitle) {
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_create_todo);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        // Initialize views
+        EditText editTitle = dialog.findViewById(R.id.edit_todo_title);
+        EditText editDescription = dialog.findViewById(R.id.edit_todo_description);
+        EditText editEstimatedHours = dialog.findViewById(R.id.edit_estimated_hours);
+        EditText editDueDate = dialog.findViewById(R.id.edit_due_date);
+        com.google.android.material.chip.ChipGroup chipGroupPriority = dialog.findViewById(R.id.chip_group_priority);
+        Chip chipLow = dialog.findViewById(R.id.chip_low);
+        Chip chipMedium = dialog.findViewById(R.id.chip_medium);
+        Chip chipHigh = dialog.findViewById(R.id.chip_high);
+
+        RecyclerView recyclerAssignees = dialog.findViewById(R.id.recycler_assignees);
+        TextView textNoAssignees = dialog.findViewById(R.id.text_no_assignees);
+        com.google.android.material.button.MaterialButton btnAddAssignee = dialog.findViewById(R.id.btn_add_assignee);
+        RecyclerView recyclerAttachments = dialog.findViewById(R.id.recycler_attachments);
+        com.google.android.material.button.MaterialButton btnAddImage = dialog.findViewById(R.id.btn_add_image);
+        com.google.android.material.button.MaterialButton btnAddFile = dialog.findViewById(R.id.btn_add_file);
+        com.google.android.material.button.MaterialButton btnCancel = dialog.findViewById(R.id.btn_cancel);
+        com.google.android.material.button.MaterialButton btnCreate = dialog.findViewById(R.id.btn_create);
+
+        // Initialize assignee list and adapter
+        ArrayList<AssigneeWithRole> taskAssignees = new ArrayList<>();
+        final AssigneeRoleAdapter[] assigneeAdapterRef = new AssigneeRoleAdapter[1];
+        assigneeAdapterRef[0] = new AssigneeRoleAdapter(this, taskAssignees,
+            assignee -> {
+                taskAssignees.remove(assignee);
+                assigneeAdapterRef[0].notifyDataSetChanged();
+                updateAssigneeVisibility(recyclerAssignees, textNoAssignees, taskAssignees);
+            });
+        recyclerAssignees.setAdapter(assigneeAdapterRef[0]);
+        updateAssigneeVisibility(recyclerAssignees, textNoAssignees, taskAssignees);
+
+        // Initialize attachment list and adapter
+        ArrayList<AttachmentItem> taskAttachments = new ArrayList<>();
+        final AttachmentAdapter[] attachmentAdapterRef = new AttachmentAdapter[1];
+        attachmentAdapterRef[0] = new AttachmentAdapter(this, taskAttachments,
+            attachment -> {
+                taskAttachments.remove(attachment);
+                attachmentAdapterRef[0].notifyDataSetChanged();
+            });
+        recyclerAttachments.setLayoutManager(new GridLayoutManager(this, 3));
+        recyclerAttachments.setAdapter(attachmentAdapterRef[0]);
+
+        // Set default priority to medium
+        chipMedium.setChecked(true);
+        final String[] selectedPriority = {"medium"};
+
+        // Handle priority selection
+        chipGroupPriority.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.chip_low) {
+                selectedPriority[0] = "low";
+            } else if (checkedId == R.id.chip_medium) {
+                selectedPriority[0] = "medium";
+            } else if (checkedId == R.id.chip_high) {
+                selectedPriority[0] = "high";
+            }
+        });
+
+        // Due date picker
+        editDueDate.setOnClickListener(v -> showDatePicker((dateString) -> editDueDate.setText(dateString)));
+
+        // Add assignee button
+        btnAddAssignee.setOnClickListener(v -> showAssigneeSelectionDialog(selectedAssignee -> {
+            taskAssignees.add(selectedAssignee);
+            assigneeAdapterRef[0].notifyDataSetChanged();
+            updateAssigneeVisibility(recyclerAssignees, textNoAssignees, taskAssignees);
+        }));
+
+        // Add image button
+        btnAddImage.setOnClickListener(v -> openImagePicker(result -> {
+            for (android.net.Uri uri : result) {
+                addAttachmentFromUri(uri, taskAttachments, attachmentAdapterRef[0]);
+            }
+        }));
+
+        // Add file button
+        btnAddFile.setOnClickListener(v -> openFilePicker(result -> {
+            for (android.net.Uri uri : result) {
+                addAttachmentFromUri(uri, taskAttachments, attachmentAdapterRef[0]);
+            }
+        }));
+
+        // Cancel button
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        // Create button
+        btnCreate.setOnClickListener(v -> {
+            String title = editTitle.getText().toString().trim();
+            String description = editDescription.getText().toString().trim();
+            String estimatedHours = editEstimatedHours.getText().toString().trim();
+            String dueDate = editDueDate.getText().toString().trim();
+
+            if (title.isEmpty()) {
+                Toast.makeText(this, "Vui lòng nhập tiêu đề nhiệm vụ", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Create checklist item with full data
+            createChecklistItemWithData(checklistId, title, description, selectedPriority[0],
+                estimatedHours, dueDate, taskAssignees, taskAttachments);
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
+    private void createChecklist(String title) {
+        taskService.createChecklist(taskId, title, new TaskService.TaskCallback<com.example.financialmanagement.models.TaskChecklist>() {
+            @Override
+            public void onSuccess(com.example.financialmanagement.models.TaskChecklist checklist) {
+                Toast.makeText(TaskDetailActivity.this, "Đã tạo nhóm nhiệm vụ thành công", Toast.LENGTH_SHORT).show();
+                // Reload task details to refresh the checklists
+                loadTaskDetails();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(TaskDetailActivity.this, "Lỗi tạo nhóm nhiệm vụ: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void createChecklistItemInChecklist(String checklistId, String title, String description, String assigneeId) {
+        taskService.createChecklistItem(checklistId, title, description, assigneeId, new TaskService.TaskCallback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem>() {
+            @Override
+            public void onSuccess(com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem item) {
+                Toast.makeText(TaskDetailActivity.this, "Đã thêm nhiệm vụ thành công", Toast.LENGTH_SHORT).show();
+                // Reload task details to refresh the checklist
+                loadTaskDetails();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(TaskDetailActivity.this, "Lỗi thêm nhiệm vụ: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void createChecklistWithData(String title, String description, List<AssigneeWithRole> assignees, List<AttachmentItem> attachments) {
+        // For now, just create basic checklist. Advanced features would need backend support
+        taskService.createChecklist(taskId, title, new TaskService.TaskCallback<com.example.financialmanagement.models.TaskChecklist>() {
+            @Override
+            public void onSuccess(com.example.financialmanagement.models.TaskChecklist checklist) {
+                Toast.makeText(TaskDetailActivity.this, "Đã tạo nhóm nhiệm vụ thành công", Toast.LENGTH_SHORT).show();
+                // Reload task details to refresh the checklists
+                loadTaskDetails();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(TaskDetailActivity.this, "Lỗi tạo nhóm nhiệm vụ: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void createChecklistItemWithData(String checklistId, String title, String description, String priority,
+                                           String estimatedHours, String dueDate, List<AssigneeWithRole> assignees,
+                                           List<AttachmentItem> attachments) {
+        // Use the new method that supports multiple assignments
+        taskService.createChecklistItemWithAssignments(checklistId, title, assignees, new TaskService.TaskCallback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem>() {
+            @Override
+            public void onSuccess(com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem item) {
+                Toast.makeText(TaskDetailActivity.this, "Đã thêm nhiệm vụ thành công", Toast.LENGTH_SHORT).show();
+                // Reload task details to refresh the checklist
+                loadTaskDetails();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(TaskDetailActivity.this, "Lỗi thêm nhiệm vụ: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateAssigneeVisibility(RecyclerView recyclerView, TextView emptyText, List<AssigneeWithRole> assignees) {
+        if (assignees.isEmpty()) {
+            recyclerView.setVisibility(View.GONE);
+            emptyText.setVisibility(View.VISIBLE);
+        } else {
+            recyclerView.setVisibility(View.VISIBLE);
+            emptyText.setVisibility(View.GONE);
+        }
+    }
+
+    private void showAssigneeSelectionDialog(OnAssigneeSelectedListener listener) {
+        if (taskParticipants == null || taskParticipants.isEmpty()) {
+            Toast.makeText(this, "Không có thành viên nào trong dự án", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String[] employeeNames = new String[taskParticipants.size()];
+        for (int i = 0; i < taskParticipants.size(); i++) {
+            employeeNames[i] = taskParticipants.get(i).getEmployeeName();
+        }
+
+        new android.app.AlertDialog.Builder(this)
+            .setTitle("Chọn thành viên")
+            .setItems(employeeNames, (dialog, which) -> {
+                TaskParticipant selected = taskParticipants.get(which);
+                AssigneeWithRole assignee = new AssigneeWithRole(
+                    selected.getEmployeeId(),
+                    selected.getEmployeeName(),
+                    selected.getRoleDisplayName()
+                );
+                listener.onAssigneeSelected(assignee);
+            })
+            .setNegativeButton("Hủy", null)
+            .show();
+    }
+
+    private void showDatePicker(OnDateSelectedListener listener) {
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+            (view, selectedYear, selectedMonth, selectedDay) -> {
+                String dateString = String.format("%04d-%02d-%02d", selectedYear, selectedMonth + 1, selectedDay);
+                listener.onDateSelected(dateString);
+            }, year, month, day);
+
+        datePickerDialog.show();
+    }
+
+    private void openImagePicker(OnFilesSelectedListener listener) {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        startActivityForResult(Intent.createChooser(intent, "Chọn hình ảnh"), REQUEST_IMAGE_PICK);
+    }
+
+    private void openFilePicker(OnFilesSelectedListener listener) {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        String[] mimeTypes = {"application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"};
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+        startActivityForResult(Intent.createChooser(intent, "Chọn tệp"), REQUEST_FILE_PICK);
+    }
+
+    private void addAttachmentFromUri(android.net.Uri uri, List<AttachmentItem> attachments, AttachmentAdapter adapter) {
+        try {
+            android.content.ContentResolver contentResolver = getContentResolver();
+            String mimeType = contentResolver.getType(uri);
+            String fileName = getFileNameFromUri(uri);
+            long fileSize = getFileSizeFromUri(uri);
+
+            if (fileSize > 10 * 1024 * 1024) { // 10MB limit
+                Toast.makeText(this, "File quá lớn (tối đa 10MB)", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            AttachmentItem attachment = new AttachmentItem(uri, fileName, mimeType, fileSize);
+            attachments.add(attachment);
+            adapter.notifyDataSetChanged();
+        } catch (Exception e) {
+            Toast.makeText(this, "Lỗi thêm file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String getFileNameFromUri(android.net.Uri uri) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            try (android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
+                    if (nameIndex >= 0) {
+                        result = cursor.getString(nameIndex);
+                    }
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+        return result;
+    }
+
+    private long getFileSizeFromUri(android.net.Uri uri) {
+        long size = 0;
+        if (uri.getScheme().equals("content")) {
+            try (android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int sizeIndex = cursor.getColumnIndex(android.provider.OpenableColumns.SIZE);
+                    if (sizeIndex >= 0) {
+                        size = cursor.getLong(sizeIndex);
+                    }
+                }
+            }
+        }
+        return size;
+    }
+
+    private static final int REQUEST_IMAGE_PICK = 1001;
+    private static final int REQUEST_FILE_PICK = 1002;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK && data != null) {
+            ArrayList<android.net.Uri> uris = new ArrayList<>();
+
+            if (data.getClipData() != null) {
+                // Multiple files selected
+                int count = data.getClipData().getItemCount();
+                for (int i = 0; i < count; i++) {
+                    android.net.Uri uri = data.getClipData().getItemAt(i).getUri();
+                    uris.add(uri);
+                }
+            } else if (data.getData() != null) {
+                // Single file selected
+                uris.add(data.getData());
+            }
+
+            if (!uris.isEmpty()) {
+                // Handle the selected files based on request code
+                // This will be handled by the listeners in the respective methods
+            }
+        }
+    }
+
+    // Interfaces for callbacks
+    interface OnAssigneeSelectedListener {
+        void onAssigneeSelected(AssigneeWithRole assignee);
+    }
+
+    interface OnDateSelectedListener {
+        void onDateSelected(String dateString);
+    }
+
+    interface OnFilesSelectedListener {
+        void onFilesSelected(ArrayList<android.net.Uri> uris);
     }
     
     private void bindFileAttachments(List<TaskComment> comments) {

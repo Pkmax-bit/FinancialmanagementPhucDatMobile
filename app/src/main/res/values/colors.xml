@@ -133,6 +133,12 @@
     <color name="task_priority_high">#FF3B30</color>
     <color name="task_priority_medium">#FF9500</color>
     <color name="task_priority_low">#34C759</color>
+
+    <color name="task_priority_high_bg">#FFF5F5</color>
+    <color name="task_priority_medium_bg">#FFF8F0</color>
+    <color name="task_priority_low_bg">#F6FFED</color>
+
+    <color name="text_secondary_light">#B3B3B3</color>
     
     <color name="task_accent">#0075FF</color>
     <color name="task_background">#F8F9FA</color>
