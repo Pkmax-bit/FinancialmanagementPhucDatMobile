@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -67,12 +68,48 @@ public class AttachmentAdapter extends RecyclerView.Adapter<AttachmentAdapter.Vi
             holder.imageFileIcon.setImageResource(iconRes);
         }
 
+        // Handle upload status overlay
+        updateUploadStatusDisplay(holder, attachment);
+
         // Handle remove
         holder.btnRemove.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onAttachmentRemoved(attachment);
             }
         });
+    }
+
+    private void updateUploadStatusDisplay(ViewHolder holder, AttachmentItem attachment) {
+        switch (attachment.getUploadStatus()) {
+            case PENDING:
+                holder.layoutUploadOverlay.setVisibility(View.GONE);
+                break;
+
+            case UPLOADING:
+                holder.layoutUploadOverlay.setVisibility(View.VISIBLE);
+                holder.progressUpload.setVisibility(View.VISIBLE);
+                holder.imageUploadStatus.setVisibility(View.GONE);
+                holder.imageUploadError.setVisibility(View.GONE);
+                holder.textUploadProgress.setVisibility(View.VISIBLE);
+                holder.textUploadProgress.setText(attachment.getUploadProgress() + "%");
+                break;
+
+            case SUCCESS:
+                holder.layoutUploadOverlay.setVisibility(View.VISIBLE);
+                holder.progressUpload.setVisibility(View.GONE);
+                holder.imageUploadStatus.setVisibility(View.VISIBLE);
+                holder.imageUploadError.setVisibility(View.GONE);
+                holder.textUploadProgress.setVisibility(View.GONE);
+                break;
+
+            case ERROR:
+                holder.layoutUploadOverlay.setVisibility(View.VISIBLE);
+                holder.progressUpload.setVisibility(View.GONE);
+                holder.imageUploadStatus.setVisibility(View.GONE);
+                holder.imageUploadError.setVisibility(View.VISIBLE);
+                holder.textUploadProgress.setVisibility(View.GONE);
+                break;
+        }
     }
 
     @Override
@@ -123,6 +160,13 @@ public class AttachmentAdapter extends RecyclerView.Adapter<AttachmentAdapter.Vi
         TextView textFileType;
         ImageButton btnRemove;
 
+        // Upload status views
+        LinearLayout layoutUploadOverlay;
+        ProgressBar progressUpload;
+        ImageView imageUploadStatus;
+        ImageView imageUploadError;
+        TextView textUploadProgress;
+
         ViewHolder(View itemView) {
             super(itemView);
             imagePreview = itemView.findViewById(R.id.image_preview);
@@ -130,6 +174,13 @@ public class AttachmentAdapter extends RecyclerView.Adapter<AttachmentAdapter.Vi
             imageFileIcon = itemView.findViewById(R.id.image_file_icon);
             textFileType = itemView.findViewById(R.id.text_file_type);
             btnRemove = itemView.findViewById(R.id.btn_remove_attachment);
+
+            // Upload status views
+            layoutUploadOverlay = itemView.findViewById(R.id.layout_upload_overlay);
+            progressUpload = itemView.findViewById(R.id.progress_upload);
+            imageUploadStatus = itemView.findViewById(R.id.image_upload_status);
+            imageUploadError = itemView.findViewById(R.id.image_upload_error);
+            textUploadProgress = itemView.findViewById(R.id.text_upload_progress);
         }
     }
 }

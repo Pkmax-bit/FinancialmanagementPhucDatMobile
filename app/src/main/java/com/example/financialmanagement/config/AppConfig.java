@@ -21,6 +21,7 @@ public class AppConfig {
     // Đổi sang PRODUCTION để dùng backend host
     //private static final Environment CURRENT_ENVIRONMENT = Environment.PRODUCTION;
     //private static final Environment CURRENT_ENVIRONMENT = Environment.LOCAL;
+    // Change to LOCAL for testing with local backend
     private static final Environment CURRENT_ENVIRONMENT = Environment.PRODUCTION;
     /**
      * Lấy environment hiện tại

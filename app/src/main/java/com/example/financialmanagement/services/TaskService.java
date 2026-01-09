@@ -190,6 +190,13 @@ public class TaskService {
             @Path("checklistId") String checklistId,
             @Body ChecklistItemCreateRequest request
         );
+
+        @Multipart
+        @POST("tasks/{taskId}/attachments")
+        Call<TaskAttachmentResponse> uploadTaskAttachment(
+            @Path("taskId") String taskId,
+            @Part okhttp3.MultipartBody.Part file
+        );
     }
 
     public static class ChecklistItemCreateRequest {
@@ -284,6 +291,115 @@ public class TaskService {
                 callback.onError("Failure: " + t.getMessage());
             }
         });
+    }
+
+    // Model for upload attachment response
+    public static class TaskAttachmentResponse {
+        public String id;
+        public String file_name;
+        public String original_file_name;
+        public String file_url;
+        public String file_type;
+        public long file_size;
+        public String uploaded_by_name;
+        public String created_at;
+    }
+
+    public void uploadTaskAttachment(android.content.Context context, String taskId, android.net.Uri fileUri, String fileName, final TaskCallback<String> callback) {
+        // Create multipart request body
+        try {
+            java.io.InputStream inputStream = context.getContentResolver().openInputStream(fileUri);
+            byte[] fileBytes = new byte[inputStream.available()];
+            inputStream.read(fileBytes);
+            inputStream.close();
+
+            // Detect MIME type from file extension
+            String mimeType = getMimeTypeFromFileName(fileName);
+            if (mimeType == null) {
+                // Try to get MIME type from ContentResolver
+                mimeType = context.getContentResolver().getType(fileUri);
+                if (mimeType == null) {
+                    mimeType = "application/octet-stream"; // fallback
+                }
+            }
+
+            // Log for debugging
+            android.util.Log.d("UPLOAD_DEBUG", "File: " + fileName + ", MIME: " + mimeType + ", Size: " + fileBytes.length);
+
+            okhttp3.RequestBody fileBody = okhttp3.RequestBody.create(fileBytes, okhttp3.MediaType.parse(mimeType));
+            okhttp3.MultipartBody.Part filePart = okhttp3.MultipartBody.Part.createFormData("file", fileName, fileBody);
+
+            taskApi.uploadTaskAttachment(taskId, filePart).enqueue(new Callback<TaskAttachmentResponse>() {
+                @Override
+                public void onResponse(Call<TaskAttachmentResponse> call, Response<TaskAttachmentResponse> response) {
+                    android.util.Log.d("UPLOAD_DEBUG", "Response code: " + response.code() + ", message: " + response.message());
+                    if (response.isSuccessful() && response.body() != null) {
+                        // Return the file_url from response
+                        callback.onSuccess(response.body().file_url);
+                    } else {
+                        try {
+                            String errorBody = response.errorBody() != null ? response.errorBody().string() : "No error body";
+                            android.util.Log.e("UPLOAD_DEBUG", "Error body: " + errorBody);
+                            callback.onError("Upload failed: " + response.message() + " - " + errorBody);
+                        } catch (Exception e) {
+                            callback.onError("Upload failed: " + response.message());
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<TaskAttachmentResponse> call, Throwable t) {
+                    android.util.Log.e("UPLOAD_DEBUG", "Network error: " + t.getMessage());
+                    callback.onError("Upload error: " + t.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            android.util.Log.e("UPLOAD_DEBUG", "File read error: " + e.getMessage());
+            callback.onError("File read error: " + e.getMessage());
+        }
+    }
+
+    private String getMimeTypeFromFileName(String fileName) {
+        if (fileName == null) return null;
+
+        String extension = fileName.toLowerCase();
+        if (extension.endsWith(".jpg") || extension.endsWith(".jpeg")) {
+            return "image/jpeg";
+        } else if (extension.endsWith(".png")) {
+            return "image/png";
+        } else if (extension.endsWith(".gif")) {
+            return "image/gif";
+        } else if (extension.endsWith(".webp")) {
+            return "image/webp";
+        } else if (extension.endsWith(".svg")) {
+            return "image/svg+xml";
+        } else if (extension.endsWith(".pdf")) {
+            return "application/pdf";
+        } else if (extension.endsWith(".doc")) {
+            return "application/msword";
+        } else if (extension.endsWith(".docx")) {
+            return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        } else if (extension.endsWith(".xls")) {
+            return "application/vnd.ms-excel";
+        } else if (extension.endsWith(".xlsx")) {
+            return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        } else if (extension.endsWith(".csv")) {
+            return "text/csv";
+        } else if (extension.endsWith(".txt")) {
+            return "text/plain";
+        } else if (extension.endsWith(".rtf")) {
+            return "application/rtf";
+        } else if (extension.endsWith(".ppt")) {
+            return "application/vnd.ms-powerpoint";
+        } else if (extension.endsWith(".pptx")) {
+            return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+        } else if (extension.endsWith(".zip")) {
+            return "application/zip";
+        } else if (extension.endsWith(".rar")) {
+            return "application/vnd.rar";
+        }
+
+        return null;
     }
 
     public void createChecklistItemWithAssignments(String checklistId, String content, java.util.List<AssigneeWithRole> assignees, final TaskCallback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> callback) {

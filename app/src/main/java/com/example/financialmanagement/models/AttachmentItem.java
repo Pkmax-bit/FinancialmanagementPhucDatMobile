@@ -3,6 +3,10 @@ package com.example.financialmanagement.models;
 import android.net.Uri;
 
 public class AttachmentItem {
+    public enum UploadStatus {
+        PENDING, UPLOADING, SUCCESS, ERROR
+    }
+
     private String id;
     private Uri uri;
     private String fileName;
@@ -10,6 +14,11 @@ public class AttachmentItem {
     private long fileSize;
     private boolean isImage;
     private String localPath;
+
+    private UploadStatus uploadStatus = UploadStatus.PENDING;
+    private String uploadError;
+    private String uploadedUrl;
+    private int uploadProgress = 0;
 
     public AttachmentItem() {
     }
@@ -21,6 +30,7 @@ public class AttachmentItem {
         this.mimeType = mimeType;
         this.fileSize = fileSize;
         this.isImage = mimeType != null && mimeType.startsWith("image/");
+        this.uploadStatus = UploadStatus.PENDING;
     }
 
     public String getId() {
@@ -77,6 +87,50 @@ public class AttachmentItem {
 
     public void setLocalPath(String localPath) {
         this.localPath = localPath;
+    }
+
+    public UploadStatus getUploadStatus() {
+        return uploadStatus;
+    }
+
+    public void setUploadStatus(UploadStatus uploadStatus) {
+        this.uploadStatus = uploadStatus;
+    }
+
+    public String getUploadError() {
+        return uploadError;
+    }
+
+    public void setUploadError(String uploadError) {
+        this.uploadError = uploadError;
+    }
+
+    public String getUploadedUrl() {
+        return uploadedUrl;
+    }
+
+    public void setUploadedUrl(String uploadedUrl) {
+        this.uploadedUrl = uploadedUrl;
+    }
+
+    public int getUploadProgress() {
+        return uploadProgress;
+    }
+
+    public void setUploadProgress(int uploadProgress) {
+        this.uploadProgress = uploadProgress;
+    }
+
+    public boolean isUploading() {
+        return uploadStatus == UploadStatus.UPLOADING;
+    }
+
+    public boolean isUploaded() {
+        return uploadStatus == UploadStatus.SUCCESS;
+    }
+
+    public boolean hasError() {
+        return uploadStatus == UploadStatus.ERROR;
     }
 
     public String getFileExtension() {

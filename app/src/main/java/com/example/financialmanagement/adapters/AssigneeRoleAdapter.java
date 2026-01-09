@@ -130,3 +130,5 @@ public class AssigneeRoleAdapter extends RecyclerView.Adapter<AssigneeRoleAdapte
         }
     }
 }
+
+

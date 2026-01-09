@@ -146,4 +146,7 @@
     <color name="task_divider">#E9ECEF</color>
     <color name="task_text_muted">#ADB5BD</color>
     <color name="task_success">#34C759</color>
+
+    <color name="upload_overlay_bg">#80FFFFFF</color>
+    <color name="task_error">#FF3B30</color>
 </resources>
