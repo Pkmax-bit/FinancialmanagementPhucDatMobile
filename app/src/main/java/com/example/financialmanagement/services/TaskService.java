@@ -196,6 +196,22 @@ public class TaskService {
             @Path("itemId") String itemId,
             @Body ChecklistItemUpdateRequest request
         );
+        
+        @PUT("tasks/checklists/{checklistId}")
+        Call<com.example.financialmanagement.models.TaskChecklist> updateChecklist(
+            @Path("checklistId") String checklistId,
+            @Body ChecklistCreateRequest request
+        );
+        
+        @DELETE("tasks/checklists/{checklistId}")
+        Call<okhttp3.ResponseBody> deleteChecklist(
+            @Path("checklistId") String checklistId
+        );
+        
+        @DELETE("tasks/checklist-items/{itemId}")
+        Call<okhttp3.ResponseBody> deleteChecklistItem(
+            @Path("itemId") String itemId
+        );
 
         @Multipart
         @POST("tasks/{taskId}/attachments")
@@ -529,6 +545,80 @@ public class TaskService {
     
     public void updateChecklistItemContent(String itemId, String content, final TaskCallback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> callback) {
         ChecklistItemUpdateRequest request = new ChecklistItemUpdateRequest(content);
+        taskApi.updateChecklistItem(itemId, request).enqueue(new Callback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem>() {
+            @Override
+            public void onResponse(Call<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> call, Response<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+
+    public void updateChecklist(String checklistId, String title, final TaskCallback<com.example.financialmanagement.models.TaskChecklist> callback) {
+        ChecklistCreateRequest request = new ChecklistCreateRequest(title);
+        taskApi.updateChecklist(checklistId, request).enqueue(new Callback<com.example.financialmanagement.models.TaskChecklist>() {
+            @Override
+            public void onResponse(Call<com.example.financialmanagement.models.TaskChecklist> call, Response<com.example.financialmanagement.models.TaskChecklist> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.example.financialmanagement.models.TaskChecklist> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+    
+    public void deleteChecklist(String checklistId, final TaskCallback<String> callback) {
+        taskApi.deleteChecklist(checklistId).enqueue(new Callback<okhttp3.ResponseBody>() {
+            @Override
+            public void onResponse(Call<okhttp3.ResponseBody> call, Response<okhttp3.ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    callback.onSuccess("Checklist deleted successfully");
+                } else {
+                    callback.onError("Error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<okhttp3.ResponseBody> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+    
+    public void deleteChecklistItem(String itemId, final TaskCallback<String> callback) {
+        taskApi.deleteChecklistItem(itemId).enqueue(new Callback<okhttp3.ResponseBody>() {
+            @Override
+            public void onResponse(Call<okhttp3.ResponseBody> call, Response<okhttp3.ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    callback.onSuccess("Checklist item deleted successfully");
+                } else {
+                    callback.onError("Error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<okhttp3.ResponseBody> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+    
+    public void updateChecklistItemFull(String itemId, String content, Boolean isCompleted, final TaskCallback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> callback) {
+        ChecklistItemUpdateRequest request = new ChecklistItemUpdateRequest(isCompleted, content);
         taskApi.updateChecklistItem(itemId, request).enqueue(new Callback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem>() {
             @Override
             public void onResponse(Call<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> call, Response<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> response) {

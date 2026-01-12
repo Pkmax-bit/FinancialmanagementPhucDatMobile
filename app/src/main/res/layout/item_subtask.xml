@@ -36,6 +36,37 @@
         app:layout_constraintStart_toEndOf="@+id/checkbox_subtask_completed"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <LinearLayout
+        android:id="@+id/layout_subtask_actions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:visibility="gone">
+        
+        <ImageButton
+            android:id="@+id/btn_edit_subtask"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@android:drawable/ic_menu_edit"
+            android:background="@drawable/bg_circle_primary"
+            android:scaleType="centerInside"
+            android:padding="6dp"
+            android:layout_marginEnd="4dp" />
+        
+        <ImageButton
+            android:id="@+id/btn_delete_subtask"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@android:drawable/ic_menu_delete"
+            android:background="@drawable/bg_circle_primary"
+            android:scaleType="centerInside"
+            android:padding="6dp"
+            android:tint="@android:color/white" />
+    </LinearLayout>
+
     <TextView
         android:id="@+id/text_subtask_status"
         android:layout_width="wrap_content"
@@ -48,7 +79,7 @@
         android:textColor="@color/task_status_todo_text"
         android:textSize="11sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/layout_subtask_actions"
         app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Divider or Spacing -->

@@ -47,25 +47,122 @@ public class AttachmentAdapter extends RecyclerView.Adapter<AttachmentAdapter.Vi
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         AttachmentItem attachment = attachments.get(position);
 
-        if (attachment.isImage()) {
+        // Determine if this is an image (from URI or URL)
+        boolean isImage = attachment.isImage();
+        if (!isImage && attachment.getUploadedUrl() != null) {
+            // Check if uploaded URL is an image
+            String url = attachment.getUploadedUrl().toLowerCase();
+            isImage = url.endsWith(".jpg") || url.endsWith(".jpeg") || url.endsWith(".png") || 
+                     url.endsWith(".gif") || url.endsWith(".webp") || url.endsWith(".bmp");
+        }
+
+        if (isImage) {
             // Show image preview
             holder.imagePreview.setVisibility(View.VISIBLE);
             holder.layoutFileIcon.setVisibility(View.GONE);
 
-            Glide.with(context)
-                .load(attachment.getUri())
-                .centerCrop()
-                .into(holder.imagePreview);
+            // Load from URI (local) or URL (uploaded)
+            if (attachment.getUploadedUrl() != null && !attachment.getUploadedUrl().isEmpty()) {
+                // Load from URL (already uploaded)
+                String imageUrl = attachment.getUploadedUrl();
+                if (imageUrl.endsWith("?")) {
+                    imageUrl = imageUrl.substring(0, imageUrl.length() - 1);
+                }
+                Glide.with(context)
+                    .load(imageUrl)
+                    .centerCrop()
+                    .placeholder(R.drawable.ic_attachment)
+                    .error(R.drawable.ic_attachment)
+                    .into(holder.imagePreview);
+                
+                // Add click listener to open fullscreen
+                final String finalImageUrl = imageUrl;
+                final String finalFileName = attachment.getFileName();
+                holder.imagePreview.setOnClickListener(v -> {
+                    if (context instanceof com.example.financialmanagement.activities.TaskDetailActivity) {
+                        ((com.example.financialmanagement.activities.TaskDetailActivity) context)
+                            .showImageFullscreen(finalImageUrl, finalFileName);
+                    } else {
+                        // Fallback: open with Intent
+                        try {
+                            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                            intent.setData(android.net.Uri.parse(finalImageUrl));
+                            intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                            context.startActivity(intent);
+                        } catch (Exception ex) {
+                            android.widget.Toast.makeText(context, "Không thể mở hình ảnh", android.widget.Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            } else if (attachment.getUri() != null) {
+                // Load from local URI
+                Glide.with(context)
+                    .load(attachment.getUri())
+                    .centerCrop()
+                    .placeholder(R.drawable.ic_attachment)
+                    .error(R.drawable.ic_attachment)
+                    .into(holder.imagePreview);
+                
+                // Add click listener to open fullscreen (if possible)
+                holder.imagePreview.setOnClickListener(v -> {
+                    // For local images, try to open with URI
+                    if (attachment.getUri() != null) {
+                        try {
+                            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                            intent.setDataAndType(attachment.getUri(), "image/*");
+                            intent.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            context.startActivity(intent);
+                        } catch (Exception e) {
+                            android.widget.Toast.makeText(context, "Không thể mở hình ảnh", android.widget.Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
         } else {
-            // Show file icon
+            // Show file icon with file name
             holder.imagePreview.setVisibility(View.GONE);
             holder.layoutFileIcon.setVisibility(View.VISIBLE);
 
+            // Show file name if available
+            if (holder.textFileName != null && attachment.getFileName() != null) {
+                holder.textFileName.setText(attachment.getFileName());
+                holder.textFileName.setVisibility(View.VISIBLE);
+            }
+            
             holder.textFileType.setText(attachment.getFileExtension());
 
             // Set appropriate file icon based on type
             int iconRes = getFileIconResource(attachment.getMimeType());
             holder.imageFileIcon.setImageResource(iconRes);
+            
+            // Add click listener to open file
+            holder.layoutFileIcon.setOnClickListener(v -> {
+                if (attachment.getUploadedUrl() != null && !attachment.getUploadedUrl().isEmpty()) {
+                    // Open uploaded file URL
+                    String fileUrl = attachment.getUploadedUrl();
+                    if (fileUrl.endsWith("?")) {
+                        fileUrl = fileUrl.substring(0, fileUrl.length() - 1);
+                    }
+                    try {
+                        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                        intent.setData(android.net.Uri.parse(fileUrl));
+                        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(intent);
+                    } catch (Exception e) {
+                        android.widget.Toast.makeText(context, "Không thể mở file", android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                } else if (attachment.getUri() != null) {
+                    // Open local file
+                    try {
+                        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                        intent.setDataAndType(attachment.getUri(), attachment.getMimeType());
+                        intent.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        context.startActivity(intent);
+                    } catch (Exception e) {
+                        android.widget.Toast.makeText(context, "Không thể mở file", android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
         }
 
         // Handle upload status overlay
@@ -157,6 +254,7 @@ public class AttachmentAdapter extends RecyclerView.Adapter<AttachmentAdapter.Vi
         ImageView imagePreview;
         LinearLayout layoutFileIcon;
         ImageView imageFileIcon;
+        TextView textFileName;
         TextView textFileType;
         ImageButton btnRemove;
 
@@ -172,6 +270,7 @@ public class AttachmentAdapter extends RecyclerView.Adapter<AttachmentAdapter.Vi
             imagePreview = itemView.findViewById(R.id.image_preview);
             layoutFileIcon = itemView.findViewById(R.id.layout_file_icon);
             imageFileIcon = itemView.findViewById(R.id.image_file_icon);
+            textFileName = itemView.findViewById(R.id.text_file_name);
             textFileType = itemView.findViewById(R.id.text_file_type);
             btnRemove = itemView.findViewById(R.id.btn_remove_attachment);
 

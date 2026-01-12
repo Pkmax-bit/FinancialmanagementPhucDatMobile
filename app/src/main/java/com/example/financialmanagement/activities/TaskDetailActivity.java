@@ -57,11 +57,15 @@ import android.provider.DocumentsContract; // Added for file picker
 import java.util.ArrayList; // Added for lists
 import com.google.android.material.chip.Chip; // Added for priority chips
 import android.view.ViewGroup; // Added for dialog sizing
+import com.example.financialmanagement.auth.AuthManager; // Added for permission checking
 
 public class TaskDetailActivity extends AppCompatActivity {
 
     private String taskId;
     private TaskService taskService;
+    private AuthManager authManager;
+    private String currentUserId;
+    private String currentUserRole;
     private ProgressBar progressRing;
     private TextView textProgressPercentage;
     private List<com.example.financialmanagement.models.TaskAttachment> currentTaskAttachments; // Store current task attachments
@@ -102,6 +106,10 @@ public class TaskDetailActivity extends AppCompatActivity {
         setupToolbar();
         
         taskService = new TaskService(this);
+        authManager = new AuthManager(this);
+        currentUserId = authManager.getUserId();
+        currentUserRole = authManager.getUserRole();
+        
         loadTaskDetails();
     }
 
@@ -635,7 +643,12 @@ public class TaskDetailActivity extends AppCompatActivity {
         // Add header with + button to create new checklist
         View headerView = LayoutInflater.from(this).inflate(R.layout.view_subtasks_header, container, false);
         com.google.android.material.button.MaterialButton btnAddChecklist = headerView.findViewById(R.id.btn_add_checklist);
-        btnAddChecklist.setOnClickListener(v -> showCreateChecklistDialog());
+        // Only show add checklist button if user has permission
+        if (canManageChecklistItems()) {
+            btnAddChecklist.setOnClickListener(v -> showCreateChecklistDialog());
+        } else {
+            btnAddChecklist.setVisibility(View.GONE);
+        }
         container.addView(headerView);
 
         // Hide section if no checklists
@@ -731,32 +744,81 @@ public class TaskDetailActivity extends AppCompatActivity {
             tempArrowParams.addRule(android.widget.RelativeLayout.CENTER_VERTICAL);
             headerLayout.addView(arrowIcon, tempArrowParams);
 
-            // Add Item Button (nút + để thêm checklist item) - đặt bên phải
+            // Buttons container (Add, Edit, Delete) - đặt bên phải
+            LinearLayout buttonsContainer = new LinearLayout(this);
+            buttonsContainer.setOrientation(LinearLayout.HORIZONTAL);
+            buttonsContainer.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            
+            // Add Item Button (nút + để thêm checklist item) - tăng kích thước lớn hơn
             ImageButton btnAddItem = new ImageButton(this);
             btnAddItem.setId(View.generateViewId()); // Generate ID for reference
             btnAddItem.setImageResource(R.drawable.ic_add);
             btnAddItem.setBackgroundResource(R.drawable.bg_circle_primary);
             btnAddItem.setColorFilter(android.graphics.Color.WHITE);
             btnAddItem.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-
-            android.widget.RelativeLayout.LayoutParams addItemParams = new android.widget.RelativeLayout.LayoutParams(
-                40, 40); // Button size
-            addItemParams.addRule(android.widget.RelativeLayout.ALIGN_PARENT_END);
-            addItemParams.addRule(android.widget.RelativeLayout.CENTER_VERTICAL);
-            addItemParams.rightMargin = 16; // Margin from right edge
+            android.widget.LinearLayout.LayoutParams addItemParams = new android.widget.LinearLayout.LayoutParams(56, 56);
+            addItemParams.setMargins(0, 0, 8, 0);
             btnAddItem.setLayoutParams(addItemParams);
-            headerLayout.addView(btnAddItem);
-
-            // Update arrow icon to be left of add button
-            android.widget.RelativeLayout.LayoutParams updatedArrowParams = new android.widget.RelativeLayout.LayoutParams(
-                48, 48); // Fixed small size
-            updatedArrowParams.addRule(android.widget.RelativeLayout.LEFT_OF, btnAddItem.getId());
-            updatedArrowParams.addRule(android.widget.RelativeLayout.CENTER_VERTICAL);
-            updatedArrowParams.rightMargin = 12; // Margin between arrow and add button
-            arrowIcon.setLayoutParams(updatedArrowParams);
-
-            // Set click listener for add item button
-            btnAddItem.setOnClickListener(v -> showCreateChecklistItemDialog(checklist.getId(), checklist.getTitle()));
+            btnAddItem.setPadding(12, 12, 12, 12); // Thêm padding để icon rõ hơn
+            
+            // Edit Checklist Button (chỉ hiển thị nếu có quyền) - tăng kích thước lớn hơn
+            ImageButton btnEditChecklist = new ImageButton(this);
+            btnEditChecklist.setId(View.generateViewId());
+            btnEditChecklist.setImageResource(android.R.drawable.ic_menu_edit);
+            btnEditChecklist.setBackgroundResource(R.drawable.bg_circle_primary);
+            btnEditChecklist.setColorFilter(android.graphics.Color.WHITE);
+            btnEditChecklist.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            android.widget.LinearLayout.LayoutParams editParams = new android.widget.LinearLayout.LayoutParams(56, 56);
+            editParams.setMargins(0, 0, 8, 0);
+            btnEditChecklist.setLayoutParams(editParams);
+            btnEditChecklist.setPadding(12, 12, 12, 12); // Thêm padding để icon rõ hơn
+            
+            // Delete Checklist Button (chỉ hiển thị nếu có quyền) - tăng kích thước lớn hơn
+            ImageButton btnDeleteChecklist = new ImageButton(this);
+            btnDeleteChecklist.setId(View.generateViewId());
+            btnDeleteChecklist.setImageResource(android.R.drawable.ic_menu_delete);
+            btnDeleteChecklist.setBackgroundResource(R.drawable.bg_circle_primary);
+            btnDeleteChecklist.setColorFilter(android.graphics.Color.RED);
+            btnDeleteChecklist.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            android.widget.LinearLayout.LayoutParams deleteParams = new android.widget.LinearLayout.LayoutParams(56, 56);
+            deleteParams.setMargins(0, 0, 0, 0);
+            btnDeleteChecklist.setLayoutParams(deleteParams);
+            btnDeleteChecklist.setPadding(12, 12, 12, 12); // Thêm padding để icon rõ hơn
+            
+            // Add buttons to container - chỉ hiển thị nếu có quyền (admin hoặc responsible)
+            if (canManageChecklistItems()) {
+                buttonsContainer.addView(btnAddItem);
+                buttonsContainer.addView(btnEditChecklist);
+                buttonsContainer.addView(btnDeleteChecklist);
+                
+                // Set click listeners
+                btnAddItem.setOnClickListener(v -> showCreateChecklistItemDialog(checklist.getId(), checklist.getTitle()));
+                btnEditChecklist.setOnClickListener(v -> showEditChecklistDialog(checklist));
+                btnDeleteChecklist.setOnClickListener(v -> showDeleteChecklistConfirmation(checklist));
+            } else {
+                // Không hiển thị bất kỳ button nào nếu không có quyền
+                buttonsContainer.setVisibility(View.GONE);
+            }
+            
+            // Arrow icon luôn nằm ngoài cùng bên phải
+            arrowIcon.setId(View.generateViewId()); // Generate ID để buttons có thể reference
+            android.widget.RelativeLayout.LayoutParams arrowParams = new android.widget.RelativeLayout.LayoutParams(
+                48, 48);
+            arrowParams.addRule(android.widget.RelativeLayout.ALIGN_PARENT_END);
+            arrowParams.addRule(android.widget.RelativeLayout.CENTER_VERTICAL);
+            arrowParams.rightMargin = 16;
+            arrowIcon.setLayoutParams(arrowParams);
+            
+            // Add buttons container to header - chỉ thêm nếu có quyền, đặt bên trái arrow icon
+            if (canManageChecklistItems()) {
+                android.widget.RelativeLayout.LayoutParams buttonsParams = new android.widget.RelativeLayout.LayoutParams(
+                    android.widget.RelativeLayout.LayoutParams.WRAP_CONTENT, 
+                    android.widget.RelativeLayout.LayoutParams.WRAP_CONTENT);
+                buttonsParams.addRule(android.widget.RelativeLayout.LEFT_OF, arrowIcon.getId()); // Đặt bên trái arrow icon
+                buttonsParams.addRule(android.widget.RelativeLayout.CENTER_VERTICAL);
+                buttonsParams.rightMargin = 12; // Margin giữa buttons và arrow
+                headerLayout.addView(buttonsContainer, buttonsParams);
+            }
 
             groupContainer.addView(headerLayout);
 
@@ -779,9 +841,19 @@ public class TaskDetailActivity extends AppCompatActivity {
                 // Set checkbox state based on completion status (without triggering listener)
                 checkboxCompleted.setOnCheckedChangeListener(null); // Remove listener first
                 checkboxCompleted.setChecked(item.isCompleted());
-
-                // Add click listener to toggle completion
-                checkboxCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                
+                // Check if user can complete this checklist item
+                // Chỉ hiển thị checkbox nếu: admin, responsible, hoặc được phân công vào item này
+                boolean canComplete = canCompleteChecklistItem(item);
+                
+                if (canComplete) {
+                    // Hiển thị checkbox và cho phép tương tác
+                    checkboxCompleted.setVisibility(View.VISIBLE);
+                    checkboxCompleted.setEnabled(true);
+                    checkboxCompleted.setAlpha(1.0f);
+                    
+                    // Add click listener to toggle completion
+                    checkboxCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> {
                     // Update completion status via API
                     taskService.updateChecklistItemCompletion(item.getId(), isChecked, new TaskService.TaskCallback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem>() {
                         @Override
@@ -827,6 +899,24 @@ public class TaskDetailActivity extends AppCompatActivity {
                         }
                     });
                 });
+                } else {
+                    // Ẩn hoàn toàn checkbox nếu không có quyền
+                    // Chỉ admin, responsible, hoặc người được phân công mới thấy checkbox
+                    checkboxCompleted.setVisibility(View.GONE);
+                }
+
+                // Add edit/delete buttons for checklist item (chỉ hiển thị nếu có quyền)
+                LinearLayout layoutActions = view.findViewById(R.id.layout_subtask_actions);
+                ImageButton btnEditSubtask = view.findViewById(R.id.btn_edit_subtask);
+                ImageButton btnDeleteSubtask = view.findViewById(R.id.btn_delete_subtask);
+                
+                if (canManageChecklistItems()) {
+                    layoutActions.setVisibility(View.VISIBLE);
+                    btnEditSubtask.setOnClickListener(v -> showEditChecklistItemDialog(item, checklist.getId()));
+                    btnDeleteSubtask.setOnClickListener(v -> showDeleteChecklistItemConfirmation(item));
+                } else {
+                    layoutActions.setVisibility(View.GONE);
+                }
 
                 // Clean Title & Extract Files
                 String rawTitle = item.getTitle();
@@ -1254,6 +1344,340 @@ public class TaskDetailActivity extends AppCompatActivity {
             }
         });
     }
+    
+    private void showEditChecklistDialog(com.example.financialmanagement.models.TaskChecklist checklist) {
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_create_checklist_simple);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        EditText editTitle = dialog.findViewById(R.id.edit_checklist_title);
+        com.google.android.material.button.MaterialButton btnCancel = dialog.findViewById(R.id.btn_cancel);
+        com.google.android.material.button.MaterialButton btnCreate = dialog.findViewById(R.id.btn_create);
+
+        editTitle.setText(checklist.getTitle());
+        btnCreate.setText("Cập nhật");
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        btnCreate.setOnClickListener(v -> {
+            String title = editTitle.getText().toString().trim();
+            if (title.isEmpty()) {
+                Toast.makeText(this, "Vui lòng nhập tiêu đề nhóm nhiệm vụ", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            updateChecklist(checklist.getId(), title);
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+    
+    private void showDeleteChecklistConfirmation(com.example.financialmanagement.models.TaskChecklist checklist) {
+        new AlertDialog.Builder(this)
+            .setTitle("Xóa nhóm nhiệm vụ")
+            .setMessage("Bạn có chắc chắn muốn xóa nhóm nhiệm vụ \"" + checklist.getTitle() + "\"?\n\nTất cả các nhiệm vụ nhỏ trong nhóm này cũng sẽ bị xóa.")
+            .setPositiveButton("Xóa", (dialog, which) -> deleteChecklist(checklist.getId()))
+            .setNegativeButton("Hủy", null)
+            .show();
+    }
+    
+    private void updateChecklist(String checklistId, String title) {
+        taskService.updateChecklist(checklistId, title, new TaskService.TaskCallback<com.example.financialmanagement.models.TaskChecklist>() {
+            @Override
+            public void onSuccess(com.example.financialmanagement.models.TaskChecklist updatedChecklist) {
+                Toast.makeText(TaskDetailActivity.this, "Đã cập nhật nhóm nhiệm vụ", Toast.LENGTH_SHORT).show();
+                loadTaskDetails();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(TaskDetailActivity.this, "Lỗi cập nhật: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    
+    private void deleteChecklist(String checklistId) {
+        taskService.deleteChecklist(checklistId, new TaskService.TaskCallback<String>() {
+            @Override
+            public void onSuccess(String result) {
+                Toast.makeText(TaskDetailActivity.this, "Đã xóa nhóm nhiệm vụ", Toast.LENGTH_SHORT).show();
+                loadTaskDetails();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(TaskDetailActivity.this, "Lỗi xóa: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    
+    private void showEditChecklistItemDialog(com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem item, String checklistId) {
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_create_todo_simple);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        EditText editTitle = dialog.findViewById(R.id.edit_todo_title);
+        EditText editDescription = dialog.findViewById(R.id.edit_todo_description);
+        EditText editEstimatedHours = dialog.findViewById(R.id.edit_estimated_hours);
+        EditText editDueDate = dialog.findViewById(R.id.edit_due_date);
+        
+        RecyclerView recyclerAssignees = dialog.findViewById(R.id.recycler_assignees);
+        TextView textNoAssignees = dialog.findViewById(R.id.text_no_assignees);
+        com.google.android.material.button.MaterialButton btnAddAssignee = dialog.findViewById(R.id.btn_add_assignee);
+        RecyclerView recyclerAttachments = dialog.findViewById(R.id.recycler_attachments);
+        com.google.android.material.button.MaterialButton btnAddImage = dialog.findViewById(R.id.btn_add_image);
+        com.google.android.material.button.MaterialButton btnAddFile = dialog.findViewById(R.id.btn_add_file);
+        com.google.android.material.button.MaterialButton btnCancel = dialog.findViewById(R.id.btn_cancel);
+        com.google.android.material.button.MaterialButton btnCreate = dialog.findViewById(R.id.btn_create);
+
+        // Populate with existing data
+        String rawTitle = item.getTitle();
+        String cleanTitle = rawTitle != null ? rawTitle.replaceAll("\\[FILE_URLS:.*?\\]", "").trim() : "";
+        editTitle.setText(cleanTitle);
+        btnCreate.setText("Cập nhật");
+        
+        // Initialize attachment list and adapter - load existing files
+        ArrayList<AttachmentItem> taskAttachments = new ArrayList<>();
+        final AttachmentAdapter[] attachmentAdapterRef = new AttachmentAdapter[1];
+        attachmentAdapterRef[0] = new AttachmentAdapter(this, taskAttachments,
+            attachment -> {
+                taskAttachments.remove(attachment);
+                attachmentAdapterRef[0].notifyDataSetChanged();
+            });
+        recyclerAttachments.setLayoutManager(new GridLayoutManager(this, 3));
+        recyclerAttachments.setAdapter(attachmentAdapterRef[0]);
+        
+        // Load existing files from item content and task attachments
+        if (rawTitle != null) {
+            List<String> fileUrls = extractFileUrlsFromText(rawTitle);
+            // Also check task attachments for this checklist item
+            if (currentTaskAttachments != null && item.getId() != null) {
+                for (com.example.financialmanagement.models.TaskAttachment attachment : currentTaskAttachments) {
+                    if (item.getId().equals(attachment.getChecklistItemId())) {
+                        String attachmentUrl = attachment.getFileUrl();
+                        if (attachmentUrl != null && !attachmentUrl.isEmpty()) {
+                            if (attachmentUrl.endsWith("?")) {
+                                attachmentUrl = attachmentUrl.substring(0, attachmentUrl.length() - 1);
+                            }
+                            // Check if not already in fileUrls
+                            boolean exists = false;
+                            for (String url : fileUrls) {
+                                String cleanUrl = url.endsWith("?") ? url.substring(0, url.length() - 1) : url;
+                                if (cleanUrl.equals(attachmentUrl)) {
+                                    exists = true;
+                                    break;
+                                }
+                            }
+                            if (!exists) {
+                                fileUrls.add(attachmentUrl);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Add existing files to attachment list (as already uploaded)
+            for (String url : fileUrls) {
+                String cleanUrl = url.endsWith("?") ? url.substring(0, url.length() - 1) : url;
+                String fileName = FileIconHelper.getFileName(cleanUrl);
+                
+                // Determine if it's an image
+                boolean isImage = isImageFile(cleanUrl);
+                String mimeType = isImage ? "image/jpeg" : "application/octet-stream";
+                
+                AttachmentItem existingAttachment = new AttachmentItem(null, fileName, mimeType, 0);
+                existingAttachment.setImage(isImage);
+                existingAttachment.setUploadStatus(AttachmentItem.UploadStatus.SUCCESS);
+                existingAttachment.setUploadedUrl(cleanUrl);
+                taskAttachments.add(existingAttachment);
+            }
+            attachmentAdapterRef[0].notifyDataSetChanged();
+        }
+        
+        // Initialize assignee list and adapter - load existing assignees
+        ArrayList<AssigneeWithRole> taskAssignees = new ArrayList<>();
+        if (item.getAssignments() != null) {
+            for (com.example.financialmanagement.models.ChecklistItemAssignment assignment : item.getAssignments()) {
+                AssigneeWithRole assignee = new AssigneeWithRole(
+                    assignment.getEmployeeId(),
+                    assignment.getEmployeeName(),
+                    assignment.getResponsibilityType()
+                );
+                taskAssignees.add(assignee);
+            }
+        }
+        final AssigneeRoleAdapter[] assigneeAdapterRef = new AssigneeRoleAdapter[1];
+        assigneeAdapterRef[0] = new AssigneeRoleAdapter(this, taskAssignees,
+            assignee -> {
+                taskAssignees.remove(assignee);
+                assigneeAdapterRef[0].notifyDataSetChanged();
+                updateAssigneeVisibility(recyclerAssignees, textNoAssignees, taskAssignees);
+            });
+        recyclerAssignees.setAdapter(assigneeAdapterRef[0]);
+        updateAssigneeVisibility(recyclerAssignees, textNoAssignees, taskAssignees);
+
+        // Due date picker
+        editDueDate.setOnClickListener(v -> showDatePicker((dateString) -> editDueDate.setText(dateString)));
+
+        // Add assignee button
+        btnAddAssignee.setOnClickListener(v -> showAssigneeSelectionDialog(selectedAssignee -> {
+            taskAssignees.add(selectedAssignee);
+            assigneeAdapterRef[0].notifyDataSetChanged();
+            updateAssigneeVisibility(recyclerAssignees, textNoAssignees, taskAssignees);
+        }));
+
+        // Add image button
+        btnAddImage.setOnClickListener(v -> openImagePicker(result -> {
+            for (android.net.Uri uri : result) {
+                addAttachmentFromUri(uri, taskAttachments, attachmentAdapterRef[0], false);
+            }
+        }));
+
+        // Add file button
+        btnAddFile.setOnClickListener(v -> openFilePicker(result -> {
+            for (android.net.Uri uri : result) {
+                addAttachmentFromUri(uri, taskAttachments, attachmentAdapterRef[0], false);
+            }
+        }));
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        btnCreate.setOnClickListener(v -> {
+            String title = editTitle.getText().toString().trim();
+            if (title.isEmpty()) {
+                Toast.makeText(this, "Vui lòng nhập tiêu đề nhiệm vụ", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            // Upload new attachments and update content
+            if (taskAttachments != null && !taskAttachments.isEmpty()) {
+                // Store original content to append file URLs later
+                String originalContent = title;
+                uploadChecklistItemAttachmentsForEdit(item.getId(), taskAttachments, originalContent, item.isCompleted());
+            } else {
+                // No new attachments, just update title (preserve existing file URLs)
+                String fileUrlsPart = "";
+                if (rawTitle != null && rawTitle.contains("[FILE_URLS:")) {
+                    java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\[FILE_URLS:.*?\\]");
+                    java.util.regex.Matcher matcher = pattern.matcher(rawTitle);
+                    if (matcher.find()) {
+                        fileUrlsPart = " " + matcher.group(0);
+                    }
+                }
+                String updatedContent = title + fileUrlsPart;
+                updateChecklistItem(item.getId(), updatedContent, item.isCompleted());
+            }
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+    
+    private void uploadChecklistItemAttachmentsForEdit(String checklistItemId, List<AttachmentItem> attachments, String originalContent, boolean isCompleted) {
+        if (attachments == null || attachments.isEmpty()) {
+            // No new attachments, just update with existing content
+            updateChecklistItem(checklistItemId, originalContent, isCompleted);
+            return;
+        }
+        
+        // Separate already uploaded vs new attachments
+        final StringBuilder fileUrlsContent = new StringBuilder();
+        final int[] uploadedCount = {0};
+        final int[] failedCount = {0};
+        final int totalCount = attachments.size();
+        
+        for (AttachmentItem attachment : attachments) {
+            if (attachment.getUploadStatus() == AttachmentItem.UploadStatus.SUCCESS && attachment.getUploadedUrl() != null) {
+                // Already uploaded, just append
+                fileUrlsContent.append(" [FILE_URLS: ").append(attachment.getUploadedUrl()).append("?]");
+                uploadedCount[0]++;
+            } else if (attachment.getUploadStatus() == AttachmentItem.UploadStatus.PENDING || 
+                      attachment.getUploadStatus() == AttachmentItem.UploadStatus.ERROR) {
+                // Upload new file with checklist_item_id
+                uploadAttachmentForChecklistItem(checklistItemId, attachment, new TaskService.TaskCallback<String>() {
+                    @Override
+                    public void onSuccess(String uploadedUrl) {
+                        attachment.setUploadStatus(AttachmentItem.UploadStatus.SUCCESS);
+                        attachment.setUploadedUrl(uploadedUrl);
+                        fileUrlsContent.append(" [FILE_URLS: ").append(uploadedUrl).append("?]");
+                        uploadedCount[0]++;
+                        
+                        if (uploadedCount[0] + failedCount[0] == totalCount) {
+                            String finalContent = originalContent + fileUrlsContent.toString();
+                            updateChecklistItem(checklistItemId, finalContent, isCompleted);
+                        }
+                    }
+                    
+                    @Override
+                    public void onError(String error) {
+                        attachment.setUploadStatus(AttachmentItem.UploadStatus.ERROR);
+                        failedCount[0]++;
+                        
+                        if (uploadedCount[0] + failedCount[0] == totalCount) {
+                            if (uploadedCount[0] > 0) {
+                                String finalContent = originalContent + fileUrlsContent.toString();
+                                updateChecklistItem(checklistItemId, finalContent, isCompleted);
+                            } else {
+                                Toast.makeText(TaskDetailActivity.this, "Upload file thất bại: " + error, Toast.LENGTH_SHORT).show();
+                                updateChecklistItem(checklistItemId, originalContent, isCompleted);
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // If all files were already uploaded, update immediately
+        if (uploadedCount[0] == totalCount && failedCount[0] == 0) {
+            String finalContent = originalContent + fileUrlsContent.toString();
+            updateChecklistItem(checklistItemId, finalContent, isCompleted);
+        }
+    }
+    
+    private void showDeleteChecklistItemConfirmation(com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem item) {
+        String itemTitle = item.getTitle();
+        if (itemTitle != null) {
+            itemTitle = itemTitle.replaceAll("\\[FILE_URLS:.*?\\]", "").trim();
+        }
+        new AlertDialog.Builder(this)
+            .setTitle("Xóa nhiệm vụ nhỏ")
+            .setMessage("Bạn có chắc chắn muốn xóa nhiệm vụ \"" + (itemTitle != null ? itemTitle : "") + "\"?")
+            .setPositiveButton("Xóa", (dialog, which) -> deleteChecklistItem(item.getId()))
+            .setNegativeButton("Hủy", null)
+            .show();
+    }
+    
+    private void updateChecklistItem(String itemId, String content, boolean isCompleted) {
+        taskService.updateChecklistItemFull(itemId, content, isCompleted, new TaskService.TaskCallback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem>() {
+            @Override
+            public void onSuccess(com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem updatedItem) {
+                Toast.makeText(TaskDetailActivity.this, "Đã cập nhật nhiệm vụ", Toast.LENGTH_SHORT).show();
+                loadTaskDetails();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(TaskDetailActivity.this, "Lỗi cập nhật: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    
+    private void deleteChecklistItem(String itemId) {
+        taskService.deleteChecklistItem(itemId, new TaskService.TaskCallback<String>() {
+            @Override
+            public void onSuccess(String result) {
+                Toast.makeText(TaskDetailActivity.this, "Đã xóa nhiệm vụ", Toast.LENGTH_SHORT).show();
+                loadTaskDetails();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(TaskDetailActivity.this, "Lỗi xóa: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
     private void createChecklistItemInChecklist(String checklistId, String title, String description, String assigneeId) {
         taskService.createChecklistItem(checklistId, title, description, assigneeId, new TaskService.TaskCallback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem>() {
@@ -1426,6 +1850,62 @@ public class TaskDetailActivity extends AppCompatActivity {
             recyclerView.setVisibility(View.VISIBLE);
             emptyText.setVisibility(View.GONE);
         }
+    }
+    
+    // ========== PERMISSION CHECKING METHODS ==========
+    
+    /**
+     * Check if current user is admin
+     */
+    private boolean isAdmin() {
+        return currentUserRole != null && "admin".equals(currentUserRole.toLowerCase());
+    }
+    
+    /**
+     * Check if current user has "responsible" role in this task
+     */
+    private boolean isResponsibleInTask() {
+        if (taskParticipants == null || currentUserId == null) {
+            return false;
+        }
+        for (TaskParticipant participant : taskParticipants) {
+            if (currentUserId.equals(participant.getEmployeeId()) && 
+                "responsible".equals(participant.getRole())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Check if current user can create/edit/delete checklist items
+     * Returns true if user is admin OR has "responsible" role in task
+     */
+    private boolean canManageChecklistItems() {
+        return isAdmin() || isResponsibleInTask();
+    }
+    
+    /**
+     * Check if current user is assigned to a specific checklist item
+     */
+    private boolean isAssignedToChecklistItem(com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem item) {
+        if (currentUserId == null || item == null || item.getAssignments() == null) {
+            return false;
+        }
+        for (com.example.financialmanagement.models.ChecklistItemAssignment assignment : item.getAssignments()) {
+            if (currentUserId.equals(assignment.getEmployeeId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Check if current user can mark checklist item as complete
+     * Returns true if user is assigned to the item OR is admin OR is responsible in task
+     */
+    private boolean canCompleteChecklistItem(com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem item) {
+        return isAdmin() || isResponsibleInTask() || isAssignedToChecklistItem(item);
     }
 
     private void showAssigneeSelectionDialog(OnAssigneeSelectedListener listener) {
@@ -1786,7 +2266,7 @@ public class TaskDetailActivity extends AppCompatActivity {
     /**
      * Hiển thị hình ảnh fullscreen với tùy chọn tải về
      */
-    private void showImageFullscreen(String imageUrl, String imageName) {
+    public void showImageFullscreen(String imageUrl, String imageName) {
         // Tạo dialog fullscreen
         Dialog dialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_image_viewer, null);
