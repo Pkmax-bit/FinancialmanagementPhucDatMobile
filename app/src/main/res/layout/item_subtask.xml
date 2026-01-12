@@ -9,6 +9,20 @@
     android:padding="16dp">
 
     <!-- Title and Status Row -->
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/checkbox_subtask_completed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        android:minWidth="40dp"
+        android:minHeight="40dp"
+        android:padding="4dp"
+        app:buttonTint="@color/primary_color"
+        app:useMaterialThemeColors="false"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/text_subtask_title" />
+
     <TextView
         android:id="@+id/text_subtask_title"
         android:layout_width="0dp"
@@ -19,7 +33,7 @@
         android:textColor="@color/text_primary"
         android:textSize="14sp"
         app:layout_constraintEnd_toStartOf="@+id/text_subtask_status"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/checkbox_subtask_completed"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -100,6 +114,26 @@
             android:textStyle="bold" />
     </LinearLayout>
 
+    <!-- Image Thumbnails Container (for images only) -->
+    <HorizontalScrollView
+        android:id="@+id/scrollview_subtask_images"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:scrollbars="none"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout_assignee_row">
+        
+        <LinearLayout
+            android:id="@+id/layout_subtask_image_thumbnails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingEnd="8dp">
+            <!-- Image thumbnails will be added here -->
+        </LinearLayout>
+    </HorizontalScrollView>
+
     <!-- File Attachments Container -->
     <LinearLayout
         android:id="@+id/layout_subtask_files"
@@ -108,7 +142,7 @@
         android:layout_marginTop="8dp"
         android:orientation="vertical"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout_assignee_row"
+        app:layout_constraintTop_toBottomOf="@+id/scrollview_subtask_images"
         tools:visibility="visible">
         <!-- Files will be added dynamically here -->
     </LinearLayout>

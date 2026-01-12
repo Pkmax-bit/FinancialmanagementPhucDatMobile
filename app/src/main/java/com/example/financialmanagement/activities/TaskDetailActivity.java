@@ -21,6 +21,7 @@ import com.example.financialmanagement.services.TaskService;
 import com.example.financialmanagement.views.ExpandableSectionView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import android.widget.LinearLayout;
+import android.widget.HorizontalScrollView;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -30,12 +31,18 @@ import java.util.ArrayList; // Added import
 import android.widget.ImageView; // Added import
 import com.example.financialmanagement.models.TaskComment; // Added import
 import com.example.financialmanagement.utils.FileIconHelper; // Added import
+import com.bumptech.glide.Glide; // Added for image loading
 import android.app.Dialog; // Added for dialog
 import android.widget.EditText; // Added for dialog
 import android.widget.Button; // Added for dialog
 import android.widget.Spinner; // Added for dialog
 import android.widget.ArrayAdapter; // Added for spinner
 import android.widget.ImageButton; // Added for checklist header
+import android.app.DownloadManager; // Added for download
+import android.net.Uri; // Added for download
+import android.os.Environment; // Added for download
+import android.content.Context; // Added for download
+import androidx.appcompat.app.AlertDialog; // Added for dialog
 import com.example.financialmanagement.models.AssigneeWithRole; // Added for multi-assignee
 import com.example.financialmanagement.models.AttachmentItem; // Added for attachments
 import com.example.financialmanagement.adapters.AssigneeRoleAdapter; // Added for assignee adapter
@@ -57,6 +64,7 @@ public class TaskDetailActivity extends AppCompatActivity {
     private TaskService taskService;
     private ProgressBar progressRing;
     private TextView textProgressPercentage;
+    private List<com.example.financialmanagement.models.TaskAttachment> currentTaskAttachments; // Store current task attachments
     private TextView textTaskTitle;
     private TextView textStatusBadge;
     private TextView textPriorityBadge;
@@ -147,21 +155,18 @@ public class TaskDetailActivity extends AppCompatActivity {
                 // bindAssignments(response.getAssignments());
                 taskParticipants = response.getParticipants(); // Store participants for assignee selection
                 bindTeamData(response.getParticipants());
+                
+                // Store attachments for use in subtasks BEFORE binding subtasks
+                currentTaskAttachments = response.getAttachments();
+                android.util.Log.d("TaskDetailActivity", "Stored " + (currentTaskAttachments != null ? currentTaskAttachments.size() : 0) + " attachments for subtasks");
+                
                 bindSubtasks(response.getChecklists());
                 
-                // Combine comments and extracted files
-                List<TaskComment> allComments = response.getComments();
-                if (allComments == null) allComments = new ArrayList<>();
-                
-                // Convert extracted file URLs to TaskComment objects roughly for display
-                for (String url : extractedFiles) {
-                    TaskComment fileComment = new TaskComment();
-                    fileComment.setType("file");
-                    fileComment.setFileUrl(url);
-                    allComments.add(fileComment);
-                }
-                
-                bindFileAttachments(allComments);
+                // Load and display task attachments from response
+                android.util.Log.d("TaskDetailActivity", "Attachments from API: " + (response.getAttachments() != null ? response.getAttachments().size() : 0));
+                android.util.Log.d("TaskDetailActivity", "Comments: " + (response.getComments() != null ? response.getComments().size() : 0));
+                android.util.Log.d("TaskDetailActivity", "Extracted files from title: " + (extractedFiles != null ? extractedFiles.size() : 0));
+                bindFileAttachments(response.getAttachments(), response.getComments(), extractedFiles);
                 bindQuotes(response.getQuotes());
                 bindCosts(response.getExpenses());
 
@@ -178,6 +183,34 @@ public class TaskDetailActivity extends AppCompatActivity {
         });
     }
 
+    private boolean isImageFile(String url) {
+        if (url == null || url.isEmpty()) return false;
+        String lowerUrl = url.toLowerCase();
+        
+        // Loại bỏ query parameters và fragment để check extension
+        String urlWithoutParams = lowerUrl;
+        int queryIndex = urlWithoutParams.indexOf('?');
+        if (queryIndex > 0) {
+            urlWithoutParams = urlWithoutParams.substring(0, queryIndex);
+        }
+        int fragmentIndex = urlWithoutParams.indexOf('#');
+        if (fragmentIndex > 0) {
+            urlWithoutParams = urlWithoutParams.substring(0, fragmentIndex);
+        }
+        
+        // Check extension
+        boolean hasImageExtension = urlWithoutParams.endsWith(".jpg") || urlWithoutParams.endsWith(".jpeg") || 
+                                    urlWithoutParams.endsWith(".png") || urlWithoutParams.endsWith(".gif") || 
+                                    urlWithoutParams.endsWith(".webp") || urlWithoutParams.endsWith(".bmp");
+        
+        // Check MIME type trong URL
+        boolean hasImageMimeType = lowerUrl.contains("image/jpeg") || lowerUrl.contains("image/png") ||
+                                   lowerUrl.contains("image/gif") || lowerUrl.contains("image/webp") ||
+                                   lowerUrl.contains("image/bmp");
+        
+        return hasImageExtension || hasImageMimeType;
+    }
+
     private List<String> extractFileUrlsFromText(String text) {
         List<String> urls = new ArrayList<>();
         if (text == null) return urls;
@@ -190,16 +223,22 @@ public class TaskDetailActivity extends AppCompatActivity {
         while (matcher.find()) {
             String urlContent = matcher.group(1);
             if (urlContent != null) {
-                // Helper to split by comma if multiple urls are present? 
-                // Assuming simple case based on user image: just one long url or space separated?
-                // The image shows: "https://...xlsx?" so it might be a single URL.
-                // Let's treat it as single or comma separated
-                String[] parts = urlContent.split(",");
-                for (String part : parts) {
-                    String cleanUrl = part.trim();
-                    // Remove trailing ? or ] if regex was greedy (regex above is non-greedy .*?)
-                    if (!cleanUrl.isEmpty()) {
-                        urls.add(cleanUrl);
+                // Split by comma first, then by space (to handle both formats)
+                // Example: "url1, url2" or "url1 url2"
+                String[] commaParts = urlContent.split(",");
+                for (String commaPart : commaParts) {
+                    // Split by space to handle space-separated URLs
+                    String[] spaceParts = commaPart.trim().split("\\s+");
+                    for (String part : spaceParts) {
+                        String cleanUrl = part.trim();
+                        // Remove trailing ? if present
+                        if (cleanUrl.endsWith("?")) {
+                            cleanUrl = cleanUrl.substring(0, cleanUrl.length() - 1);
+                        }
+                        // Only add if it looks like a URL
+                        if (!cleanUrl.isEmpty() && (cleanUrl.startsWith("http://") || cleanUrl.startsWith("https://"))) {
+                            urls.add(cleanUrl);
+                        }
                     }
                 }
             }
@@ -280,7 +319,7 @@ public class TaskDetailActivity extends AppCompatActivity {
         }
 
         sectionProjectInfo.setVisibility(View.VISIBLE); // Ensure it's visible if project exists
-        sectionProjectInfo.expand(); // Use default expanded state for Overview
+        sectionProjectInfo.collapse(); // Default collapsed state for Overview
 
         View view = LayoutInflater.from(this).inflate(R.layout.view_project_info, sectionProjectInfo.getContainer(), false);
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
@@ -486,7 +525,8 @@ public class TaskDetailActivity extends AppCompatActivity {
     }
 
     private void bindSubtasks(List<com.example.financialmanagement.models.TaskChecklist> checklists) {
-        this.allChecklists = checklists; 
+        this.allChecklists = checklists;
+        android.util.Log.d("TaskDetailActivity", "bindSubtasks: " + (checklists != null ? checklists.size() : 0) + " checklist(s)"); 
         
         // Initialize filter view if needed
         if (filterHeaderView == null) {
@@ -510,9 +550,34 @@ public class TaskDetailActivity extends AppCompatActivity {
             }
         }
         
+        // Calculate and update progress percentage based on checklist items
+        int progressPercentage = 0;
+        if (total > 0) {
+            progressPercentage = (completed * 100) / total;
+        }
+        updateTaskProgress(progressPercentage);
+        
+        // Update subtasks count with percentage
+        if (textSubtasksCount != null) {
+            if (total > 0) {
+                textSubtasksCount.setText(completed + "/" + total + " nhiệm vụ (" + progressPercentage + "%)");
+            } else {
+                textSubtasksCount.setText("Chưa có nhiệm vụ");
+            }
+        }
+        
         // Refresh filter header with counts
         updateFilterHeader(total, todo, completed);
         applySubtaskFilter();
+    }
+
+    private void updateTaskProgress(int progressPercentage) {
+        if (textProgressPercentage != null) {
+            textProgressPercentage.setText(progressPercentage + "%");
+        }
+        if (progressRing != null) {
+            progressRing.setProgress(progressPercentage);
+        }
     }
 
     private View filterHeaderView; // Keep reference to refresh
@@ -703,6 +768,7 @@ public class TaskDetailActivity extends AppCompatActivity {
             // Populate Items
             for (com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem item : matchingItems) {
                 View view = LayoutInflater.from(this).inflate(R.layout.item_subtask, itemsContainer, false);
+                com.google.android.material.checkbox.MaterialCheckBox checkboxCompleted = view.findViewById(R.id.checkbox_subtask_completed);
                 TextView title = view.findViewById(R.id.text_subtask_title);
                 TextView status = view.findViewById(R.id.text_subtask_status);
                 TextView initials = view.findViewById(R.id.text_subtask_assignee_initials);
@@ -710,12 +776,132 @@ public class TaskDetailActivity extends AppCompatActivity {
                 TextView progressText = view.findViewById(R.id.text_subtask_progress);
                 LinearLayout filesLayout = view.findViewById(R.id.layout_subtask_files);
 
+                // Set checkbox state based on completion status (without triggering listener)
+                checkboxCompleted.setOnCheckedChangeListener(null); // Remove listener first
+                checkboxCompleted.setChecked(item.isCompleted());
+
+                // Add click listener to toggle completion
+                checkboxCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    // Update completion status via API
+                    taskService.updateChecklistItemCompletion(item.getId(), isChecked, new TaskService.TaskCallback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem>() {
+                        @Override
+                        public void onSuccess(com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem updatedItem) {
+                            // Reload task details to refresh the UI
+                            loadTaskDetails();
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            // Revert checkbox state on error (without triggering listener)
+                            checkboxCompleted.setOnCheckedChangeListener(null);
+                            checkboxCompleted.setChecked(!isChecked);
+                            checkboxCompleted.setOnCheckedChangeListener((btn, checked) -> {
+                                taskService.updateChecklistItemCompletion(item.getId(), checked, new TaskService.TaskCallback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem>() {
+                                    @Override
+                                    public void onSuccess(com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem updatedItem) {
+                                        loadTaskDetails();
+                                    }
+
+                                    @Override
+                                    public void onError(String err) {
+                                        checkboxCompleted.setOnCheckedChangeListener(null);
+                                        checkboxCompleted.setChecked(!checked);
+                                        checkboxCompleted.setOnCheckedChangeListener((b, c) -> {
+                                            taskService.updateChecklistItemCompletion(item.getId(), c, new TaskService.TaskCallback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem>() {
+                                                @Override
+                                                public void onSuccess(com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem updatedItem) {
+                                                    loadTaskDetails();
+                                                }
+
+                                                @Override
+                                                public void onError(String e) {
+                                                    Toast.makeText(TaskDetailActivity.this, "Lỗi cập nhật trạng thái: " + e, Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                                        });
+                                        Toast.makeText(TaskDetailActivity.this, "Lỗi cập nhật trạng thái: " + err, Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            });
+                            Toast.makeText(TaskDetailActivity.this, "Lỗi cập nhật trạng thái: " + error, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                });
+
                 // Clean Title & Extract Files
                 String rawTitle = item.getTitle();
                 if (rawTitle == null) rawTitle = "";
                 
                 List<String> fileUrls = extractFileUrlsFromText(rawTitle);
                 String cleanTitle = rawTitle.replaceAll("\\[FILE_URLS:.*?\\]", "").trim();
+                
+                // Thêm attachments từ task attachments nếu có checklist_item_id khớp với subtask này
+                // Mỗi subtask chỉ hiển thị file/hình của chính nó (theo checklist_item_id)
+                String currentItemId = item.getId();
+                android.util.Log.d("TaskDetailActivity", "Subtask ID: " + currentItemId + ", Title: " + cleanTitle);
+                
+                if (currentTaskAttachments != null && !currentTaskAttachments.isEmpty() && currentItemId != null) {
+                    android.util.Log.d("TaskDetailActivity", "Checking " + currentTaskAttachments.size() + " attachment(s) for subtask " + currentItemId);
+                    int attachmentCount = 0;
+                    int imageAttachmentCount = 0;
+                    for (com.example.financialmanagement.models.TaskAttachment attachment : currentTaskAttachments) {
+                        String attachmentChecklistItemId = attachment.getChecklistItemId();
+                        android.util.Log.d("TaskDetailActivity", "  Attachment checklist_item_id: " + attachmentChecklistItemId + " (subtask ID: " + currentItemId + ", match: " + currentItemId.equals(attachmentChecklistItemId) + ")");
+                        
+                        // Kiểm tra xem attachment có thuộc về subtask này không
+                        if (currentItemId.equals(attachmentChecklistItemId)) {
+                            String attachmentUrl = attachment.getFileUrl();
+                            if (attachmentUrl != null && !attachmentUrl.isEmpty()) {
+                                // Loại bỏ dấu ? ở cuối URL nếu có
+                                if (attachmentUrl.endsWith("?")) {
+                                    attachmentUrl = attachmentUrl.substring(0, attachmentUrl.length() - 1);
+                                }
+                                
+                                // Check if it's an image
+                                boolean isImage = isImageFile(attachmentUrl);
+                                android.util.Log.d("TaskDetailActivity", "    Attachment URL: " + attachmentUrl + " -> isImage: " + isImage);
+                                
+                                // Kiểm tra xem URL đã có trong fileUrls chưa (tránh trùng lặp)
+                                boolean alreadyExists = false;
+                                for (String existingUrl : fileUrls) {
+                                    String cleanExisting = existingUrl.endsWith("?") ? existingUrl.substring(0, existingUrl.length() - 1) : existingUrl;
+                                    if (cleanExisting.equals(attachmentUrl)) {
+                                        alreadyExists = true;
+                                        break;
+                                    }
+                                }
+                                if (!alreadyExists) {
+                                    fileUrls.add(attachmentUrl);
+                                    attachmentCount++;
+                                    if (isImage) {
+                                        imageAttachmentCount++;
+                                    }
+                                    android.util.Log.d("TaskDetailActivity", "    Added attachment for subtask " + currentItemId + ": " + attachmentUrl + " (isImage: " + isImage + ")");
+                                } else {
+                                    android.util.Log.d("TaskDetailActivity", "    Attachment already exists in fileUrls: " + attachmentUrl);
+                                }
+                            }
+                        }
+                    }
+                    android.util.Log.d("TaskDetailActivity", "Added " + attachmentCount + " attachment(s) (" + imageAttachmentCount + " image(s)) for subtask " + currentItemId);
+                } else {
+                    if (currentTaskAttachments == null) {
+                        android.util.Log.d("TaskDetailActivity", "currentTaskAttachments is null");
+                    } else if (currentTaskAttachments.isEmpty()) {
+                        android.util.Log.d("TaskDetailActivity", "currentTaskAttachments is empty");
+                    } else if (currentItemId == null) {
+                        android.util.Log.d("TaskDetailActivity", "currentItemId is null");
+                    }
+                }
+                
+                // Debug logging
+                android.util.Log.d("TaskDetailActivity", "Subtask: " + cleanTitle);
+                android.util.Log.d("TaskDetailActivity", "Found " + fileUrls.size() + " file(s) in subtask (from content + attachments)");
+                if (!fileUrls.isEmpty()) {
+                    for (int i = 0; i < fileUrls.size(); i++) {
+                        android.util.Log.d("TaskDetailActivity", "  File " + (i+1) + ": " + fileUrls.get(i));
+                    }
+                }
 
                 title.setText(cleanTitle);
                 
@@ -777,37 +963,118 @@ public class TaskDetailActivity extends AppCompatActivity {
                     progressText.setText("0%");
                 }
 
-                // Bind Files
+                // Bind Files and Images
+                LinearLayout imageThumbnailsLayout = view.findViewById(R.id.layout_subtask_image_thumbnails);
+                HorizontalScrollView scrollViewImages = view.findViewById(R.id.scrollview_subtask_images);
+                
                 if (!fileUrls.isEmpty()) {
-                    filesLayout.setVisibility(View.VISIBLE);
-                    filesLayout.removeAllViews();
+                    android.util.Log.d("TaskDetailActivity", "Displaying " + fileUrls.size() + " file(s) for subtask: " + cleanTitle);
+                    
+                    // Tách hình ảnh và files
+                    List<String> imageUrls = new ArrayList<>();
+                    List<String> nonImageUrls = new ArrayList<>();
+                    
+                    android.util.Log.d("TaskDetailActivity", "Separating images and files from " + fileUrls.size() + " URL(s)");
                     for (String url : fileUrls) {
-                         View fileView = LayoutInflater.from(this).inflate(R.layout.item_file_attachment, filesLayout, false);
-                         
-                         ImageView imageFileIcon = fileView.findViewById(R.id.image_file_icon);
-                         TextView textFileName = fileView.findViewById(R.id.text_file_name);
-                         TextView textFileType = fileView.findViewById(R.id.text_file_type);
-                         View fileContainer = fileView.findViewById(R.id.file_attachment_container);
-                         
-                         imageFileIcon.setImageResource(FileIconHelper.getFileIconResource(url));
-                         textFileName.setText(FileIconHelper.getFileName(url));
-                         textFileType.setText(FileIconHelper.getFileTypeLabel(url));
-                         
-                         fileContainer.setOnClickListener(v -> {
-                            try {
-                                Intent intent = new Intent(Intent.ACTION_VIEW);
-                                intent.setData(android.net.Uri.parse(url));
-                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                startActivity(intent);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                Toast.makeText(this, "Không thể mở file", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                         
-                         filesLayout.addView(fileView);
+                        String cleanUrl = url;
+                        if (cleanUrl != null && cleanUrl.endsWith("?")) {
+                            cleanUrl = cleanUrl.substring(0, cleanUrl.length() - 1);
+                        }
+                        boolean isImage = isImageFile(cleanUrl);
+                        android.util.Log.d("TaskDetailActivity", "  URL: " + cleanUrl + " -> isImage: " + isImage);
+                        if (isImage) {
+                            imageUrls.add(cleanUrl);
+                        } else {
+                            nonImageUrls.add(cleanUrl);
+                        }
+                    }
+                    android.util.Log.d("TaskDetailActivity", "Separated: " + imageUrls.size() + " image(s), " + nonImageUrls.size() + " non-image file(s)");
+                    
+                    // Hiển thị hình ảnh thumbnail
+                    if (!imageUrls.isEmpty()) {
+                        android.util.Log.d("TaskDetailActivity", "Displaying " + imageUrls.size() + " image(s) as thumbnails for subtask: " + cleanTitle);
+                        scrollViewImages.setVisibility(View.VISIBLE);
+                        imageThumbnailsLayout.removeAllViews();
+                        
+                        for (String imageUrl : imageUrls) {
+                            android.util.Log.d("TaskDetailActivity", "Creating thumbnail for image: " + imageUrl);
+                            
+                            // Tạo ImageView cho thumbnail
+                            ImageView thumbnailView = new ImageView(this);
+                            int thumbnailSize = (int) (80 * getResources().getDisplayMetrics().density); // 80dp
+                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(thumbnailSize, thumbnailSize);
+                            params.setMargins(0, 0, 8, 0); // Margin right 8dp
+                            thumbnailView.setLayoutParams(params);
+                            thumbnailView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                            thumbnailView.setBackgroundResource(R.drawable.bg_input_field_modern);
+                            thumbnailView.setPadding(4, 4, 4, 4);
+                            thumbnailView.setContentDescription("Image: " + FileIconHelper.getFileName(imageUrl));
+                            
+                            // Load hình ảnh với Glide
+                            final String finalImageUrl = imageUrl;
+                            android.util.Log.d("TaskDetailActivity", "Loading image with Glide: " + finalImageUrl);
+                            Glide.with(this)
+                                .load(finalImageUrl)
+                                .placeholder(R.drawable.ic_file_generic)
+                                .error(R.drawable.ic_file_generic)
+                                .centerCrop()
+                                .override(thumbnailSize, thumbnailSize)
+                                .into(thumbnailView);
+                            
+                            // Click để xem fullscreen
+                            thumbnailView.setOnClickListener(v -> {
+                                android.util.Log.d("TaskDetailActivity", "Thumbnail clicked, opening fullscreen: " + finalImageUrl);
+                                showImageFullscreen(finalImageUrl, FileIconHelper.getFileName(finalImageUrl));
+                            });
+                            
+                            imageThumbnailsLayout.addView(thumbnailView);
+                            android.util.Log.d("TaskDetailActivity", "Thumbnail added to layout");
+                        }
+                    } else {
+                        android.util.Log.d("TaskDetailActivity", "No images to display for subtask: " + cleanTitle);
+                        scrollViewImages.setVisibility(View.GONE);
+                    }
+                    
+                    // Hiển thị files không phải hình ảnh
+                    if (!nonImageUrls.isEmpty()) {
+                        filesLayout.setVisibility(View.VISIBLE);
+                        filesLayout.removeAllViews();
+                        
+                        for (String url : nonImageUrls) {
+                            View fileView = LayoutInflater.from(this).inflate(R.layout.item_file_attachment, filesLayout, false);
+                            
+                            ImageView imageFileIcon = fileView.findViewById(R.id.image_file_icon);
+                            TextView textFileName = fileView.findViewById(R.id.text_file_name);
+                            TextView textFileType = fileView.findViewById(R.id.text_file_type);
+                            View fileContainer = fileView.findViewById(R.id.file_attachment_container);
+                            
+                            imageFileIcon.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                            imageFileIcon.setImageResource(FileIconHelper.getFileIconResource(url));
+                            
+                            textFileName.setText(FileIconHelper.getFileName(url));
+                            textFileType.setText(FileIconHelper.getFileTypeLabel(url));
+                            
+                            final String finalUrl = url;
+                            fileContainer.setOnClickListener(v -> {
+                                try {
+                                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                                    intent.setData(android.net.Uri.parse(finalUrl));
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(intent);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    Toast.makeText(this, "Không thể mở file", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            
+                            filesLayout.addView(fileView);
+                        }
+                    } else {
+                        filesLayout.setVisibility(View.GONE);
                     }
                 } else {
+                    android.util.Log.d("TaskDetailActivity", "No files to display for subtask: " + cleanTitle);
+                    scrollViewImages.setVisibility(View.GONE);
                     filesLayout.setVisibility(View.GONE);
                 }
                 
@@ -937,14 +1204,14 @@ public class TaskDetailActivity extends AppCompatActivity {
         // Add image button
         btnAddImage.setOnClickListener(v -> openImagePicker(result -> {
             for (android.net.Uri uri : result) {
-                addAttachmentFromUri(uri, taskAttachments, attachmentAdapterRef[0]);
+                addAttachmentFromUri(uri, taskAttachments, attachmentAdapterRef[0], false); // Don't upload immediately when creating checklist item
             }
         }));
 
         // Add file button
         btnAddFile.setOnClickListener(v -> openFilePicker(result -> {
             for (android.net.Uri uri : result) {
-                addAttachmentFromUri(uri, taskAttachments, attachmentAdapterRef[0]);
+                addAttachmentFromUri(uri, taskAttachments, attachmentAdapterRef[0], false); // Don't upload immediately when creating checklist item
             }
         }));
 
@@ -1032,7 +1299,10 @@ public class TaskDetailActivity extends AppCompatActivity {
 
                 // Upload attachments if any
                 if (attachments != null && !attachments.isEmpty()) {
-                    uploadChecklistItemAttachments(item.getId(), attachments);
+                    // Store original content (title) to append file URLs later
+                    // Note: The item's content field may contain the title, we'll use title as base
+                    String originalContent = title; // Use the title that was passed to create the item
+                    uploadChecklistItemAttachments(item.getId(), attachments, originalContent);
                 } else {
                     // Reload task details to refresh the checklist
                     loadTaskDetails();
@@ -1047,33 +1317,105 @@ public class TaskDetailActivity extends AppCompatActivity {
     }
 
     private void uploadChecklistItemAttachments(String checklistItemId, List<AttachmentItem> attachments) {
-        // Upload each attachment and append to checklist item content
-        StringBuilder updatedContent = new StringBuilder();
-        int uploadedCount = 0;
-        int totalCount = attachments.size();
-
+        uploadChecklistItemAttachments(checklistItemId, attachments, null);
+    }
+    
+    private void uploadChecklistItemAttachments(String checklistItemId, List<AttachmentItem> attachments, String originalContent) {
+        if (attachments == null || attachments.isEmpty()) {
+            loadTaskDetails();
+            return;
+        }
+        
+        // Upload each attachment with checklist_item_id
+        final int[] uploadedCount = {0};
+        final int[] failedCount = {0};
+        final int totalCount = attachments.size();
+        final StringBuilder fileUrlsContent = new StringBuilder();
+        
         for (AttachmentItem attachment : attachments) {
             if (attachment.getUploadStatus() == AttachmentItem.UploadStatus.SUCCESS && attachment.getUploadedUrl() != null) {
                 // File already uploaded successfully, append to content
-                updatedContent.append(" [FILE_URLS: ").append(attachment.getUploadedUrl()).append("?]");
-                uploadedCount++;
+                fileUrlsContent.append(" [FILE_URLS: ").append(attachment.getUploadedUrl()).append("?]");
+                uploadedCount[0]++;
+            } else if (attachment.getUploadStatus() == AttachmentItem.UploadStatus.PENDING || 
+                      attachment.getUploadStatus() == AttachmentItem.UploadStatus.ERROR) {
+                // Upload file with checklist_item_id
+                uploadAttachmentForChecklistItem(checklistItemId, attachment, new TaskService.TaskCallback<String>() {
+                    @Override
+                    public void onSuccess(String uploadedUrl) {
+                        attachment.setUploadStatus(AttachmentItem.UploadStatus.SUCCESS);
+                        attachment.setUploadedUrl(uploadedUrl);
+                        fileUrlsContent.append(" [FILE_URLS: ").append(uploadedUrl).append("?]");
+                        uploadedCount[0]++;
+                        
+                        // Check if all files are uploaded
+                        if (uploadedCount[0] + failedCount[0] == totalCount) {
+                            if (uploadedCount[0] == totalCount) {
+                                // All files uploaded, update checklist item content
+                                String finalContent = (originalContent != null ? originalContent : "") + fileUrlsContent.toString();
+                                updateChecklistItemContent(checklistItemId, finalContent);
+                            } else {
+                                Toast.makeText(TaskDetailActivity.this, "Một số file chưa upload thành công", Toast.LENGTH_SHORT).show();
+                                loadTaskDetails();
+                            }
+                        }
+                    }
+                    
+                    @Override
+                    public void onError(String error) {
+                        attachment.setUploadStatus(AttachmentItem.UploadStatus.ERROR);
+                        attachment.setUploadError(error);
+                        failedCount[0]++;
+                        
+                        // Check if all files are processed
+                        if (uploadedCount[0] + failedCount[0] == totalCount) {
+                            if (uploadedCount[0] > 0) {
+                                // Some files uploaded, update content with successful ones
+                                String finalContent = (originalContent != null ? originalContent : "") + fileUrlsContent.toString();
+                                updateChecklistItemContent(checklistItemId, finalContent);
+                            } else {
+                                Toast.makeText(TaskDetailActivity.this, "Upload file thất bại: " + error, Toast.LENGTH_SHORT).show();
+                                loadTaskDetails();
+                            }
+                        }
+                    }
+                });
             }
         }
-
-        if (uploadedCount == totalCount) {
-            // All files uploaded, update checklist item content
-            updateChecklistItemContent(checklistItemId, updatedContent.toString());
-        } else {
-            Toast.makeText(this, "Một số file chưa upload thành công", Toast.LENGTH_SHORT).show();
-            loadTaskDetails();
+        
+        // If all files were already uploaded, update content immediately
+        if (uploadedCount[0] == totalCount && failedCount[0] == 0) {
+            String finalContent = (originalContent != null ? originalContent : "") + fileUrlsContent.toString();
+            updateChecklistItemContent(checklistItemId, finalContent);
         }
+    }
+    
+    private void uploadAttachmentForChecklistItem(String checklistItemId, AttachmentItem attachment, TaskService.TaskCallback<String> callback) {
+        taskService.uploadTaskAttachment(this, taskId, attachment.getUri(), attachment.getFileName(), checklistItemId, callback);
     }
 
     private void updateChecklistItemContent(String checklistItemId, String additionalContent) {
-        // This would require a backend API to update checklist item content
-        // For now, just reload
-        Toast.makeText(this, "Cập nhật nội dung nhiệm vụ với file đính kèm", Toast.LENGTH_SHORT).show();
-        loadTaskDetails();
+        // Get current checklist item content first
+        // For now, we'll append the additionalContent to existing content
+        // In the future, we might want to get current content first and merge
+        
+        // Update checklist item content with file URLs
+        taskService.updateChecklistItemContent(checklistItemId, additionalContent, new TaskService.TaskCallback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem>() {
+            @Override
+            public void onSuccess(com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem updatedItem) {
+                android.util.Log.d("TaskDetailActivity", "Successfully updated checklist item content with file URLs");
+                // Reload task details to refresh the display
+                loadTaskDetails();
+            }
+            
+            @Override
+            public void onError(String error) {
+                android.util.Log.e("TaskDetailActivity", "Failed to update checklist item content: " + error);
+                Toast.makeText(TaskDetailActivity.this, "Lỗi cập nhật nội dung: " + error, Toast.LENGTH_SHORT).show();
+                // Still reload to show what we have
+                loadTaskDetails();
+            }
+        });
     }
 
     private void updateAssigneeVisibility(RecyclerView recyclerView, TextView emptyText, List<AssigneeWithRole> assignees) {
@@ -1149,6 +1491,10 @@ public class TaskDetailActivity extends AppCompatActivity {
     }
 
     private void addAttachmentFromUri(android.net.Uri uri, List<AttachmentItem> attachments, AttachmentAdapter adapter) {
+        addAttachmentFromUri(uri, attachments, adapter, true); // Default: upload immediately
+    }
+    
+    private void addAttachmentFromUri(android.net.Uri uri, List<AttachmentItem> attachments, AttachmentAdapter adapter, boolean uploadImmediately) {
         try {
             android.content.ContentResolver contentResolver = getContentResolver();
             String mimeType = contentResolver.getType(uri);
@@ -1166,8 +1512,11 @@ public class TaskDetailActivity extends AppCompatActivity {
             attachments.add(attachment);
             adapter.notifyDataSetChanged();
 
-            // Start real upload process
-            performFileUpload(attachment, adapter);
+            // Start real upload process only if uploadImmediately is true
+            if (uploadImmediately) {
+                performFileUpload(attachment, adapter);
+            }
+            // Otherwise, keep status as PENDING and upload later with checklist_item_id
 
         } catch (Exception e) {
             Toast.makeText(this, "Lỗi thêm file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -1269,6 +1618,8 @@ public class TaskDetailActivity extends AppCompatActivity {
                 adapter.notifyDataSetChanged();
                 runOnUiThread(() -> {
                     Toast.makeText(TaskDetailActivity.this, "Upload thành công: " + attachment.getFileName(), Toast.LENGTH_SHORT).show();
+                    // Reload task details để hiển thị file mới upload
+                    loadTaskDetails();
                 });
             }
 
@@ -1285,68 +1636,220 @@ public class TaskDetailActivity extends AppCompatActivity {
     }
 
 
-    private void bindFileAttachments(List<TaskComment> comments) {
-        if (comments == null) {
-            sectionFiles.setVisibility(View.GONE);
-            return;
-        }
-        
-        // Filter comments to get only file attachments
-        List<TaskComment> fileAttachments = new ArrayList<>();
-        for (TaskComment comment : comments) {
-            if ("file".equals(comment.getType()) && comment.getFileUrl() != null) {
-                fileAttachments.add(comment);
-            }
-        }
-        
-        if (fileAttachments.isEmpty()) {
-            sectionFiles.setVisibility(View.GONE);
-            return;
-        }
+    private void bindFileAttachments(List<com.example.financialmanagement.models.TaskAttachment> attachments, 
+                                     List<TaskComment> comments, 
+                                     List<String> extractedFiles) {
+        android.util.Log.d("TaskDetailActivity", "=== bindFileAttachments ===");
+        android.util.Log.d("TaskDetailActivity", "Attachments count: " + (attachments != null ? attachments.size() : 0));
+        android.util.Log.d("TaskDetailActivity", "Comments count: " + (comments != null ? comments.size() : 0));
+        android.util.Log.d("TaskDetailActivity", "Extracted files count: " + (extractedFiles != null ? extractedFiles.size() : 0));
         
         // Create container for file items
         LinearLayout filesContainer = new LinearLayout(this);
         filesContainer.setOrientation(LinearLayout.VERTICAL);
         filesContainer.setPadding(0, 8, 0, 8); // No horizontal padding
         
-        // Add each file attachment
-        for (TaskComment fileComment : fileAttachments) {
-            View fileView = LayoutInflater.from(this).inflate(R.layout.item_file_attachment, filesContainer, false);
-            
-            ImageView imageFileIcon = fileView.findViewById(R.id.image_file_icon);
-            TextView textFileName = fileView.findViewById(R.id.text_file_name);
-            TextView textFileType = fileView.findViewById(R.id.text_file_type);
-            View container = fileView.findViewById(R.id.file_attachment_container);
-            
+        boolean hasFiles = false;
+        
+        // 1. Add task attachments from response (chính thức từ API)
+        if (attachments != null && !attachments.isEmpty()) {
+            android.util.Log.d("TaskDetailActivity", "Processing " + attachments.size() + " attachment(s) from API");
+            for (com.example.financialmanagement.models.TaskAttachment attachment : attachments) {
+                if (attachment.getFileUrl() != null && !attachment.getFileUrl().isEmpty()) {
+                    android.util.Log.d("TaskDetailActivity", "Adding attachment: " + attachment.getFileUrl());
+                    addFileViewToContainer(filesContainer, attachment.getFileUrl(), 
+                                         attachment.getOriginalFileName() != null ? attachment.getOriginalFileName() : attachment.getFileName());
+                    hasFiles = true;
+                }
+            }
+        }
+        
+        // 2. Add file attachments from comments (nếu có)
+        if (comments != null) {
+            int fileCommentCount = 0;
+            for (TaskComment comment : comments) {
+                if ("file".equals(comment.getType()) && comment.getFileUrl() != null && !comment.getFileUrl().isEmpty()) {
+                    fileCommentCount++;
+                    android.util.Log.d("TaskDetailActivity", "Adding file from comment: " + comment.getFileUrl());
+                    addFileViewToContainer(filesContainer, comment.getFileUrl(), null);
+                    hasFiles = true;
+                }
+            }
+            android.util.Log.d("TaskDetailActivity", "Found " + fileCommentCount + " file comment(s)");
+        }
+        
+        // 3. Add extracted files from title (nếu có)
+        if (extractedFiles != null && !extractedFiles.isEmpty()) {
+            android.util.Log.d("TaskDetailActivity", "Processing " + extractedFiles.size() + " extracted file(s) from title");
+            for (String url : extractedFiles) {
+                if (url != null && !url.isEmpty()) {
+                    android.util.Log.d("TaskDetailActivity", "Adding extracted file: " + url);
+                    addFileViewToContainer(filesContainer, url, null);
+                    hasFiles = true;
+                }
+            }
+        }
+        
+        android.util.Log.d("TaskDetailActivity", "Total files to display: " + (hasFiles ? "YES" : "NO"));
+        
+        if (!hasFiles) {
+            sectionFiles.setVisibility(View.GONE);
+            return;
+        }
+        
+        sectionFiles.setContentView(filesContainer);
+        sectionFiles.setVisibility(View.VISIBLE);
+    }
+    
+    private void addFileViewToContainer(LinearLayout container, String fileUrl, String fileName) {
+        // Loại bỏ dấu ? ở cuối URL nếu có
+        String cleanUrl = fileUrl;
+        if (cleanUrl != null && cleanUrl.endsWith("?")) {
+            cleanUrl = cleanUrl.substring(0, cleanUrl.length() - 1);
+        }
+        
+        if (cleanUrl == null || cleanUrl.isEmpty()) {
+            android.util.Log.w("TaskDetailActivity", "Skipping empty file URL");
+            return;
+        }
+        
+        android.util.Log.d("TaskDetailActivity", "addFileViewToContainer: " + cleanUrl + " (isImage: " + isImageFile(cleanUrl) + ")");
+        
+        // Tạo biến final để sử dụng trong lambda
+        final String finalCleanUrl = cleanUrl;
+        
+        View fileView = LayoutInflater.from(this).inflate(R.layout.item_file_attachment, container, false);
+        
+        ImageView imageFileIcon = fileView.findViewById(R.id.image_file_icon);
+        TextView textFileName = fileView.findViewById(R.id.text_file_name);
+        TextView textFileType = fileView.findViewById(R.id.text_file_type);
+        View fileContainer = fileView.findViewById(R.id.file_attachment_container);
+        
+        // Kiểm tra nếu là file hình ảnh thì hiển thị thumbnail với Glide
+        boolean isImage = isImageFile(finalCleanUrl);
+        if (isImage) {
+            android.util.Log.d("TaskDetailActivity", "Loading image with Glide in addFileViewToContainer: " + finalCleanUrl);
+            // Hiển thị hình ảnh thực tế với Glide - tăng kích thước và chất lượng
+            imageFileIcon.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            Glide.with(this)
+                .load(finalCleanUrl)
+                .placeholder(FileIconHelper.getFileIconResource(finalCleanUrl)) // Icon mặc định khi đang load
+                .error(FileIconHelper.getFileIconResource(finalCleanUrl)) // Icon nếu lỗi
+                .centerCrop()
+                .override(200, 200) // Tăng kích thước thumbnail để dễ thấy hơn
+                .into(imageFileIcon);
+        } else {
+            android.util.Log.d("TaskDetailActivity", "Using file icon (not image): " + finalCleanUrl);
             // Set file icon based on file type
-            int iconRes = FileIconHelper.getFileIconResource(fileComment.getFileUrl());
+            imageFileIcon.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            int iconRes = FileIconHelper.getFileIconResource(finalCleanUrl);
             imageFileIcon.setImageResource(iconRes);
-            
-            // Set file name
-            String fileName = FileIconHelper.getFileName(fileComment.getFileUrl());
-            textFileName.setText(fileName);
-            
-            // Set file type label
-            String fileType = FileIconHelper.getFileTypeLabel(fileComment.getFileUrl());
-            textFileType.setText(fileType);
-            
-            // Add click listener to open file
-            container.setOnClickListener(v -> {
+        }
+        
+        // Set file name - ưu tiên fileName từ parameter, nếu không thì extract từ URL
+        String displayFileName = fileName;
+        if (displayFileName == null || displayFileName.isEmpty()) {
+            displayFileName = FileIconHelper.getFileName(finalCleanUrl);
+        }
+        textFileName.setText(displayFileName);
+        
+        // Set file type label
+        String fileType = FileIconHelper.getFileTypeLabel(finalCleanUrl);
+        textFileType.setText(fileType);
+        
+        // Tạo biến final để sử dụng trong lambda
+        final String finalDisplayFileName = displayFileName;
+        final boolean isImageFile = isImageFile(finalCleanUrl);
+        
+        // Add click listener to open file
+        fileContainer.setOnClickListener(v -> {
+            if (isImageFile) {
+                // Nếu là hình ảnh, hiển thị fullscreen với tùy chọn tải về
+                showImageFullscreen(finalCleanUrl, finalDisplayFileName);
+            } else {
+                // Nếu không phải hình ảnh, mở file như bình thường
                 try {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setData(android.net.Uri.parse(fileComment.getFileUrl()));
+                    intent.setData(android.net.Uri.parse(finalCleanUrl));
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
                 } catch (Exception e) {
                     e.printStackTrace();
                     Toast.makeText(this, "Không thể mở file", Toast.LENGTH_SHORT).show();
                 }
-            });
-            
-            filesContainer.addView(fileView);
+            }
+        });
+        
+        container.addView(fileView);
+    }
+    
+    /**
+     * Hiển thị hình ảnh fullscreen với tùy chọn tải về
+     */
+    private void showImageFullscreen(String imageUrl, String imageName) {
+        // Tạo dialog fullscreen
+        Dialog dialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_image_viewer, null);
+        dialog.setContentView(dialogView);
+        
+        ImageView imageFullscreen = dialogView.findViewById(R.id.image_fullscreen);
+        TextView textImageName = dialogView.findViewById(R.id.text_image_name);
+        ImageButton buttonDownload = dialogView.findViewById(R.id.button_download);
+        ImageButton buttonClose = dialogView.findViewById(R.id.button_close);
+        
+        // Set tên hình ảnh
+        if (imageName != null && !imageName.isEmpty()) {
+            textImageName.setText(imageName);
+        } else {
+            textImageName.setText(FileIconHelper.getFileName(imageUrl));
         }
         
-        sectionFiles.setContentView(filesContainer);
-        sectionFiles.setVisibility(View.VISIBLE);
+        // Load hình ảnh với Glide
+        Glide.with(this)
+            .load(imageUrl)
+            .placeholder(R.drawable.ic_file_generic)
+            .error(R.drawable.ic_file_generic)
+            .into(imageFullscreen);
+        
+        // Nút đóng
+        buttonClose.setOnClickListener(v -> dialog.dismiss());
+        
+        // Nút tải về
+        buttonDownload.setOnClickListener(v -> {
+            downloadImage(imageUrl, imageName != null ? imageName : FileIconHelper.getFileName(imageUrl));
+            Toast.makeText(this, "Đang tải về...", Toast.LENGTH_SHORT).show();
+        });
+        
+        // Click vào hình ảnh để đóng
+        imageFullscreen.setOnClickListener(v -> dialog.dismiss());
+        
+        dialog.show();
+    }
+    
+    /**
+     * Tải về hình ảnh
+     */
+    private void downloadImage(String imageUrl, String fileName) {
+        try {
+            DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+            Uri uri = Uri.parse(imageUrl);
+            
+            DownloadManager.Request request = new DownloadManager.Request(uri);
+            request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
+            request.setAllowedOverRoaming(false);
+            request.setTitle("Đang tải: " + fileName);
+            request.setDescription("Tải về hình ảnh");
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            
+            // Lưu vào thư mục Pictures
+            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, fileName);
+            
+            downloadManager.enqueue(request);
+            
+            Toast.makeText(this, "Đã bắt đầu tải về: " + fileName, Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Lỗi tải về: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 }

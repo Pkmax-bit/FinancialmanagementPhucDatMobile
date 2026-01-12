@@ -29,6 +29,9 @@ public class TaskDetailResponse implements Serializable {
 
     @SerializedName("assignments")
     private List<TaskAssignment> assignments;
+    
+    @SerializedName("attachments")
+    private List<TaskAttachment> attachments;
 
     public TaskDetailResponse() {}
 
@@ -55,4 +58,7 @@ public class TaskDetailResponse implements Serializable {
 
     public List<TaskAssignment> getAssignments() { return assignments; }
     public void setAssignments(List<TaskAssignment> assignments) { this.assignments = assignments; }
+
+    public List<TaskAttachment> getAttachments() { return attachments; }
+    public void setAttachments(List<TaskAttachment> attachments) { this.attachments = attachments; }
 }

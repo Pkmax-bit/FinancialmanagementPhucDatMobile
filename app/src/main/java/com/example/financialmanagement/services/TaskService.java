@@ -191,11 +191,18 @@ public class TaskService {
             @Body ChecklistItemCreateRequest request
         );
 
+        @PUT("tasks/checklist-items/{itemId}")
+        Call<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> updateChecklistItem(
+            @Path("itemId") String itemId,
+            @Body ChecklistItemUpdateRequest request
+        );
+
         @Multipart
         @POST("tasks/{taskId}/attachments")
         Call<TaskAttachmentResponse> uploadTaskAttachment(
             @Path("taskId") String taskId,
-            @Part okhttp3.MultipartBody.Part file
+            @Part okhttp3.MultipartBody.Part file,
+            @Query("checklist_item_id") String checklistItemId
         );
     }
 
@@ -235,6 +242,26 @@ public class TaskService {
 
         public ChecklistCreateRequest(String title) {
             this.title = title;
+        }
+    }
+
+    public static class ChecklistItemUpdateRequest {
+        public Boolean is_completed;
+        public String content;
+
+        public ChecklistItemUpdateRequest(Boolean isCompleted) {
+            this.is_completed = isCompleted;
+            this.content = null;
+        }
+        
+        public ChecklistItemUpdateRequest(Boolean isCompleted, String content) {
+            this.is_completed = isCompleted;
+            this.content = content;
+        }
+        
+        public ChecklistItemUpdateRequest(String content) {
+            this.is_completed = null;
+            this.content = content;
         }
     }
 
@@ -306,12 +333,28 @@ public class TaskService {
     }
 
     public void uploadTaskAttachment(android.content.Context context, String taskId, android.net.Uri fileUri, String fileName, final TaskCallback<String> callback) {
+        uploadTaskAttachment(context, taskId, fileUri, fileName, null, callback);
+    }
+    
+    public void uploadTaskAttachment(android.content.Context context, String taskId, android.net.Uri fileUri, String fileName, String checklistItemId, final TaskCallback<String> callback) {
         // Create multipart request body
         try {
+            // Đọc file đúng cách - sử dụng ByteArrayOutputStream để đọc toàn bộ file
             java.io.InputStream inputStream = context.getContentResolver().openInputStream(fileUri);
-            byte[] fileBytes = new byte[inputStream.available()];
-            inputStream.read(fileBytes);
+            if (inputStream == null) {
+                callback.onError("Không thể mở file");
+                return;
+            }
+            
+            java.io.ByteArrayOutputStream byteArrayOutputStream = new java.io.ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                byteArrayOutputStream.write(buffer, 0, bytesRead);
+            }
+            byte[] fileBytes = byteArrayOutputStream.toByteArray();
             inputStream.close();
+            byteArrayOutputStream.close();
 
             // Detect MIME type from file extension
             String mimeType = getMimeTypeFromFileName(fileName);
@@ -326,16 +369,28 @@ public class TaskService {
             // Log for debugging
             android.util.Log.d("UPLOAD_DEBUG", "File: " + fileName + ", MIME: " + mimeType + ", Size: " + fileBytes.length);
 
-            okhttp3.RequestBody fileBody = okhttp3.RequestBody.create(fileBytes, okhttp3.MediaType.parse(mimeType));
+            // Tạo RequestBody với MediaType đúng
+            okhttp3.MediaType mediaType = okhttp3.MediaType.parse(mimeType);
+            if (mediaType == null) {
+                mediaType = okhttp3.MediaType.parse("application/octet-stream");
+            }
+            okhttp3.RequestBody fileBody = okhttp3.RequestBody.create(mediaType, fileBytes);
+            
+            // Tạo MultipartBody.Part với filename đúng
+            // Lưu ý: Retrofit sẽ tự động thêm Content-Disposition header
             okhttp3.MultipartBody.Part filePart = okhttp3.MultipartBody.Part.createFormData("file", fileName, fileBody);
 
-            taskApi.uploadTaskAttachment(taskId, filePart).enqueue(new Callback<TaskAttachmentResponse>() {
+            taskApi.uploadTaskAttachment(taskId, filePart, checklistItemId).enqueue(new Callback<TaskAttachmentResponse>() {
                 @Override
                 public void onResponse(Call<TaskAttachmentResponse> call, Response<TaskAttachmentResponse> response) {
                     android.util.Log.d("UPLOAD_DEBUG", "Response code: " + response.code() + ", message: " + response.message());
                     if (response.isSuccessful() && response.body() != null) {
-                        // Return the file_url from response
-                        callback.onSuccess(response.body().file_url);
+                        // Return the file_url from response, loại bỏ dấu ? ở cuối nếu có
+                        String fileUrl = response.body().file_url;
+                        if (fileUrl != null && fileUrl.endsWith("?")) {
+                            fileUrl = fileUrl.substring(0, fileUrl.length() - 1);
+                        }
+                        callback.onSuccess(fileUrl);
                     } else {
                         try {
                             String errorBody = response.errorBody() != null ? response.errorBody().string() : "No error body";
@@ -448,6 +503,44 @@ public class TaskService {
 
             @Override
             public void onFailure(Call<com.example.financialmanagement.models.TaskChecklist> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+
+    public void updateChecklistItemCompletion(String itemId, boolean isCompleted, final TaskCallback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> callback) {
+        ChecklistItemUpdateRequest request = new ChecklistItemUpdateRequest(isCompleted);
+        taskApi.updateChecklistItem(itemId, request).enqueue(new Callback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem>() {
+            @Override
+            public void onResponse(Call<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> call, Response<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+    
+    public void updateChecklistItemContent(String itemId, String content, final TaskCallback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> callback) {
+        ChecklistItemUpdateRequest request = new ChecklistItemUpdateRequest(content);
+        taskApi.updateChecklistItem(itemId, request).enqueue(new Callback<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem>() {
+            @Override
+            public void onResponse(Call<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> call, Response<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.example.financialmanagement.models.TaskChecklist.TaskChecklistItem> call, Throwable t) {
                 callback.onError("Failure: " + t.getMessage());
             }
         });
