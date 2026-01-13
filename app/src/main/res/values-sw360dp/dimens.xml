@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Chat Message Dimensions for small screens (360dp+) -->
+    <dimen name="chat_message_min_width">80dp</dimen>
+    <dimen name="chat_text_message_size">15sp</dimen>
+    <dimen name="chat_text_sender_size">12sp</dimen>
+    <dimen name="chat_text_reply_size">13sp</dimen>
+</resources>
+

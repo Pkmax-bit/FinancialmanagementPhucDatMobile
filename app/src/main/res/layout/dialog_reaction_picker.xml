@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Quick reaction picker (like Facebook/Zalo) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@drawable/bg_reaction_picker"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="8dp"
+    android:elevation="8dp"
+    android:gravity="center">
+
+    <!-- Common reactions (like Facebook Messenger) -->
+    <TextView
+        android:id="@+id/reaction_like"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:text="👍"
+        android:textSize="32sp"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless" />
+
+    <TextView
+        android:id="@+id/reaction_heart"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:text="❤️"
+        android:textSize="32sp"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless" />
+
+    <TextView
+        android:id="@+id/reaction_laugh"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:text="😂"
+        android:textSize="32sp"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless" />
+
+    <TextView
+        android:id="@+id/reaction_wow"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:text="😮"
+        android:textSize="32sp"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless" />
+
+    <TextView
+        android:id="@+id/reaction_sad"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:text="😢"
+        android:textSize="32sp"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless" />
+
+    <TextView
+        android:id="@+id/reaction_angry"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:text="😠"
+        android:textSize="32sp"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless" />
+
+    <TextView
+        android:id="@+id/reaction_plus"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:text="+"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:textColor="#65676B" />
+
+</LinearLayout>
+

@@ -13,6 +13,10 @@
     <!-- Camera Permissions (for future features) -->
     <uses-permission android:name="android.permission.CAMERA" />
     
+    <!-- Audio Permissions -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    
     <!-- Install APK permission (Android 8.0+) -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 

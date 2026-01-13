@@ -239,3 +239,4 @@ WHERE task_id = '444fd233-c8c2-4961-9ed8-b2c086ab07ec';
 - **Storage Path:** `Groups/{group_id}/Tasks/{task_id}/`
 - **Public URL Format:** `https://{project}.supabase.co/storage/v1/object/public/{bucket}/{path}`
 
+

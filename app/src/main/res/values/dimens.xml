@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Chat Message Dimensions -->
+    <dimen name="chat_message_min_width">100dp</dimen>
+    <dimen name="chat_message_max_width_percent">0.75</dimen>
+    <dimen name="chat_bubble_corner_radius">20dp</dimen>
+    <dimen name="chat_bubble_elevation">3dp</dimen>
+    <dimen name="chat_bubble_padding_horizontal">14dp</dimen>
+    <dimen name="chat_bubble_padding_vertical">12dp</dimen>
+    
+    <!-- Text Sizes -->
+    <dimen name="chat_text_message_size">16sp</dimen>
+    <dimen name="chat_text_sender_size">13sp</dimen>
+    <dimen name="chat_text_reply_size">14sp</dimen>
+    <dimen name="chat_text_timestamp_size">11sp</dimen>
+    
+    <!-- Spacing -->
+    <dimen name="chat_message_margin">8dp</dimen>
+    <dimen name="chat_reply_border_width">4dp</dimen>
+    <dimen name="chat_reply_padding">10dp</dimen>
+</resources>
+

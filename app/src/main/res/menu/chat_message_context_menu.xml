@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_copy"
+        android:title="Sao chép" />
+    <item
+        android:id="@+id/menu_reply"
+        android:title="Trả lời" />
+    <item
+        android:id="@+id/menu_forward"
+        android:title="Chuyển tiếp" />
+    <item
+        android:id="@+id/menu_resend"
+        android:title="Gửi lại" />
+    <item
+        android:id="@+id/menu_edit"
+        android:title="Sửa" />
+    <item
+        android:id="@+id/menu_pin"
+        android:title="Ghim" />
+    <item
+        android:id="@+id/menu_delete"
+        android:title="Xóa" />
+</menu>

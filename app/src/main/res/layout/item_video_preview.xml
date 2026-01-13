@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="240dp"
+    android:layout_height="wrap_content">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/image_video_thumbnail"
+        android:layout_width="240dp"
+        android:layout_height="180dp"
+        android:scaleType="centerCrop"
+        android:background="#000000"
+        app:strokeWidth="0dp"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.Rounded" />
+
+    <!-- Play button overlay -->
+    <ImageView
+        android:id="@+id/icon_play"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_gravity="center"
+        android:src="@android:drawable/ic_media_play"
+        android:background="@drawable/circle_background"
+        android:backgroundTint="#80000000"
+        android:padding="12dp"
+        app:tint="@android:color/white" />
+
+    <!-- Video duration -->
+    <TextView
+        android:id="@+id/text_video_duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="8dp"
+        android:background="@drawable/circle_background"
+        android:backgroundTint="#CC000000"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="4dp"
+        android:text="00:00"
+        android:textColor="@android:color/white"
+        android:textSize="12sp" />
+
+</FrameLayout>
+

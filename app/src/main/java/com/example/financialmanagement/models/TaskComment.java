@@ -33,6 +33,28 @@ public class TaskComment implements Serializable {
     
     @SerializedName("file_url")
     private String fileUrl;
+    
+    @SerializedName("parent_id")
+    private String parentId;
+    
+    @SerializedName("is_pinned")
+    private Boolean isPinned;
+    
+    @SerializedName("replies")
+    private java.util.List<TaskComment> replies;
+    
+    @SerializedName("read_by")
+    private java.util.List<String> readBy; // List of user IDs who read this message
+    
+    @SerializedName("read_count")
+    private Integer readCount; // Number of users who read this message
+    
+    @SerializedName("reactions")
+    private java.util.List<MessageReaction> reactions; // Reactions summary
+    
+    // Local-only fields for UI state (not from API)
+    private transient String sendStatus; // "sending", "sent", "failed"
+    private transient String tempId; // Temporary ID for pending messages
 
     public TaskComment() {}
 
@@ -65,6 +87,30 @@ public class TaskComment implements Serializable {
 
     public String getFileUrl() { return fileUrl; }
     public void setFileUrl(String fileUrl) { this.fileUrl = fileUrl; }
+    
+    public String getParentId() { return parentId; }
+    public void setParentId(String parentId) { this.parentId = parentId; }
+    
+    public Boolean getIsPinned() { return isPinned != null && isPinned; }
+    public void setIsPinned(Boolean isPinned) { this.isPinned = isPinned; }
+    
+    public java.util.List<TaskComment> getReplies() { return replies; }
+    public void setReplies(java.util.List<TaskComment> replies) { this.replies = replies; }
+    
+    public String getSendStatus() { return sendStatus; }
+    public void setSendStatus(String sendStatus) { this.sendStatus = sendStatus; }
+    
+    public String getTempId() { return tempId; }
+    public void setTempId(String tempId) { this.tempId = tempId; }
+    
+    public java.util.List<String> getReadBy() { return readBy; }
+    public void setReadBy(java.util.List<String> readBy) { this.readBy = readBy; }
+    
+    public Integer getReadCount() { return readCount != null ? readCount : 0; }
+    public void setReadCount(Integer readCount) { this.readCount = readCount; }
+    
+    public java.util.List<MessageReaction> getReactions() { return reactions; }
+    public void setReactions(java.util.List<MessageReaction> reactions) { this.reactions = reactions; }
     
     public String getDisplayName() {
         if (employeeName != null && !employeeName.isEmpty()) return employeeName;

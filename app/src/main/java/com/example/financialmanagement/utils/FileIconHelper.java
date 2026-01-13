@@ -19,6 +19,13 @@ public class FileIconHelper {
         
         String extension = getFileExtension(fileUrl).toLowerCase();
         
+        // Video files
+        if (extension.equals("mp4") || extension.equals("avi") || 
+            extension.equals("mov") || extension.equals("mkv") ||
+            extension.equals("3gp") || extension.equals("webm")) {
+            return R.drawable.ic_attachment; // Use attachment icon for video, or create ic_video if available
+        }
+        
         // PDF files
         if (extension.equals("pdf")) {
             return R.drawable.ic_file_pdf;

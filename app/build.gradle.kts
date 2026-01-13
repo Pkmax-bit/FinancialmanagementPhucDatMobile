@@ -136,6 +136,11 @@ dependencies {
     // JSON
     implementation("com.google.code.gson:gson:2.10.1")
     
+    // Emoji Picker
+    implementation("androidx.emoji2:emoji2:1.4.0")
+    implementation("androidx.emoji2:emoji2-views:1.4.0")
+    implementation("androidx.emoji2:emoji2-views-helper:1.4.0")
+    
     // Preferences
     implementation("androidx.preference:preference:1.2.1")
     

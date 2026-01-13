@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Chat Message Dimensions for tablets (600dp+) -->
+    <dimen name="chat_message_min_width">150dp</dimen>
+    <dimen name="chat_message_max_width_percent">0.65</dimen>
+    <dimen name="chat_text_message_size">17sp</dimen>
+    <dimen name="chat_text_sender_size">14sp</dimen>
+    <dimen name="chat_text_reply_size">15sp</dimen>
+</resources>
+

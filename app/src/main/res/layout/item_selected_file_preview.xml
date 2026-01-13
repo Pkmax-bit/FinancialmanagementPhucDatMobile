@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="80dp"
+    android:layout_height="80dp"
+    android:layout_marginEnd="8dp"
+    android:background="@android:color/transparent">
+
+    <!-- Image/File Preview -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/image_preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:background="#E0E0E0"
+        app:strokeWidth="0dp"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.Rounded" />
+
+    <!-- File Icon (for non-image files) -->
+    <ImageView
+        android:id="@+id/image_file_icon"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        app:tint="#65676B" />
+
+    <!-- Remove Button -->
+    <ImageButton
+        android:id="@+id/btn_remove"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="top|end"
+        android:background="@drawable/circle_background"
+        android:backgroundTint="#E4E6EB"
+        android:padding="4dp"
+        android:src="@drawable/ic_close"
+        android:contentDescription="Xóa"
+        app:tint="#65676B" />
+
+</FrameLayout>
+
+

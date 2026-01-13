@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@android:color/white">
+
+    <!-- Emoji Categories Tabs -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/layout_emoji_categories"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/tab_recent"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="🕒"
+                android:textSize="24sp"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:id="@+id/tab_smileys"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="😀"
+                android:textSize="24sp"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:id="@+id/tab_people"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="👤"
+                android:textSize="24sp"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:id="@+id/tab_nature"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="🌿"
+                android:textSize="24sp"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:id="@+id/tab_food"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="🍔"
+                android:textSize="24sp"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:id="@+id/tab_activities"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="⚽"
+                android:textSize="24sp"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:id="@+id/tab_travel"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="✈️"
+                android:textSize="24sp"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:id="@+id/tab_objects"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="💡"
+                android:textSize="24sp"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:id="@+id/tab_symbols"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="❤️"
+                android:textSize="24sp"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:id="@+id/tab_flags"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="🏁"
+                android:textSize="24sp"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0" />
+
+    <!-- Emoji Grid -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_emojis"
+        android:layout_width="match_parent"
+        android:layout_height="240dp"
+        android:padding="4dp"
+        android:clipToPadding="false" />
+
+</LinearLayout>
+

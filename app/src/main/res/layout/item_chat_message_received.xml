@@ -21,28 +21,30 @@
         android:text="U" />
 
     <LinearLayout
+        android:id="@+id/layout_message_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:maxWidth="280dp">
+        android:minWidth="@dimen/chat_message_min_width">
 
         <TextView
             android:id="@+id/text_sender_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
-            android:layout_marginBottom="2dp"
+            android:layout_marginBottom="3dp"
             android:text="Sender"
-            android:textColor="@color/task_accent"
-            android:textSize="12sp"
+            android:textColor="@color/chat_text_sender_name"
+            android:textSize="@dimen/chat_text_sender_size"
             android:textStyle="bold" />
 
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/white"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="1dp"
+            app:cardBackgroundColor="@color/chat_bubble_received"
+            app:cardCornerRadius="@dimen/chat_bubble_corner_radius"
+            app:cardElevation="@dimen/chat_bubble_elevation"
             app:strokeWidth="0dp"
             app:cardPreventCornerOverlap="false"
             app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.ChatBubble.Received">
@@ -51,10 +53,62 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="10dp">
+                android:paddingHorizontal="@dimen/chat_bubble_padding_horizontal"
+                android:paddingVertical="@dimen/chat_bubble_padding_vertical"
+                android:minWidth="100dp">
 
-                <!-- Image Preview (Optional/Future) -->
+                <!-- Reply Preview -->
+                <LinearLayout
+                    android:id="@+id/layout_reply_preview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    android:background="@drawable/reply_preview_background_received"
+                    android:padding="12dp"
+                    android:layout_marginBottom="8dp"
+                    android:gravity="center_vertical"
+                    android:minWidth="480dp">
+                    
+                    <View
+                        android:layout_width="@dimen/chat_reply_border_width"
+                        android:layout_height="match_parent"
+                        android:background="@color/chat_bubble_sent"
+                        android:layout_marginEnd="8dp" />
+                    
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:minWidth="440dp">
+                        
+                        <TextView
+                            android:id="@+id/text_reply_sender"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Người gửi"
+                            android:textColor="@color/chat_bubble_sent"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:maxLines="1"
+                            android:ellipsize="end" />
+                        
+                        <TextView
+                            android:id="@+id/text_reply_content"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Nội dung tin nhắn"
+                            android:textColor="@color/chat_text_received"
+                            android:textSize="15sp"
+                            android:singleLine="false"
+                            android:alpha="0.75"
+                            android:lineSpacingExtra="3dp"
+                            android:breakStrategy="high_quality"
+                            android:scrollHorizontally="false" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Single Image Preview -->
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/image_message_preview"
                     android:layout_width="240dp"
@@ -63,7 +117,17 @@
                     android:scaleType="fitCenter"
                     android:visibility="gone"
                     android:layout_marginBottom="8dp"
+                    app:strokeWidth="0dp"
                     app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.Rounded" />
+                
+                <!-- Grid Layout for Multiple Images -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_images_grid"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:layout_marginBottom="8dp"
+                    android:nestedScrollingEnabled="false" />
 
                 <!-- File Attachment Section -->
                 <LinearLayout
@@ -77,8 +141,8 @@
                     
                     <ImageView
                         android:id="@+id/image_file_icon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:layout_marginEnd="8dp" />
                         
                     <TextView
@@ -92,27 +156,72 @@
                         android:ellipsize="end" />
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/text_message_content"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Message content goes here"
-                    android:textColor="@color/black"
-                    android:textSize="15sp"
-                    android:lineSpacingExtra="2dp" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    
+                    <TextView
+                        android:id="@+id/text_message_content"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Message content goes here"
+                        android:textColor="@color/chat_text_received"
+                        android:textSize="@dimen/chat_text_message_size"
+                        android:lineSpacingExtra="3dp"
+                        android:maxWidth="240dp"
+                        android:singleLine="false"
+                        android:breakStrategy="high_quality" />
+                    
+                    <ImageView
+                        android:id="@+id/icon_pinned"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginStart="4dp"
+                        android:src="@drawable/ic_pin"
+                        android:visibility="gone" />
+                </LinearLayout>
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <TextView
-            android:id="@+id/text_message_time"
+        <!-- Reactions (below bubble) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_reactions"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="2dp"
-            android:text="12:00"
-            android:textColor="#8E8E93"
-            android:textSize="10sp" />
+            android:layout_marginTop="4dp"
+            android:visibility="gone"
+            android:orientation="horizontal" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            
+            <TextView
+                android:id="@+id/text_message_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="4dp"
+                android:text="12:00"
+                android:textColor="@color/chat_text_timestamp"
+                android:textSize="11sp" />
+            
+            <ImageButton
+                android:id="@+id/btn_message_menu"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_more_vert"
+                android:padding="4dp"
+                app:tint="@color/chat_text_timestamp"
+                android:visibility="gone" />
+        </LinearLayout>
             
     </LinearLayout>
 </LinearLayout>

@@ -132,9 +132,16 @@ public class TaskService {
     }
 
     public void sendTaskComment(String taskId, String content, final TaskCallback<TaskComment> callback) {
+        sendTaskComment(taskId, content, null, callback);
+    }
+    
+    public void sendTaskComment(String taskId, String content, String parentId, final TaskCallback<TaskComment> callback) {
         TaskComment comment = new TaskComment();
         comment.setComment(content);
         comment.setType("text");
+        if (parentId != null && !parentId.isEmpty()) {
+            comment.setParentId(parentId);
+        }
         
         taskApi.sendTaskComment(taskId, comment).enqueue(new Callback<TaskComment>() {
             @Override
@@ -148,6 +155,80 @@ public class TaskService {
 
             @Override
             public void onFailure(Call<TaskComment> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+    
+    public void sendTaskCommentWithFile(String taskId, String content, String type, String fileUrl, final TaskCallback<TaskComment> callback) {
+        sendTaskCommentWithFile(taskId, content, type, fileUrl, null, callback);
+    }
+    
+    public void sendTaskCommentWithFile(String taskId, String content, String type, String fileUrl, String parentId, final TaskCallback<TaskComment> callback) {
+        TaskComment comment = new TaskComment();
+        comment.setComment(content);
+        comment.setType(type);
+        comment.setFileUrl(fileUrl);
+        if (parentId != null && !parentId.isEmpty()) {
+            comment.setParentId(parentId);
+        }
+        
+        taskApi.sendTaskComment(taskId, comment).enqueue(new Callback<TaskComment>() {
+            @Override
+            public void onResponse(Call<TaskComment> call, Response<TaskComment> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<TaskComment> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+    
+    public void updateTaskComment(String commentId, String content, Boolean isPinned, final TaskCallback<TaskComment> callback) {
+        TaskComment comment = new TaskComment();
+        if (content != null) {
+            comment.setComment(content);
+        }
+        if (isPinned != null) {
+            comment.setIsPinned(isPinned);
+        }
+        
+        taskApi.updateTaskComment(commentId, comment).enqueue(new Callback<TaskComment>() {
+            @Override
+            public void onResponse(Call<TaskComment> call, Response<TaskComment> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<TaskComment> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+    
+    public void deleteTaskComment(String commentId, final TaskCallback<Void> callback) {
+        taskApi.deleteTaskComment(commentId).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    callback.onSuccess(null);
+                } else {
+                    callback.onError("Error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
                 callback.onError("Failure: " + t.getMessage());
             }
         });
@@ -171,6 +252,24 @@ public class TaskService {
 
         @POST("tasks/{id}/comments")
         Call<TaskComment> sendTaskComment(@Path("id") String taskId, @Body TaskComment comment);
+        
+        @PUT("tasks/comments/{comment_id}")
+        Call<TaskComment> updateTaskComment(@Path("comment_id") String commentId, @Body TaskComment comment);
+        
+        @DELETE("tasks/comments/{comment_id}")
+        Call<Void> deleteTaskComment(@Path("comment_id") String commentId);
+        
+        @POST("tasks/{task_id}/comments/{comment_id}/read")
+        Call<Void> markMessageAsRead(@Path("task_id") String taskId, @Path("comment_id") String commentId);
+        
+        @POST("tasks/{task_id}/comments/batch-read")
+        Call<Void> markMessagesAsReadBatch(@Path("task_id") String taskId, @Body java.util.Map<String, Object> body);
+        
+        @POST("tasks/{task_id}/typing")
+        Call<Void> updateTypingStatus(@Path("task_id") String taskId, @Body java.util.Map<String, Boolean> body);
+        
+        @GET("tasks/{task_id}/typing")
+        Call<java.util.List<java.util.Map<String, Object>>> getTypingUsers(@Path("task_id") String taskId);
 
         @GET("tasks/{id}/participants")
         Call<List<TaskParticipant>> getTaskParticipants(@Path("id") String taskId);
@@ -219,6 +318,19 @@ public class TaskService {
             @Path("taskId") String taskId,
             @Part okhttp3.MultipartBody.Part file,
             @Query("checklist_item_id") String checklistItemId
+        );
+        
+        @POST("tasks/{taskId}/comments/{commentId}/react")
+        Call<com.example.financialmanagement.models.MessageReaction> reactToMessage(
+            @Path("taskId") String taskId,
+            @Path("commentId") String commentId,
+            @Body java.util.Map<String, String> reactionData
+        );
+        
+        @GET("tasks/{taskId}/comments/{commentId}/reactions")
+        Call<java.util.List<com.example.financialmanagement.models.MessageReaction>> getMessageReactions(
+            @Path("taskId") String taskId,
+            @Path("commentId") String commentId
         );
     }
 
@@ -636,6 +748,160 @@ public class TaskService {
         });
     }
 
+    /**
+     * Mark message as read
+     */
+    public void markMessageAsRead(String taskId, String commentId, final TaskCallback<Void> callback) {
+        Call<Void> call = taskApi.markMessageAsRead(taskId, commentId);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    callback.onSuccess(null);
+                } else {
+                    callback.onError("Error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                callback.onError(t.getMessage());
+            }
+        });
+    }
+    
+    /**
+     * Mark multiple messages as read (batch)
+     */
+    public void markMessagesAsReadBatch(String taskId, List<String> messageIds, final TaskCallback<Void> callback) {
+        // Create request body
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        body.put("message_ids", messageIds);
+        
+        Call<Void> call = taskApi.markMessagesAsReadBatch(taskId, body);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    callback.onSuccess(null);
+                } else {
+                    callback.onError("Error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                callback.onError(t.getMessage());
+            }
+        });
+    }
+    
+    /**
+     * Update typing status (user is typing or stopped typing)
+     */
+    public void updateTypingStatus(String taskId, boolean isTyping, final TaskCallback<Void> callback) {
+        java.util.Map<String, Boolean> body = new java.util.HashMap<>();
+        body.put("is_typing", isTyping);
+        
+        Call<Void> call = taskApi.updateTypingStatus(taskId, body);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    callback.onSuccess(null);
+                } else {
+                    callback.onError("Error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                callback.onError(t.getMessage());
+            }
+        });
+    }
+    
+    /**
+     * Get list of users currently typing
+     */
+    public void getTypingUsers(String taskId, final TaskCallback<java.util.List<String>> callback) {
+        Call<java.util.List<java.util.Map<String, Object>>> call = taskApi.getTypingUsers(taskId);
+        call.enqueue(new Callback<java.util.List<java.util.Map<String, Object>>>() {
+            @Override
+            public void onResponse(Call<java.util.List<java.util.Map<String, Object>>> call, Response<java.util.List<java.util.Map<String, Object>>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    java.util.List<String> typingNames = new java.util.ArrayList<>();
+                    for (java.util.Map<String, Object> user : response.body()) {
+                        String name = (String) user.get("user_name");
+                        if (name == null || name.isEmpty()) {
+                            name = (String) user.get("employee_name");
+                        }
+                        if (name != null && !name.isEmpty()) {
+                            typingNames.add(name);
+                        }
+                    }
+                    callback.onSuccess(typingNames);
+                } else {
+                    callback.onError("Error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<java.util.List<java.util.Map<String, Object>>> call, Throwable t) {
+                callback.onError(t.getMessage());
+            }
+        });
+    }
+    
+    /**
+     * React to a message (toggle reaction)
+     */
+    public void reactToMessage(String taskId, String commentId, String emoji, TaskCallback<com.example.financialmanagement.models.MessageReaction> callback) {
+        java.util.Map<String, String> reactionData = new java.util.HashMap<>();
+        reactionData.put("emoji", emoji);
+        
+        Call<com.example.financialmanagement.models.MessageReaction> call = taskApi.reactToMessage(taskId, commentId, reactionData);
+        
+        call.enqueue(new Callback<com.example.financialmanagement.models.MessageReaction>() {
+            @Override
+            public void onResponse(Call<com.example.financialmanagement.models.MessageReaction> call, Response<com.example.financialmanagement.models.MessageReaction> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Failed to react: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.example.financialmanagement.models.MessageReaction> call, Throwable t) {
+                callback.onError(t.getMessage());
+            }
+        });
+    }
+    
+    /**
+     * Get reactions for a message
+     */
+    public void getMessageReactions(String taskId, String commentId, TaskCallback<java.util.List<com.example.financialmanagement.models.MessageReaction>> callback) {
+        Call<java.util.List<com.example.financialmanagement.models.MessageReaction>> call = taskApi.getMessageReactions(taskId, commentId);
+        
+        call.enqueue(new Callback<java.util.List<com.example.financialmanagement.models.MessageReaction>>() {
+            @Override
+            public void onResponse(Call<java.util.List<com.example.financialmanagement.models.MessageReaction>> call, Response<java.util.List<com.example.financialmanagement.models.MessageReaction>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Failed to get reactions: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<java.util.List<com.example.financialmanagement.models.MessageReaction>> call, Throwable t) {
+                callback.onError(t.getMessage());
+            }
+        });
+    }
+    
     public interface TaskCallback<T> {
         void onSuccess(T result);
         void onError(String error);
