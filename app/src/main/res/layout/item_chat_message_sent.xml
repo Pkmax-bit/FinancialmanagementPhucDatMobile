@@ -31,7 +31,8 @@
                 android:orientation="vertical"
                 android:paddingHorizontal="@dimen/chat_bubble_padding_horizontal"
                 android:paddingVertical="@dimen/chat_bubble_padding_vertical"
-                android:minWidth="100dp">
+                android:minWidth="100dp"
+                android:maxWidth="240dp">
 
                 <!-- Reply Preview -->
                 <LinearLayout
@@ -43,8 +44,7 @@
                     android:background="@drawable/reply_preview_background"
                     android:padding="12dp"
                     android:layout_marginBottom="8dp"
-                    android:gravity="center_vertical"
-                    android:minWidth="480dp">
+                    android:gravity="center_vertical">
                     
                     <View
                         android:layout_width="@dimen/chat_reply_border_width"
@@ -55,8 +55,7 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:minWidth="440dp">
+                        android:orientation="vertical">
                         
                         <TextView
                             android:id="@+id/text_reply_sender"

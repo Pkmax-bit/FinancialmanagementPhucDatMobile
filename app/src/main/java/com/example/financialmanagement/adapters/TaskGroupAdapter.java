@@ -42,7 +42,18 @@ public class TaskGroupAdapter extends RecyclerView.Adapter<TaskGroupAdapter.View
         TaskGroup group = taskGroups.get(position);
         
         holder.textGroupName.setText(group.getName());
-        holder.textTaskCount.setText(String.valueOf(group.getTaskCount()));
+        
+        // Display task count with label
+        int taskCount = group.getTaskCount();
+        int completedCount = group.getCompletedCount();
+        if (taskCount > 0) {
+            holder.textTaskCount.setText(taskCount + " nhiệm vụ (" + completedCount + " hoàn thành)");
+            holder.textTaskCount.setVisibility(View.VISIBLE);
+        } else {
+            holder.textTaskCount.setText("0 nhiệm vụ");
+            holder.textTaskCount.setVisibility(View.VISIBLE);
+        }
+        
         holder.textGroupIcon.setText(group.getIcon());
         
         try {
