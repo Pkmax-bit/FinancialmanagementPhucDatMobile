@@ -92,3 +92,9 @@
 ⏳ **Reactions UI integration** - 80% (còn wire-up với adapter)
 
 Bạn có muốn tôi tiếp tục hoàn thiện reactions hoặc muốn test những gì đã làm trước? 🎨
+<<<<<<< HEAD
+
+
+
+=======
+>>>>>>> parent of 8b1e2712 (chỉnh sửa , tối ưu và báo giá)

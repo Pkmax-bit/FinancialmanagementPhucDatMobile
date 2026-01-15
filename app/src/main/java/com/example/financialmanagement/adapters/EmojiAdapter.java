@@ -79,3 +79,4 @@ public class EmojiAdapter extends RecyclerView.Adapter<EmojiAdapter.EmojiViewHol
     }
 }
 
+

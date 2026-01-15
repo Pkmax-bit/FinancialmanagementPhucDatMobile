@@ -222,3 +222,9 @@ Với lộ trình trên:
 - **Kết quả**: Chat app hoàn chỉnh, ổn định, UX tốt
 - **Sau đó**: Có thể bắt đầu thêm tính năng mới (read receipts, typing indicator, voice message...)
 
+<<<<<<< HEAD
+
+
+
+=======
+>>>>>>> parent of 8b1e2712 (chỉnh sửa , tối ưu và báo giá)

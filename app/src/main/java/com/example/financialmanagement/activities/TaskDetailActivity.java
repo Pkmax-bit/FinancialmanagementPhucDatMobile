@@ -58,11 +58,29 @@ import java.util.ArrayList; // Added for lists
 import com.google.android.material.chip.Chip; // Added for priority chips
 import android.view.ViewGroup; // Added for dialog sizing
 import com.example.financialmanagement.auth.AuthManager; // Added for permission checking
+import com.example.financialmanagement.services.QuoteService; // Added for quotes fallback
+import com.example.financialmanagement.adapters.QuotesAdapter; // Added for quotes adapter
+import com.example.financialmanagement.models.Quote; // Added for Quote model
+import java.util.Map; // Added for quote filter params
+import java.util.HashMap; // Added for quote filter params
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.os.Build;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import com.example.financialmanagement.receivers.PinnedTaskActionReceiver;
+import android.view.Menu;
+import android.view.MenuItem;
 
 public class TaskDetailActivity extends AppCompatActivity {
 
     private String taskId;
     private TaskService taskService;
+    private Task currentTask; // Store current task for pinning
+    private boolean isPinned = false; // Track pin state
+    private static final String CHANNEL_ID_PINNED = "pinned_tasks_channel";
+    private QuoteService quoteService; // Added for quotes fallback
     private AuthManager authManager;
     private String currentUserId;
     private String currentUserRole;
@@ -106,6 +124,7 @@ public class TaskDetailActivity extends AppCompatActivity {
         setupToolbar();
         
         taskService = new TaskService(this);
+        quoteService = new QuoteService(this); // Initialize QuoteService for fallback
         authManager = new AuthManager(this);
         currentUserId = authManager.getUserId();
         currentUserRole = authManager.getUserRole();
@@ -143,6 +162,52 @@ public class TaskDetailActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             toolbar.setNavigationOnClickListener(v -> onBackPressed());
         }
+    }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_task_detail, menu);
+        return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_pin) {
+            onPinButtonClicked();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+    
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem pinItem = menu.findItem(R.id.action_pin);
+        if (pinItem != null) {
+            // Update icon based on pin state
+            pinItem.setIcon(isPinned ? R.drawable.ic_pin : R.drawable.ic_pin);
+            pinItem.setTitle(isPinned ? "Bỏ ghim" : "Ghim nhiệm vụ");
+        }
+        return super.onPrepareOptionsMenu(menu);
+    }
+    
+    private void onPinButtonClicked() {
+        if (currentTask == null) {
+            Toast.makeText(this, "Chưa tải thông tin nhiệm vụ", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        if (!isPinned) {
+            showPinnedTaskNotification(currentTask);
+            isPinned = true;
+            Toast.makeText(this, "Đã ghim nhiệm vụ", Toast.LENGTH_SHORT).show();
+        } else {
+            cancelPinnedTaskNotification(currentTask.getId());
+            isPinned = false;
+            Toast.makeText(this, "Đã bỏ ghim nhiệm vụ", Toast.LENGTH_SHORT).show();
+        }
+        
+        // Update menu icon
+        invalidateOptionsMenu();
     }
 
     private void loadTaskDetails() {
@@ -190,6 +255,7 @@ public class TaskDetailActivity extends AppCompatActivity {
             }
         });
     }
+
 
     private boolean isImageFile(String url) {
         if (url == null || url.isEmpty()) return false;
@@ -2331,5 +2397,100 @@ public class TaskDetailActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(this, "Lỗi tải về: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
+    }
+    
+    // ==================== PINNED TASK NOTIFICATION ====================
+    
+    /**
+     * Tạo notification channel cho nhiệm vụ được ghim (Android 8.0+)
+     */
+    private void createPinnedChannelIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                CHANNEL_ID_PINNED,
+                "Nhiệm vụ được ghim",
+                NotificationManager.IMPORTANCE_LOW
+            );
+            channel.setDescription("Thông báo cố định cho các nhiệm vụ được ghim");
+            channel.setShowBadge(false);
+            
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            if (manager != null) {
+                manager.createNotificationChannel(channel);
+            }
+        }
+    }
+    
+    /**
+     * Lấy notification ID từ task ID (đảm bảo unique)
+     */
+    private int notificationIdForTask(String taskId) {
+        return taskId.hashCode();
+    }
+    
+    /**
+     * Hiển thị notification cố định cho nhiệm vụ được ghim
+     */
+    private void showPinnedTaskNotification(Task task) {
+        createPinnedChannelIfNeeded();
+        
+        int notificationId = notificationIdForTask(task.getId());
+        
+        // Intent mở lại TaskDetailActivity khi click vào notification
+        Intent contentIntent = new Intent(this, TaskDetailActivity.class);
+        contentIntent.putExtra("task_id", task.getId());
+        contentIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        
+        PendingIntent contentPendingIntent = PendingIntent.getActivity(
+            this,
+            notificationId,
+            contentIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        
+        // Intent cho action "Hoàn thành nhanh"
+        Intent completeIntent = new Intent(this, PinnedTaskActionReceiver.class);
+        completeIntent.setAction(PinnedTaskActionReceiver.ACTION_COMPLETE_TASK);
+        completeIntent.putExtra(PinnedTaskActionReceiver.EXTRA_TASK_ID, task.getId());
+        completeIntent.putExtra(PinnedTaskActionReceiver.EXTRA_NOTIFICATION_ID, notificationId);
+        
+        PendingIntent completePendingIntent = PendingIntent.getBroadcast(
+            this,
+            notificationId,
+            completeIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        
+        // Tạo nội dung notification
+        String contentText = "Trạng thái: " + task.getStatusDisplayName();
+        if (task.getDueDate() != null && !task.getDueDate().isEmpty()) {
+            contentText += " | Hạn: " + task.getDueDate();
+        }
+        
+        // Tạo notification
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID_PINNED)
+            .setSmallIcon(R.drawable.ic_tasks)
+            .setContentTitle(task.getTitle())
+            .setContentText(contentText)
+            .setContentIntent(contentPendingIntent)
+            .setOngoing(true) // Luôn hiển thị, không vuốt tắt được
+            .setOnlyAlertOnce(true)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .addAction(
+                R.drawable.ic_check,
+                "Hoàn thành",
+                completePendingIntent
+            );
+        
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.notify(notificationId, builder.build());
+    }
+    
+    /**
+     * Hủy notification của nhiệm vụ được ghim
+     */
+    private void cancelPinnedTaskNotification(String taskId) {
+        int notificationId = notificationIdForTask(taskId);
+        NotificationManagerCompat.from(this).cancel(notificationId);
     }
 }

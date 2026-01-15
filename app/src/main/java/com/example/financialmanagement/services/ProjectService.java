@@ -140,12 +140,27 @@ public class ProjectService {
     /**
      * Update project
      */
+    /**
+     * Update project information
+     * 
+     * Note: When updating progress, the backend will automatically update the project status:
+     * - progress >= 99.9% -> status = 'completed'
+     * - 0% < progress < 100% -> status = 'active'
+     * - progress = 0% -> status = 'planning'
+     * 
+     * The database trigger will also handle this automatically.
+     * 
+     * @param projectId Project ID to update
+     * @param project Project object with updated fields (progress should be 0-100)
+     * @param callback Callback for success/error
+     */
     public void updateProject(String projectId, Project project, ProjectCallback callback) {
         Call<Project> call = apiService.updateProject(projectId, project);
         call.enqueue(new Callback<Project>() {
             @Override
             public void onResponse(Call<Project> call, Response<Project> response) {
                 if (response.isSuccessful() && response.body() != null) {
+                    // Project status will be automatically updated by backend based on progress
                     callback.onSuccess(response.body());
                 } else {
                     callback.onError("Lỗi cập nhật dự án: " + response.code());

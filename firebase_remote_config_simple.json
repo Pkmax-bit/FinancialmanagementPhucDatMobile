@@ -1,0 +1,14 @@
+{
+  "welcome_message": "Xin chào, ",
+  "api_base_url": "https://financial-management-backend-3m78.onrender.com",
+  "maintenance_mode": false,
+  "enable_feature_x": false,
+  "app_version_min": "1.0",
+  "color_primary": "#2563EB",
+  "max_upload_size_mb": 10,
+  "show_promo": false,
+  "promo_message": ""
+}
+
+
+

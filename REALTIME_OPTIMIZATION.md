@@ -227,3 +227,9 @@ Nếu cần scale > 500 users:
 
 **Current solution is optimal for 50-200 concurrent users!** ✅
 
+<<<<<<< HEAD
+
+
+
+=======
+>>>>>>> parent of 8b1e2712 (chỉnh sửa , tối ưu và báo giá)

@@ -1,0 +1,78 @@
+{
+  "parameters": {
+    "welcome_message": {
+      "defaultValue": {
+        "value": "Xin chào, "
+      },
+      "valueType": "STRING",
+      "description": "Welcome message hiển thị trên Dashboard"
+    },
+    "api_base_url": {
+      "defaultValue": {
+        "value": "https://financial-management-backend-3m78.onrender.com"
+      },
+      "valueType": "STRING",
+      "description": "API base URL cho backend"
+    },
+    "maintenance_mode": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "valueType": "BOOLEAN",
+      "description": "Bật/tắt chế độ bảo trì. Nếu true, app sẽ hiển thị màn hình maintenance"
+    },
+    "enable_feature_x": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "valueType": "BOOLEAN",
+      "description": "Feature flag để bật/tắt tính năng X"
+    },
+    "app_version_min": {
+      "defaultValue": {
+        "value": "1.0"
+      },
+      "valueType": "STRING",
+      "description": "Version tối thiểu yêu cầu. Nếu app version thấp hơn, sẽ yêu cầu update"
+    },
+    "color_primary": {
+      "defaultValue": {
+        "value": "#2563EB"
+      },
+      "valueType": "STRING",
+      "description": "Màu primary của app (hex color code)"
+    },
+    "max_upload_size_mb": {
+      "defaultValue": {
+        "value": "10"
+      },
+      "valueType": "NUMBER",
+      "description": "Kích thước upload tối đa (MB)"
+    },
+    "show_promo": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "valueType": "BOOLEAN",
+      "description": "Hiển thị promo banner hay không"
+    },
+    "promo_message": {
+      "defaultValue": {
+        "value": ""
+      },
+      "valueType": "STRING",
+      "description": "Nội dung promo message (hiển thị khi show_promo = true)"
+    }
+  },
+  "version": {
+    "versionNumber": "1",
+    "updateTime": "2026-01-14T00:00:00Z",
+    "updateUser": {
+      "email": "admin@example.com"
+    },
+    "description": "Initial Remote Config setup for Financial Management App"
+  }
+}
+
+
+

@@ -332,6 +332,9 @@ public class TaskService {
             @Path("taskId") String taskId,
             @Path("commentId") String commentId
         );
+        
+        @PUT("tasks/{id}")
+        Call<Task> updateTaskStatus(@Path("id") String id, @Body java.util.Map<String, String> body);
     }
 
     public static class ChecklistItemCreateRequest {
@@ -898,6 +901,30 @@ public class TaskService {
             @Override
             public void onFailure(Call<java.util.List<com.example.financialmanagement.models.MessageReaction>> call, Throwable t) {
                 callback.onError(t.getMessage());
+            }
+        });
+    }
+    
+    /**
+     * Hoàn thành nhiệm vụ (cập nhật status thành "completed")
+     */
+    public void completeTask(String taskId, final TaskCallback<Void> callback) {
+        java.util.Map<String, String> body = new java.util.HashMap<>();
+        body.put("status", "completed");
+        
+        taskApi.updateTaskStatus(taskId, body).enqueue(new Callback<Task>() {
+            @Override
+            public void onResponse(Call<Task> call, Response<Task> response) {
+                if (response.isSuccessful()) {
+                    callback.onSuccess(null);
+                } else {
+                    callback.onError("Error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Task> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
             }
         });
     }

@@ -184,3 +184,9 @@ Có thể nâng cấp lên WebSocket/Supabase Realtime sau nếu cần real-time
 
 **Status**: ✅ Production Ready
 
+<<<<<<< HEAD
+
+
+
+=======
+>>>>>>> parent of 8b1e2712 (chỉnh sửa , tối ưu và báo giá)

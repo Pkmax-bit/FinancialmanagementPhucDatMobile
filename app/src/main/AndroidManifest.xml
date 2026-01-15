@@ -19,6 +19,9 @@
     
     <!-- Install APK permission (Android 8.0+) -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    
+    <!-- Notification permission (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -238,6 +241,11 @@
             android:name=".activities.ProjectPickerActivity"
             android:label="Chọn Dự Án"
             android:theme="@style/Theme.FinancialManagement.NoActionBar" />
+        
+        <!-- Pinned Task Action Receiver -->
+        <receiver
+            android:name=".receivers.PinnedTaskActionReceiver"
+            android:exported="false" />
             
     </application>
 
